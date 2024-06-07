@@ -24,7 +24,7 @@ export const dataSourceOptions: DataSourceOptions = {
   migrations: ['dist/**/migrations/*{.ts,.js}'],
 }
 
-export const dataSource = new DataSource(dataSourceOptions)
+export const dataSource = new DataSource(dataSourceOptions) //
 
 async function runMigrations() {
   await dataSource.initialize()
