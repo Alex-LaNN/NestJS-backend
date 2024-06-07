@@ -37,3 +37,4 @@ runMigrations().catch((error) => {
 })
 
 // npx typeorm migration:generate -d ./dist/src/database/config.js ./src/database/migrations/LastMigration
+// npm run typeorm migration:generate -d ./dist/src/database/config.js ./src/database/migrations/LastMigration
