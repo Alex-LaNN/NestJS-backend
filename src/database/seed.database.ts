@@ -30,7 +30,7 @@ export class SeedDatabase {
    * - Выполняет операции по заполнению базы данных
    */
   synchronizeDatabase = async () => {
-    //    await this.dataSource.initialize()
+    //await this.dataSource.initialize()
     this.queryRunner = this.dataSource.createQueryRunner()
     try {
       await this.queryRunner.startTransaction()
@@ -75,12 +75,12 @@ export class SeedDatabase {
           `Failed to fetch data for ${entityName}: ${response.statusText}`,
         )
       }
-      // Получение массива результатов и извлечение 'URL' следующей страницы для дальнейшего отображения списка сущности.
+      // Извлечение массива результатов и 'URL' следующей страницы из полученного ответа сервера для дальнейшей обработки списка объектов сущности.
       let data: SwapiResponse<T> = (await response.json()) as SwapiResponse<T>
       let { results, next } = data
-      console.log(`sd:81 - 'Results[0]' for '${entityName}': `, results[0]) ///////////////////////////////////////////////
+      console.log(`sd:81 - 'Results[0]' for '${entityName}': `, results[0]) ////////////////////////////
       while (next) {
-        // Для каждого элемента в массиве ответа сервера 'results' (страницы отображения)
+        // Для каждого элемента в массиве ответа сервера 'results' (отображаемой страницы)
         await this.saveEntities<T>(results, entityName, entityRepository)
         response = await fetch(next)
         if (!response.ok) {
@@ -94,7 +94,7 @@ export class SeedDatabase {
       }
     } catch (err) {
       console.error(
-        `sd:97 - Failed to add entity ${entityName}: ${err.message}!!!`,
+        `sd:97 - Failed to add entity '${entityName}': ${err.message}!!!`,
       )
       throw getResponceOfException(err)
     }

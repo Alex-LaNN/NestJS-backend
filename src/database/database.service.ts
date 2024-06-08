@@ -15,7 +15,18 @@ export class DatabaseService implements TypeOrmOptionsFactory {
       )
     }
 
-    const options: TypeOrmModuleOptions = dataSourceOptions
+    //    const options: TypeOrmModuleOptions = dataSourceOptions
+    
+    const options: TypeOrmModuleOptions = {
+      type: 'mysql',
+      host: dbHost,
+      port: dbPort,
+      username: dbUser,
+      password: dbPass,
+      database: dbName,
+      entities: ['dist/**/*.entity{.ts,.js}'],
+      //synchronize: true,
+    }
 
     return options
   }
