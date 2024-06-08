@@ -120,7 +120,7 @@ export class SeedDatabase {
         entityName,
         entity,
       )) as DeepPartial<T>
-      
+
       console.log(`sd:124 - Data for saving ${entityName}: `, filledObject) /////////////////////////////////////
 
       // Сохранение полученных данных сущности в БД.
@@ -141,11 +141,14 @@ export class SeedDatabase {
   ): Promise<Record<string, any>> {
     // Получение списка связанных сущностей из 'relatedEntitiesMap' для определенной сущности.
     const relatedEntities: string[] =
-//      relatedEntitiesMap[entityName]?.relatedEntities || []
+      //      relatedEntitiesMap[entityName]?.relatedEntities || []
       relatedEntitiesMap[entityName].relatedEntities
     let relatedRepository: Repository<ObjectLiteral>
     // Замена URL-адресов связанных данных у конкретной сущности на локальные URL-адреса.
-    const replaceUrl = (url: string): string => url.replace(swapiUrl, localUrl)
+    //const replaceUrl = (url: string): string => url.replace(swapiUrl, localUrl)
+    async function replaceUrl(url: string): Promise<string> {
+      return url.replace(swapiUrl, localUrl)
+    }
     // Заполнение связанных сущностей
     for (const relationEntity of relatedEntities) {
       try {
@@ -165,20 +168,24 @@ export class SeedDatabase {
         object[relationEntity] =
           Array.isArray(relationData) || relationEntity === 'images' ? [] : null
         console.log(
-          `sd:168 - No related data found for '${relationEntity}' in '${entityName}'. Installed by default...`, //////////////////////
+          `sd:168 - No related data found for '${relationEntity}' in '${entityName}'. Installed by default...`,
         )
         continue
       }
       try {
-        object.url = replaceUrl(object.url)
+        object.url = await replaceUrl(object.url)
         if (Array.isArray(relationData)) {
           // Обработка массива URL
           relationData = await Promise.all(
-            relationData.map(async (url: string) => replaceUrl(url)),
+            relationData.map(async (url: string) =>
+              await replaceUrl(url),
+              //extractIdFromUrl(await replaceUrl(url)),
+            ),
           )
         } else if (typeof relationData === 'string') {
           // Обработка одного URL
-          relationData = replaceUrl(relationData)
+          relationData = await replaceUrl(relationData)
+          //relationData = extractIdFromUrl(await replaceUrl(relationData))
         }
         object[relationEntity] = relationData
       } catch (error) {
@@ -189,5 +196,16 @@ export class SeedDatabase {
       }
     }
     return object
+
+    function extractIdFromUrl(url: string): string {
+      if (url === null || url === undefined) return '0'
+      // Извлечение 'id' (последнего числового значения) из 'URL'
+      const match = url.match(/\/(\d+)\/?$/)
+      if (match) {
+        return match[1]
+      } else {
+        throw new Error(`Invalid URL: ${url}`)
+      }
+    }
   }
 }

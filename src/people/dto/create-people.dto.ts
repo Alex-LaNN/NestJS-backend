@@ -79,10 +79,4 @@ export class CreatePeopleDto {
   })
   @IsArray()
   starships: string[]
-
-  @ApiProperty({
-    description: 'An array of images resource URLs for this person.',
-  })
-  @IsArray()
-  images: string[]
 }

@@ -55,10 +55,7 @@ export class People extends AbstractEntity<People> {
   })
   birth_year: string
 
-  @Column({
-    type: 'enum',
-    enum: E_Gender,
-  })
+  @Column()
   @ApiProperty({
     description:
       'The gender of this person. Either "Male", "Female" or "unknown", "n/a" if the person does not have a gender.',
