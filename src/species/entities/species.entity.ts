@@ -21,6 +21,10 @@ export class Species extends AbstractEntity<Species> {
   name: string
 
   @Column()
+  @ApiProperty({ description: 'the hypermedia URL of this resource.' })
+  url: string
+
+  @Column()
   @ApiProperty({
     description:
       'The classification of this species, such as "mammal" or "reptile".',
@@ -72,12 +76,12 @@ export class Species extends AbstractEntity<Species> {
   })
   language: string
 
-  @OneToOne(() => Planet, (planet) => planet.url, { nullable: true })
+  @OneToOne(() => Planet, (planets) => planets.id, { nullable: true })
   @ApiProperty({
     description:
       'The URL of a planet resource, a planet that this species originates from.',
   })
-  @JoinColumn({ referencedColumnName: 'url' })
+  //@JoinColumn({ referencedColumnName: 'url' })
   homeworld: Planet
 
   @ManyToMany(() => People, (people) => people.species)

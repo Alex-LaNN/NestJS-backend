@@ -35,8 +35,9 @@ export class SeedDatabase {
     try {
       await this.queryRunner.startTransaction()
       console.log(`Data source initialized. Let's start seeding...`)
+      const { images, ...entityClassesWithoutFilms } = entityClasses
       // Цикл по всем сущностям для заполнения БД
-      for (const entityName of Object.keys(entityClasses)) {
+      for (const entityName of Object.keys(entityClassesWithoutFilms)) {
         await this.addData(entityName)
       }
       // Подтверждение транзакции
@@ -85,7 +86,7 @@ export class SeedDatabase {
         response = await fetch(next)
         if (!response.ok) {
           throw new Error(
-            `Failed to fetch data for ${entityName}: ${response.statusText}!!!`,
+            `sd:88 - Failed to fetch data for '${entityName}': "${response.statusText}"!!!`,
           )
         }
         data = (await response.json()) as SwapiResponse<T>
@@ -108,25 +109,31 @@ export class SeedDatabase {
    * @param entityRepository Репозиторий сущности.
    */
   private async saveEntities<T extends Record<string, unknown>>(
-    results: any[],
+    results: T[],
     entityName: string,
     entityRepository: Repository<T>,
-  ) {
+  ): Promise<void> {
+    let isNeedToFillRelatedEntities: boolean =
+      entityName == 'films' ? true : entityName === 'people' ? true : false
     for (const object of results) {
-      // Извлечение полученных данных сущности(в переменную 'entity'), исключая поля 'created' и 'edited'.
-      const { created, edited, ...entity } = object as AbstractEntity<T>
       // Заполнение связанных данных сущности.
       const filledObject = (await this.addRelations(
         entityName,
-        entity,
+        object,
       )) as DeepPartial<T>
 
-      console.log(`sd:124 - Data for saving ${entityName}: `, filledObject) /////////////////////////////////////
+      //console.log(`sd:126 - Data for saving ${entityName}: `, filledObject) /////////////////////////////////////
 
       // Сохранение полученных данных сущности в БД.
       await entityRepository.save(filledObject)
+
     }
   }
+
+  private async addObject<T>(
+    entityName: string,
+    entity: Omit<T, 'created' | 'edited'>,
+  ) {}
 
   /**
    * Добавляет связанные сущности к объекту данных сущности.
@@ -167,12 +174,13 @@ export class SeedDatabase {
       if (!relationData) {
         object[relationEntity] =
           Array.isArray(relationData) || relationEntity === 'images' ? [] : null
-        console.log(
-          `sd:168 - No related data found for '${relationEntity}' in '${entityName}'. Installed by default...`,
-        )
+        // console.log(
+        //   `sd:168 - No related data found for '${relationEntity}' in '${entityName}'. Installed by default...`,
+        // )
         continue
       }
       try {
+        let idFromUrl: number
         object.url = await replaceUrl(object.url)
         if (Array.isArray(relationData)) {
           // Обработка массива URL
@@ -185,9 +193,10 @@ export class SeedDatabase {
         } else if (typeof relationData === 'string') {
           // Обработка одного URL
           relationData = await replaceUrl(relationData)
+          idFromUrl = Number(await extractIdFromUrl(relationData))
           //relationData = extractIdFromUrl(await replaceUrl(relationData))
         }
-        object[relationEntity] = relationData
+        object[relationEntity] = idFromUrl
       } catch (error) {
         console.error(
           `Ошибка при замене URL для '${relationEntity}': ${error.message}`,
@@ -197,7 +206,7 @@ export class SeedDatabase {
     }
     return object
 
-    function extractIdFromUrl(url: string): string {
+    async function extractIdFromUrl(url: string): Promise<string> {
       if (url === null || url === undefined) return '0'
       // Извлечение 'id' (последнего числового значения) из 'URL'
       const match = url.match(/\/(\d+)\/?$/)

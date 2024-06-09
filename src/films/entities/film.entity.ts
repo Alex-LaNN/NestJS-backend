@@ -7,8 +7,8 @@ import {
   ManyToMany,
   OneToMany,
   JoinColumn,
+  Index,
 } from 'typeorm'
-import { Transform } from 'class-transformer'
 import { People } from '../../people/entities/people.entity'
 import { Image } from '../../images/entities/image.entity'
 import { Planet } from '../../planets/entities/planet.entity'
@@ -21,6 +21,11 @@ export class Film extends AbstractEntity<Film> {
   @Column()
   @ApiProperty({ description: 'The title of this film.' })
   title: string
+
+  @Column()
+  @Index()
+  @ApiProperty({ description: 'the hypermedia URL of this resource.' })
+  url: string
 
   @Column()
   @ApiProperty({ description: 'The episode number of this film.' })
@@ -85,15 +90,8 @@ export class Film extends AbstractEntity<Film> {
   @ApiProperty({
     description: 'An array of planet resource URLs that are in this film.',
   })
-  @JoinColumn({ referencedColumnName: 'url' })
+  //@JoinColumn({ referencedColumnName: 'url' })
   planets: Planet[]
-
-  // @ManyToMany(() => Planet, (planets) => planets.films)
-  // @ApiProperty({
-  //   description: 'An array of planet resource URLs that are in this film',
-  // })
-  // @Transform(({ value }) => value.map((elem) => elem.url))
-  // planets: Planet[]
 
   @OneToMany(() => Image, (images) => images.films)
   @ApiProperty({

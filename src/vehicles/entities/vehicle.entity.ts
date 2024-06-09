@@ -15,6 +15,10 @@ export class Vehicle extends AbstractEntity<Vehicle> {
   name: string
 
   @Column()
+  @ApiProperty({ description: 'The hypermedia URL of this resource.' })
+  url: string
+
+  @Column()
   @ApiProperty({
     description:
       'The model or official name of this vehicle. Such as "All-Terrain Attack Transport".',

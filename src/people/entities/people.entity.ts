@@ -23,6 +23,10 @@ export class People extends AbstractEntity<People> {
   name: string
 
   @Column()
+  @ApiProperty({ description: 'the hypermedia URL of this resource.' })
+  url: string
+
+  @Column()
   @ApiProperty({ description: 'The height of the person in centimeters.' })
   height: string
 
@@ -67,7 +71,7 @@ export class People extends AbstractEntity<People> {
       'The URL of a planet resource, a planet that this person was born on or inhabits.',
   })
   @ManyToOne(() => Planet, (planets) => planets.residents, { cascade: true })
-  @JoinColumn({ referencedColumnName: 'url' })
+  //@JoinColumn({ referencedColumnName: 'url' })
   homeworld: Planet | null
 
   @ApiProperty({

@@ -15,6 +15,10 @@ export class Starship extends AbstractEntity<Starship> {
   name: string
 
   @Column()
+  @ApiProperty({ description: 'The hypermedia URL of this resource.' })
+  url: string
+
+  @Column()
   @ApiProperty({
     description:
       'The model or official name of this starship. Such as "T-65 X-wing" or "DS-1 Orbital Battle Station".',

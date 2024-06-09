@@ -23,7 +23,7 @@ export class LastMigration1717837591634 implements MigrationInterface {
         await queryRunner.query(`CREATE TABLE \`people_species\` (\`speciesId\` int NOT NULL, \`peopleId\` int NOT NULL, INDEX \`IDX_3f0fe0fa1df5ad0ef0afc4e9fb\` (\`speciesId\`), INDEX \`IDX_56f67794e6fc76cd1c1427ed1a\` (\`peopleId\`), PRIMARY KEY (\`speciesId\`, \`peopleId\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`films_species\` (\`speciesId\` int NOT NULL, \`filmsId\` int NOT NULL, INDEX \`IDX_b5b68c8f3779bcdaa9afda0378\` (\`speciesId\`), INDEX \`IDX_30663fc8495f09199efa33ab85\` (\`filmsId\`), PRIMARY KEY (\`speciesId\`, \`filmsId\`)) ENGINE=InnoDB`);
         await queryRunner.query(
-          `CREATE TABLE \`films_planets\` (\`planetsUrl\` varchar(255) NOT NULL, \`filmsUrl\` varchar(255) NOT NULL, INDEX \`IDX_56eec3c43f5246c6a26f4e61d8\` (\`planetsUrl\`), INDEX \`IDX_a8db04b134255125a4a990c656\` (\`filmsUrl\`), PRIMARY KEY (\`planetsId\`, \`filmsId\`)) ENGINE=InnoDB`,
+          `CREATE TABLE \`films_planets\` (\`planetsId\` int NOT NULL, \`filmsId\` int NOT NULL, INDEX \`IDX_56eec3c43f5246c6a26f4e61d8\` (\`planetsId\`), INDEX \`IDX_a8db04b134255125a4a990c656\` (\`filmsId\`), PRIMARY KEY (\`planetsId\`, \`filmsId\`)) ENGINE=InnoDB`,
         )
         await queryRunner.query(`CREATE TABLE \`people_films\` (\`peopleId\` int NOT NULL, \`filmsId\` int NOT NULL, INDEX \`IDX_f9d0038e205e511024d88b4c44\` (\`peopleId\`), INDEX \`IDX_a6ae8e23d835bdbc6b9fe43823\` (\`filmsId\`), PRIMARY KEY (\`peopleId\`, \`filmsId\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`people_vehicles\` (\`peopleId\` int NOT NULL, \`vehiclesId\` int NOT NULL, INDEX \`IDX_1228470b9119a37bc0608e7ac6\` (\`peopleId\`), INDEX \`IDX_f858faa2a7663a7258052fb4e5\` (\`vehiclesId\`), PRIMARY KEY (\`peopleId\`, \`vehiclesId\`)) ENGINE=InnoDB`);
@@ -57,6 +57,7 @@ export class LastMigration1717837591634 implements MigrationInterface {
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`SET FOREIGN_KEY_CHECKS=0`);
         await queryRunner.query(`ALTER TABLE \`films_vehicles\` DROP FOREIGN KEY \`FK_4465b1c1a89520616f3c6ccad73\``);
         await queryRunner.query(`ALTER TABLE \`films_vehicles\` DROP FOREIGN KEY \`FK_d892418f6e02d0ebce56bd35809\``);
         await queryRunner.query(`ALTER TABLE \`people_vehicles\` DROP FOREIGN KEY \`FK_f858faa2a7663a7258052fb4e54\``);
@@ -114,6 +115,7 @@ export class LastMigration1717837591634 implements MigrationInterface {
         await queryRunner.query(`DROP TABLE \`images\``);
         await queryRunner.query(`DROP TABLE \`species\``);
         await queryRunner.query(`DROP TABLE \`starships\``);
+        await queryRunner.query(`SET FOREIGN_KEY_CHECKS=1`);
     }
 
 }

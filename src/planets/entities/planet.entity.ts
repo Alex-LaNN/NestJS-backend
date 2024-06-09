@@ -7,6 +7,7 @@ import {
   ManyToMany,
   OneToMany,
   JoinColumn,
+  Index,
 } from 'typeorm'
 import { People } from '../../people/entities/people.entity'
 import { Film } from '../../films/entities/film.entity'
@@ -17,6 +18,11 @@ export class Planet extends AbstractEntity<Planet> {
   @Column()
   @ApiProperty({ description: 'The name of this planet.' })
   name: string
+
+  @Column()
+  @Index()
+  @ApiProperty({ description: 'the hypermedia URL of this resource.' })
+  url: string
 
   @Column()
   @ApiProperty({
@@ -73,7 +79,7 @@ export class Planet extends AbstractEntity<Planet> {
     description: 'An array of People URL Resources that live on this planet.',
   })
   @OneToMany(() => People, (people) => people.homeworld)
-  @JoinColumn({ referencedColumnName: 'url' })
+  //@JoinColumn({ referencedColumnName: 'url' })
   residents: People[]
 
   @ApiProperty({
@@ -82,7 +88,7 @@ export class Planet extends AbstractEntity<Planet> {
   })
   @ManyToMany(() => Film, (films) => films.planets)
   @JoinTable({ name: 'films_planets' })
-  @JoinColumn({ referencedColumnName: 'url' })
+  //@JoinColumn({ referencedColumnName: 'url' })
   films: Film[]
 
   @ApiProperty({

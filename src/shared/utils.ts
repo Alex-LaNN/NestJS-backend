@@ -85,13 +85,13 @@ export type Entity =
 
 // Объект списка сущностей, содержащий имена и соответствующие классы сущностей.
 export const entityClasses = {
-  people: People,
-  films: Film,
   starships: Starship,
   vehicles: Vehicle,
   species: Species,
   planets: Planet,
   images: Image,
+  films: Film,
+  people: People,
 }
 
 // Определение типа, который объединяет все классы сущностей
