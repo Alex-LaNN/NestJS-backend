@@ -11,7 +11,6 @@ import {
   paginate,
 } from 'nestjs-typeorm-paginate'
 import { People } from 'src/people/entities/people.entity'
-import { ImagesService } from 'src/images/images.service'
 import { Starship } from 'src/starships/entities/starship.entity'
 import { Species } from 'src/species/entities/species.entity'
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
@@ -37,7 +36,6 @@ export class FilmsService {
       species: Repository<Species>
       vehicles: Repository<Vehicle>
     },
-    private readonly imagesService: ImagesService,
   ) {
     this.relatedEntities = relatedEntitiesMap.films.relatedEntities
   }
@@ -49,7 +47,7 @@ export class FilmsService {
    */
   async create(createFilmDto: CreateFilmDto): Promise<Film> | null {
     try {
-      await this.filmsRepository.findOneOrFail({
+      await this.filmsRepository.findOne({
         where: { title: createFilmDto.title },
       })
 
@@ -88,7 +86,7 @@ export class FilmsService {
    * @returns Данные о фильме.
    */
   async findOne(filmId: string): Promise<Film> {
-    const film: Film = await this.filmsRepository.findOneOrFail({
+    const film: Film = await this.filmsRepository.findOne({
       where: {
         id: Number(filmId),
       },
@@ -149,7 +147,7 @@ export class FilmsService {
           if (newFilmDto[key]) {
             newFilm[key] = await Promise.all(
               newFilmDto[key].map(async (elem: string) => {
-                return await this.repositories[key].findOneOrFail({
+                return await this.repositories[key].findOne({
                   where: { url: elem },
                 })
               }),

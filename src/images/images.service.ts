@@ -74,7 +74,7 @@ export class ImagesService {
         id: newImageId,
         name: newImageName,
         description: description,
-        //        url: this.getImageStorageURL(fileName),
+        //url: this.getImageStorageURL(fileName),
       })
 
       // Получение сущности, к которой будет привязано изображение.
@@ -108,7 +108,7 @@ export class ImagesService {
   async removeImage(imageName: string): Promise<void> {
     try {
       // Поиск изображения в репозитории по его имени.
-      const image: Image = await this.imageRepository.findOneOrFail({
+      const image: Image = await this.imageRepository.findOne({
         where: {
           name: imageName,
         },
@@ -141,7 +141,7 @@ export class ImagesService {
       // Проверка, были ли найдены изображения для удаления.
       if (!imagesToDelete.length)
         throw new NotFoundException(
-          `Images for object ${entityName} with ID ${entityId} not found.`,
+          `Images for object '${entityName}' with ID '${entityId}' not found.`,
         )
       // Удаление найденных изображений из репозитория.
       await this.imageRepository.remove(imagesToDelete)

@@ -93,19 +93,16 @@ export class Starship extends AbstractEntity<Starship> {
   })
   consumables: string
 
-  //  @Column()
   @ManyToMany(() => Film, (films) => films.starships)
   @JoinTable({ name: 'films_starships' })
   @ApiProperty({ description: '' })
   films: Film[]
 
-  //  @Column()
   @ManyToMany(() => People, (people) => people.starships)
   @JoinTable({ name: 'people_starships' })
   @ApiProperty({ description: '' })
   pilots: People[]
 
-  //  @Column()
   @OneToMany(() => Image, (images) => images.starships)
   @JoinTable({ name: 'starship_images' })
   images?: Image[]

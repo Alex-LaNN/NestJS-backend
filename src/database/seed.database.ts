@@ -94,7 +94,7 @@ export class SeedDatabase {
       }
     } catch (err) {
       console.error(
-        `sd:97 - Failed to add entity '${entityName}': ${err.message}!!!`,
+        `sd:97 - Failed to add entity '${entityName}': "${err.message}"!!!`,
       )
       throw getResponceOfException(err)
     }
@@ -177,8 +177,8 @@ export class SeedDatabase {
         if (Array.isArray(relationData)) {
           // Обработка массива URL
           relationData = await Promise.all(
-            relationData.map(async (url: string) =>
-              await replaceUrl(url),
+            relationData.map(
+              async (url: string) => await replaceUrl(url),
               //extractIdFromUrl(await replaceUrl(url)),
             ),
           )

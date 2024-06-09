@@ -1,6 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { AbstractEntity } from 'src/shared/abstract.entity'
-import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm'
+import {
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  OneToMany,
+  JoinColumn,
+} from 'typeorm'
 import { People } from '../../people/entities/people.entity'
 import { Film } from '../../films/entities/film.entity'
 import { Image } from '../../images/entities/image.entity'
@@ -62,24 +69,22 @@ export class Planet extends AbstractEntity<Planet> {
   })
   surface_water: string
 
-  //  @Column()
   @ApiProperty({
     description: 'An array of People URL Resources that live on this planet.',
   })
   @OneToMany(() => People, (people) => people.homeworld)
-  @JoinTable({ name: 'planet_residents' })
+  @JoinColumn({ referencedColumnName: 'url' })
   residents: People[]
 
-  //  @Column()
   @ApiProperty({
     description:
       'An array of Film URL Resources that this planet has appeared in.',
   })
   @ManyToMany(() => Film, (films) => films.planets)
   @JoinTable({ name: 'films_planets' })
+  @JoinColumn({ referencedColumnName: 'url' })
   films: Film[]
 
-  //  @Column()
   @ApiProperty({
     description: 'An array of images resource URLs that are in this person.',
   })

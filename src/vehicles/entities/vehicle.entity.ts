@@ -80,7 +80,6 @@ export class Vehicle extends AbstractEntity<Vehicle> {
   })
   consumables: string
 
-//  @Column()
   @ManyToMany(() => Film, (films) => films.vehicles)
   @JoinTable({ name: 'films_vehicles' })
   @ApiProperty({
@@ -89,7 +88,6 @@ export class Vehicle extends AbstractEntity<Vehicle> {
   })
   films: Film[]
 
-  //  @Column()
   @ManyToMany(() => People, (people) => people.vehicles)
   @JoinTable({ name: 'people_vehicles' })
   @ApiProperty({
@@ -98,7 +96,6 @@ export class Vehicle extends AbstractEntity<Vehicle> {
   })
   pilots: People[]
 
-  //  @Column()
   @OneToMany(() => Image, (images) => images.vehicles)
   @ApiProperty({
     description: 'An array of image resource URLs for this vehicles.',

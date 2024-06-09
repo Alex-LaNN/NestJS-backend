@@ -5,6 +5,7 @@ import {
   ManyToMany,
   OneToMany,
   OneToOne,
+  JoinColumn,
 } from 'typeorm'
 import { AbstractEntity } from '../../shared/abstract.entity'
 import { ApiProperty } from '@nestjs/swagger'
@@ -71,15 +72,14 @@ export class Species extends AbstractEntity<Species> {
   })
   language: string
 
-//  @Column()
-  @OneToOne(() => Planet, (planet) => planet.id, { nullable: true })
+  @OneToOne(() => Planet, (planet) => planet.url, { nullable: true })
   @ApiProperty({
     description:
       'The URL of a planet resource, a planet that this species originates from.',
   })
+  @JoinColumn({ referencedColumnName: 'url' })
   homeworld: Planet
 
-  //  @Column()
   @ManyToMany(() => People, (people) => people.species)
   @JoinTable({ name: 'people_species' })
   @ApiProperty({
@@ -88,7 +88,6 @@ export class Species extends AbstractEntity<Species> {
   })
   people: People[]
 
-  //  @Column()
   @ManyToMany(() => Film, (films) => films.species)
   @JoinTable({ name: 'films_species' })
   @ApiProperty({
@@ -97,7 +96,6 @@ export class Species extends AbstractEntity<Species> {
   })
   films: Film[]
 
-  //  @Column()
   @OneToMany(() => Image, (images) => images.species)
   @ApiProperty({
     description: 'An array of image resource URLs for this species.',

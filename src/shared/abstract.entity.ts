@@ -2,14 +2,21 @@ import { Exclude } from 'class-transformer';
 import {
   Column,
   CreateDateColumn,
+  PrimaryColumn,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  Index,
 } from 'typeorm';
 
 export class AbstractEntity<T> {
   @Exclude()
   @PrimaryGeneratedColumn()
   id: number
+
+  //@PrimaryColumn({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar', length: 255 })
+  @Index()
+  url: string
 
   @CreateDateColumn({
     type: 'timestamp',
@@ -23,9 +30,6 @@ export class AbstractEntity<T> {
     onUpdate: 'CURRENT_TIMESTAMP(6)',
   })
   edited: Date
-
-  @Column({ type: 'varchar', length: 255 })
-  url: string
 
   get createdIso(): string {
     return this.created.toISOString()

@@ -6,7 +6,6 @@ import { Starship } from 'src/starships/entities/starship.entity'
 import { Repository } from 'typeorm'
 import { People } from 'src/people/entities/people.entity'
 import { Film } from 'src/films/entities/film.entity'
-import { ImagesService } from 'src/images/images.service'
 import {
   IPaginationOptions,
   Pagination,
@@ -28,7 +27,6 @@ export class StarshipsService {
       pilots: Repository<People>
       films: Repository<Film>
     },
-    private readonly imagesService: ImagesService,
   ) {
     this.relatedEntities = relatedEntitiesMap.starships.relatedEntities
   }
@@ -84,7 +82,7 @@ export class StarshipsService {
    * @returns
    */
   async findOne(starshipId: string) {
-    const starship: Starship = await this.starshipsRepository.findOneOrFail({
+    const starship: Starship = await this.starshipsRepository.findOne({
       where: {
         id: Number(starshipId),
       },
@@ -145,7 +143,7 @@ export class StarshipsService {
           if (newStarshipDto[key]) {
             starship[key] = await Promise.all(
               newStarshipDto[key].map(async (elem: string) => {
-                return await this.repositories[key].findOneOrFail({
+                return await this.repositories[key].findOne({
                   where: { url: elem },
                 })
               }),

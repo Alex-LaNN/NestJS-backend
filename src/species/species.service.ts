@@ -3,7 +3,6 @@ import { CreateSpeciesDto } from './dto/create-species.dto'
 import { UpdateSpeciesDto } from './dto/update-species.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
-import { ImagesService } from 'src/images/images.service'
 import { Species } from 'src/species/entities/species.entity'
 import { People } from 'src/people/entities/people.entity'
 import { Film } from 'src/films/entities/film.entity'
@@ -31,7 +30,6 @@ export class SpeciesService {
       films: Repository<Film>
       homeworld: Repository<Planet>
     },
-    private readonly imagesService: ImagesService,
   ) {
     this.relatedEntities = relatedEntitiesMap.species.relatedEntities
   }
@@ -85,7 +83,7 @@ export class SpeciesService {
    * @returns
    */
   async findOne(speciesId: string) {
-    const species: Species = await this.speciesRepository.findOneOrFail({
+    const species: Species = await this.speciesRepository.findOne({
       where: {
         id: Number(speciesId),
       },
@@ -147,17 +145,17 @@ export class SpeciesService {
       this.relatedEntities.map(async (key) => {
         if (key === 'homeworld' && newSpeciesDto.homeworld) {
           const planet: Planet =
-            await this.repositories.homeworld.findOneOrFail({
+            await this.repositories.homeworld.findOne({
               where: { url: newSpeciesDto.homeworld },
             })
           species.homeworld = planet
         } else if (newSpeciesDto[key]) {
           species[key] = await Promise.all(
             newSpeciesDto[key].map(async (elem: string) => {
-              const entity = await this.repositories[key].findOneOrFail({
+              const entity = await this.repositories[key].findOne({
                 where: { url: elem },
               })
-              return entity.url
+              return entity
             }),
           )
         }

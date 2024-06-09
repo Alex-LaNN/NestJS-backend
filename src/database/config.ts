@@ -20,8 +20,9 @@ export const dataSourceOptions: DataSourceOptions = {
   database: dbName,
   entities: ['dist/**/*.entity{.ts,.js}'],
   synchronize: true,
-  migrations: ['dist/src/database/migrations/*{.ts,.js}'],
-  //migrations: [__dirname + '/migrations/*{.ts,.js}'],
+  //migrationsRun: true,
+  //migrations: ['dist/src/database/migrations/*{.ts,.js}'],
+  migrations: [__dirname + '/migrations/*{.ts,.js}'],
   //logging: true,
 }
 

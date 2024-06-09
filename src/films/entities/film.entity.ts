@@ -1,6 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { AbstractEntity } from 'src/shared/abstract.entity'
-import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm'
+import {
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  OneToMany,
+  JoinColumn,
+} from 'typeorm'
+import { Transform } from 'class-transformer'
 import { People } from '../../people/entities/people.entity'
 import { Image } from '../../images/entities/image.entity'
 import { Planet } from '../../planets/entities/planet.entity'
@@ -42,7 +50,6 @@ export class Film extends AbstractEntity<Film> {
   })
   release_date: Date
 
-//  @Column()
   @ManyToMany(() => People, (people) => people.films)
   @JoinTable({ name: 'people_films' })
   @ApiProperty({
@@ -50,7 +57,6 @@ export class Film extends AbstractEntity<Film> {
   })
   characters: People[]
 
-  //  @Column()
   @ManyToMany(() => Species, (species) => species.films, { cascade: true })
   @JoinTable({ name: 'films_species' })
   @ApiProperty({
@@ -58,7 +64,6 @@ export class Film extends AbstractEntity<Film> {
   })
   species: Species[]
 
-  //  @Column()
   @ManyToMany(() => Starship, (starships) => starships.films, {
     cascade: true,
   })
@@ -68,7 +73,6 @@ export class Film extends AbstractEntity<Film> {
   })
   starships: Starship[]
 
-  //  @Column()
   @ManyToMany(() => Vehicle, (vehicles) => vehicles.films, { cascade: true })
   @JoinTable({ name: 'films_vehicles' })
   @ApiProperty({
@@ -76,15 +80,21 @@ export class Film extends AbstractEntity<Film> {
   })
   vehicles: Vehicle[]
 
-  //  @Column()
   @ManyToMany(() => Planet, (planets) => planets.films, { cascade: true })
   @JoinTable({ name: 'films_planets' })
   @ApiProperty({
     description: 'An array of planet resource URLs that are in this film.',
   })
+  @JoinColumn({ referencedColumnName: 'url' })
   planets: Planet[]
 
-  //  @Column()
+  // @ManyToMany(() => Planet, (planets) => planets.films)
+  // @ApiProperty({
+  //   description: 'An array of planet resource URLs that are in this film',
+  // })
+  // @Transform(({ value }) => value.map((elem) => elem.url))
+  // planets: Planet[]
+
   @OneToMany(() => Image, (images) => images.films)
   @ApiProperty({
     description: 'An array of image resource URLs for this movie.',

@@ -6,12 +6,12 @@ import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
 import { Repository } from 'typeorm'
 import { People } from 'src/people/entities/people.entity'
 import { Film } from 'src/films/entities/film.entity'
-import { ImagesService } from 'src/images/images.service'
 import {
   IPaginationOptions,
   Pagination,
   paginate,
 } from 'nestjs-typeorm-paginate'
+import { relatedEntitiesMap } from 'src/shared/utils'
 
 @Injectable()
 export class VehiclesService {
@@ -26,9 +26,8 @@ export class VehiclesService {
       pilots: Repository<People>
       films: Repository<Film>
     },
-    private readonly imagesService: ImagesService,
   ) {
-    this.relatedEntities = ['pilots', 'films']
+    this.relatedEntities = relatedEntitiesMap.vehicles.relatedEntities
   }
 
   /**
@@ -43,7 +42,6 @@ export class VehiclesService {
         where: { name: createVehicleDto.name },
       })
       if (existsVehicle) {
-        // Если объект уже существует, генерируется исключение.
         throw new HttpException('Vehicle already exists!', HttpStatus.FORBIDDEN)
       }
 
@@ -90,7 +88,7 @@ export class VehiclesService {
       // Преобразование идентификатора в число.
       const searchParam: number = Number(vehicleId)
       // Поиск объекта по его идентификатору.
-      const vehicle: Vehicle = await this.vehicleRepository.findOneOrFail({
+      const vehicle: Vehicle = await this.vehicleRepository.findOne({
         where: {
           id: searchParam,
         },

@@ -6,7 +6,6 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { People } from 'src/people/entities/people.entity'
 import { Film } from 'src/films/entities/film.entity'
-import { ImagesService } from 'src/images/images.service'
 import {
   IPaginationOptions,
   Pagination,
@@ -28,7 +27,6 @@ export class PlanetsService {
       residents: Repository<People>
       films: Repository<Film>
     },
-    private readonly imagesService: ImagesService,
   ) {
     this.relatedEntities = relatedEntitiesMap.planets.relatedEntities
   }
@@ -82,7 +80,7 @@ export class PlanetsService {
    * @returns
    */
   async findOne(planetId: string): Promise<Planet> {
-    const planet: Planet = await this.planetsRepository.findOneOrFail({
+    const planet: Planet = await this.planetsRepository.findOne({
       where: {
         id: Number(planetId),
       },
@@ -146,7 +144,7 @@ export class PlanetsService {
           if (newPlanetDto[key]) {
             newPlanet[key] = await Promise.all(
               newPlanetDto[key].map(async (elem: string) => {
-                return await this.repositories[key].findOneOrFail({
+                return await this.repositories[key].findOne({
                   where: { url: elem },
                 })
               }),

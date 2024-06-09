@@ -6,8 +6,8 @@ import {
   ManyToMany,
   ManyToOne,
   OneToMany,
+  JoinColumn,
 } from 'typeorm'
-import { E_Gender } from '../../shared/utils'
 import { ApiProperty } from '@nestjs/swagger'
 import { Planet } from '../../planets/entities/planet.entity'
 import { Film } from '../../films/entities/film.entity'
@@ -62,15 +62,14 @@ export class People extends AbstractEntity<People> {
   })
   gender: string
 
-  //@Column({ nullable: true })
   @ApiProperty({
     description:
       'The URL of a planet resource, a planet that this person was born on or inhabits.',
   })
   @ManyToOne(() => Planet, (planets) => planets.residents, { cascade: true })
+  @JoinColumn({ referencedColumnName: 'url' })
   homeworld: Planet | null
 
-//  @Column({ nullable: true })
   @ApiProperty({
     description: 'An array of film resource URLs that this person has been in.',
   })
@@ -78,7 +77,6 @@ export class People extends AbstractEntity<People> {
   @JoinTable({ name: 'people_films' })
   films: Film[]
 
-//  @Column({ nullable: true })
   @ApiProperty({
     description:
       'An array of species resource URLs that this person belongs to',
@@ -87,7 +85,6 @@ export class People extends AbstractEntity<People> {
   @JoinTable({ name: 'people_species' })
   species: Species[]
 
-//  @Column({ nullable: true })
   @ApiProperty({
     description:
       'An array of vehicle resource URLs that this person has piloted.',
@@ -96,7 +93,6 @@ export class People extends AbstractEntity<People> {
   @JoinTable({ name: 'people_vehicles' })
   vehicles: Vehicle[]
 
-//  @Column({ nullable: true })
   @ApiProperty({
     description:
       'An array of starship resource URLs that this person has piloted.',
@@ -107,7 +103,6 @@ export class People extends AbstractEntity<People> {
   @JoinTable({ name: 'people_starships' })
   starships: Starship[]
 
-//  @Column({ nullable: true })
   @ApiProperty({
     description: 'An array of images resource URLs that are in this person.',
   })

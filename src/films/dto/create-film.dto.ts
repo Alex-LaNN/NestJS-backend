@@ -73,5 +73,5 @@ export class CreateFilmDto {
     description: 'An array of images resource URLs for this film.',
   })
   @IsArray()
-  images: string[]
+  images?: string[]
 }

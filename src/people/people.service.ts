@@ -14,7 +14,6 @@ import { Film } from 'src/films/entities/film.entity'
 import { Starship } from 'src/starships/entities/starship.entity'
 import { Planet } from 'src/planets/entities/planet.entity'
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
-import { ImagesService } from 'src/images/images.service'
 import { relatedEntitiesMap } from 'src/shared/utils'
 import { Image } from 'src/images/entities/image.entity'
 
@@ -38,7 +37,6 @@ export class PeopleService {
       vehicles: Repository<Vehicle>
       images: Repository<Image>
     },
-    //    private readonly imagesService: ImagesService,
   ) {
     this.relatedEntities = relatedEntitiesMap.people.relatedEntities
   }
@@ -88,7 +86,7 @@ export class PeopleService {
    */
   async findOne(peopleId: string): Promise<People> {
     const searchParam: number = Number(peopleId)
-    const person = await this.peopleRepository.findOneOrFail({
+    const person = await this.peopleRepository.findOne({
       where: {
         id: searchParam,
       },
@@ -151,7 +149,7 @@ export class PeopleService {
               const entity = await this.repositories[key].findOne({
                 where: { url: elem },
               })
-              return entity.url
+              return entity
             }),
           )
         }
@@ -159,35 +157,3 @@ export class PeopleService {
     )
   }
 }
-
-// /**
-//  * Заполняет связанные сущности для персонажа.
-//  * @param newPeople Объект персонажа.
-//  * @param newPersonDto Данные для создания новой записи о персонаже.
-//  */
-// private async fillRelatedEntities(
-//   newPeople: People,
-//   newPersonDto: CreatePeopleDto | UpdatePeopleDto,
-// ): Promise<void> {
-//   await Promise.all(
-//     this.relatedEntities.map(async (key) => {
-//       if (key === 'homeworld' && newPersonDto.homeworld) {
-//         const planet: Planet = await this.repositories.homeworld.findOneOrFail(
-//           {
-//             where: { url: newPersonDto.homeworld },
-//           },
-//         )
-//         newPeople.homeworld = planet.url
-//       } else if (newPersonDto[key]) {
-//         newPeople[key] = await Promise.all(
-//           newPersonDto[key].map(async (elem: string) => {
-//             const entity =  await this.repositories[key].findOneOrFail({
-//               where: { url: elem },
-//             })
-//             return entity.url
-//           }),
-//         )
-//       }
-//     }),
-//   )
-// }
