@@ -6,7 +6,6 @@ import {
   JoinTable,
   ManyToMany,
   OneToMany,
-  JoinColumn,
   Index,
 } from 'typeorm'
 import { People } from '../../people/entities/people.entity'
@@ -79,7 +78,6 @@ export class Planet extends AbstractEntity<Planet> {
     description: 'An array of People URL Resources that live on this planet.',
   })
   @OneToMany(() => People, (people) => people.homeworld)
-  //@JoinColumn({ referencedColumnName: 'url' })
   residents: People[]
 
   @ApiProperty({

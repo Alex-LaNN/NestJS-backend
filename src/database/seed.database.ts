@@ -1,7 +1,8 @@
 import {
   SwapiResponse,
   entityClasses,
-  localUrl,
+  entityClassesToFillFirst,
+  entityClassesToFillNext,
   relatedEntitiesMap,
   swapiUrl,
 } from 'src/shared/utils'
@@ -13,10 +14,12 @@ import {
   Repository,
 } from 'typeorm'
 import fetch from 'cross-fetch'
-import { getResponceOfException } from 'src/shared/common.functions'
-import { AbstractEntity } from 'src/shared/abstract.entity'
+import { extractIdFromURL, getResponceOfException, replaceUrl } from 'src/shared/common.functions'
 import { InjectDataSource } from '@nestjs/typeorm'
 
+/**
+ * Класс заполнения локальной БД из удаленного источника данных
+ */
 export class SeedDatabase {
   private queryRunner: QueryRunner
   constructor(@InjectDataSource() private readonly dataSource: DataSource) {
@@ -30,16 +33,22 @@ export class SeedDatabase {
    * - Выполняет операции по заполнению базы данных
    */
   synchronizeDatabase = async () => {
-    //await this.dataSource.initialize()
     this.queryRunner = this.dataSource.createQueryRunner()
     try {
       await this.queryRunner.startTransaction()
       console.log(`Data source initialized. Let's start seeding...`)
-      const { images, ...entityClassesWithoutFilms } = entityClasses
-      // Цикл по всем сущностям для заполнения БД
-      for (const entityName of Object.keys(entityClassesWithoutFilms)) {
-        await this.addData(entityName)
+      let isNeedToFillRelatedEntities: boolean = true
+
+      //await this.addData('species', isNeedToFillRelatedEntities)
+
+      // Заполнения БД первоочередными сущностями
+      for (const entityName of Object.keys(entityClassesToFillFirst)) {
+        await this.addData(entityName, isNeedToFillRelatedEntities)
       }
+      // Заполнения БД остальными сущностями
+      // for (const entityName of Object.keys(entityClassesToFillNext)) {
+      //   await this.addData(entityName, isNeedToFillRelatedEntities)
+      // }
       // Подтверждение транзакции
       await this.queryRunner.commitTransaction()
       console.log('Finish seeding ok!...')
@@ -56,17 +65,28 @@ export class SeedDatabase {
   }
 
   /**
-   *  Добавление данных в БД для определенной сущности.
+   *  Заполнение БД.
    *
    * @param entityName Имя сущности.
+   * @param isNeedToFillRelatedEntities
    */
   private async addData<T extends Record<string, unknown>>(
     entityName: string,
+    isNeedToFillRelatedEntities: boolean,
   ): Promise<void> {
+    let entityRepository: Repository<T>
     try {
       // Получение репозитория TypeORM для данной сущности.
-      const entityRepository: Repository<T> =
-        this.queryRunner.manager.getRepository<T>(entityClasses[entityName])
+      entityRepository = this.queryRunner.manager.getRepository<T>(
+        entityClasses[entityName],
+      )
+      } catch (error) {
+      //   console.error(
+      //     `sd:85 - Failed to get repository for '${relationName}', message: '${error.message}'`,
+      //)
+        throw new Error(`No metadata found for '${entityName}'`)
+    }
+    try {
       // Формирование URL-адреса для запроса к SWAPI.
       const urlForRequest: string = `${swapiUrl}${entityName}/`
       // Запрос к SWAPI (Star Wars API) для получения всех доступных ресурсов типа 'entityName'.
@@ -76,17 +96,25 @@ export class SeedDatabase {
           `Failed to fetch data for ${entityName}: ${response.statusText}`,
         )
       }
-      // Извлечение массива результатов и 'URL' следующей страницы из полученного ответа сервера для дальнейшей обработки списка объектов сущности.
+      // Извлечение массива результатов и 'URL' следующей страницы из полученного ответа сервера.
       let data: SwapiResponse<T> = (await response.json()) as SwapiResponse<T>
       let { results, next } = data
-      console.log(`sd:81 - 'Results[0]' for '${entityName}': `, results[0]) ////////////////////////////
+      //console.log(`sd:102 - 'Results[0]' for '${entityName}': `, results[0]) ////////////////////////////
       while (next) {
-        // Для каждого элемента в массиве ответа сервера 'results' (отображаемой страницы)
-        await this.saveEntities<T>(results, entityName, entityRepository)
+        // Сохранение объектов в БД без связанных сущностей
+        if (!isNeedToFillRelatedEntities) {
+          await this.prioritySaveEntities<T>(
+            results,
+            entityName,
+            entityRepository,
+          )
+          // Сохранение объектов в БД с заполнением связанных сущностей
+        } else await this.saveEntities<T>(results, entityName, entityRepository)
+        // Получение ответа сервера с данными следующей страницы
         response = await fetch(next)
         if (!response.ok) {
           throw new Error(
-            `sd:88 - Failed to fetch data for '${entityName}': "${response.statusText}"!!!`,
+            `sd:117 - Failed to fetch data for '${entityName}', received: '${response.statusText}'`,
           )
         }
         data = (await response.json()) as SwapiResponse<T>
@@ -95,14 +123,36 @@ export class SeedDatabase {
       }
     } catch (err) {
       console.error(
-        `sd:97 - Failed to add entity '${entityName}': "${err.message}"!!!`,
+        `sd:126 - Failed to add entity '${entityName}': "${err.message}"!!!`,
       )
       throw getResponceOfException(err)
     }
   }
 
+/**
+ * 
+ * @param results 
+ * @param entityName 
+ * @param entityRepository 
+ */
+  private async prioritySaveEntities<T>(
+    results: T[],
+    entityName: string,
+    entityRepository: Repository<T>,
+  ): Promise<void> {
+    results.forEach(async (result: any) => {
+      if (entityName === 'species') {
+        if (result.homeworld) {
+          result.homeworld = await extractIdFromURL(result.homeworld)
+        } else result.homeworld = null
+      }
+    })
+    console.log(`sd:150 - Data for saving ${entityName}: `, results[0]) /////////////////////////////////////
+    //entityRepository.save(results)
+  }
+
   /**
-   * Сохранение данных сущности в базе данных.
+   * Сохранение данных сущности в базе данных с заполнением её связанных данных.
    *
    * @param results Массив данных сущностей.
    * @param entityName Имя сущности.
@@ -113,27 +163,17 @@ export class SeedDatabase {
     entityName: string,
     entityRepository: Repository<T>,
   ): Promise<void> {
-    let isNeedToFillRelatedEntities: boolean =
-      entityName == 'films' ? true : entityName === 'people' ? true : false
     for (const object of results) {
       // Заполнение связанных данных сущности.
-      const filledObject = (await this.addRelations(
+      const filledObject: DeepPartial<T> = (await this.addRelations(
         entityName,
         object,
       )) as DeepPartial<T>
-
-      //console.log(`sd:126 - Data for saving ${entityName}: `, filledObject) /////////////////////////////////////
-
+      //console.log(`sd:172 - Data for saving ${entityName}: `, filledObject) /////////////////////////////////////
       // Сохранение полученных данных сущности в БД.
       await entityRepository.save(filledObject)
-
     }
   }
-
-  private async addObject<T>(
-    entityName: string,
-    entity: Omit<T, 'created' | 'edited'>,
-  ) {}
 
   /**
    * Добавляет связанные сущности к объекту данных сущности.
@@ -147,74 +187,62 @@ export class SeedDatabase {
     object: Record<string, any>,
   ): Promise<Record<string, any>> {
     // Получение списка связанных сущностей из 'relatedEntitiesMap' для определенной сущности.
-    const relatedEntities: string[] =
-      //      relatedEntitiesMap[entityName]?.relatedEntities || []
-      relatedEntitiesMap[entityName].relatedEntities
-    let relatedRepository: Repository<ObjectLiteral>
-    // Замена URL-адресов связанных данных у конкретной сущности на локальные URL-адреса.
-    //const replaceUrl = (url: string): string => url.replace(swapiUrl, localUrl)
-    async function replaceUrl(url: string): Promise<string> {
-      return url.replace(swapiUrl, localUrl)
-    }
+    const relatedNames: string[] =
+      relatedEntitiesMap[entityName]?.relatedEntities || []
     // Заполнение связанных сущностей
-    for (const relationEntity of relatedEntities) {
-      try {
-        // Получаем репозиторий для связанной сущности
-        relatedRepository =
-          this.queryRunner.manager.getRepository(relationEntity)
-      } catch (error) {
-        console.error(
-          `sd:157 - Failed to get repository for '${relationEntity}': ${error.message}`,
-        )
-        throw new Error(`No metadata found for '${relationEntity}'`)
-      }
+    for (const relationName of relatedNames) {
       // Получение данных связанной сущности
-      let relationData: string | string[] = object[relationEntity]
+      let relationData: string | string[] = object[relationName]
       // Данные по связанной сущности отсутствуют => инициализация соответствующего поля
       if (!relationData) {
-        object[relationEntity] =
-          Array.isArray(relationData) || relationEntity === 'images' ? [] : null
+        object[relationName] =
+          Array.isArray(relationData) || relationName === 'images' ? [] : null
         // console.log(
-        //   `sd:168 - No related data found for '${relationEntity}' in '${entityName}'. Installed by default...`,
+        //   `sd:195 - No related data found for '${relationEntity}' in '${entityName}'. Installed by default...`,
         // )
         continue
       }
+      // Замена всех полей с 'Url-адресами' данного объекта на локальные
+      relationData = await urlsTransformObject(
+        object,
+        relationData,
+        relationName,
+      ) // Просмотреть логику в этом месте!!!!!!!!!!!!
+    }
+    return object
+
+    /**
+     *
+     * @param object Объект данных.
+     * @param relationData
+     * @param relationEntity
+     * @returns
+     */
+    async function urlsTransformObject(
+      object: Record<string, any>,
+      relationData: string | string[],
+      relationEntity: string,
+    ) {
       try {
         let idFromUrl: number
+        // Замена основного Url-а объекта на локальный
         object.url = await replaceUrl(object.url)
         if (Array.isArray(relationData)) {
           // Обработка массива URL
           relationData = await Promise.all(
-            relationData.map(
-              async (url: string) => await replaceUrl(url),
-              //extractIdFromUrl(await replaceUrl(url)),
-            ),
+            relationData.map(async (url: string) => await replaceUrl(url)),
           )
         } else if (typeof relationData === 'string') {
           // Обработка одного URL
-          relationData = await replaceUrl(relationData)
-          idFromUrl = Number(await extractIdFromUrl(relationData))
-          //relationData = extractIdFromUrl(await replaceUrl(relationData))
+          object[relationEntity] = await extractIdFromURL(relationData)
         }
-        object[relationEntity] = idFromUrl
       } catch (error) {
         console.error(
-          `Ошибка при замене URL для '${relationEntity}': ${error.message}`,
+          `sd:202 - Ошибка при замене URL для '${relationEntity}': ${error.message}`,
         )
         object[relationEntity] = Array.isArray(relationData) ? [] : null
       }
-    }
-    return object
-
-    async function extractIdFromUrl(url: string): Promise<string> {
-      if (url === null || url === undefined) return '0'
-      // Извлечение 'id' (последнего числового значения) из 'URL'
-      const match = url.match(/\/(\d+)\/?$/)
-      if (match) {
-        return match[1]
-      } else {
-        throw new Error(`Invalid URL: ${url}`)
-      }
+      return relationData
     }
   }
 }

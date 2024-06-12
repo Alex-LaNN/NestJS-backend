@@ -99,10 +99,4 @@ export class CreateStarshipDto {
   })
   @IsArray()
   pilots: string[]
-
-  @ApiProperty({
-    description: 'An array of images resource URLs for this starship.',
-  })
-  @IsArray()
-  images: string[]
 }

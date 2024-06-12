@@ -22,7 +22,7 @@ import { Entity, entityClasses } from 'src/shared/utils'
 
 @Injectable()
 export class ImagesService {
-  private readonly relatedEntities: string[]
+  //private readonly relatedEntities: string[]
   constructor(
 //    private readonly configservice: ConfigService,
     @InjectRepository(Image)
@@ -60,7 +60,7 @@ export class ImagesService {
     entityId: number,
     description: string,
   ): Promise<Image> {
-    console.log(`is:55 - fileName: ${fileName}`) /////////////////////////////////////////
+    console.log(`is:63 - fileName: ${fileName}`) /////////////////////////////////////////
     try {
       // Генерация идентификатора для нового изображения.
       const newImageId: number = (await this.imageRepository.count()) + 1

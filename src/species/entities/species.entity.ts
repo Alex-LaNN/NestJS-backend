@@ -81,8 +81,7 @@ export class Species extends AbstractEntity<Species> {
     description:
       'The URL of a planet resource, a planet that this species originates from.',
   })
-  //@JoinColumn({ referencedColumnName: 'url' })
-  homeworld: Planet
+  homeworld: Planet | null
 
   @ManyToMany(() => People, (people) => people.species)
   @JoinTable({ name: 'people_species' })

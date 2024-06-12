@@ -13,7 +13,7 @@ import {
   paginate,
 } from 'nestjs-typeorm-paginate'
 import { getResponceOfException } from 'src/shared/common.functions'
-import { relatedEntitiesMap } from 'src/shared/utils'
+import { localUrl, relatedEntitiesMap } from 'src/shared/utils'
 
 @Injectable()
 export class SpeciesService {
@@ -144,10 +144,10 @@ export class SpeciesService {
     await Promise.all(
       this.relatedEntities.map(async (key) => {
         if (key === 'homeworld' && newSpeciesDto.homeworld) {
-          const planet: Planet =
-            await this.repositories.homeworld.findOne({
-              where: { url: newSpeciesDto.homeworld },
-            })
+          const urlToSearch: string = `${localUrl}planets/${newSpeciesDto.homeworld}/`
+          const planet: Planet = await this.repositories.homeworld.findOne({
+            where: { url: urlToSearch },
+          })
           species.homeworld = planet
         } else if (newSpeciesDto[key]) {
           species[key] = await Promise.all(

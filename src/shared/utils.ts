@@ -94,6 +94,20 @@ export const entityClasses = {
   people: People,
 }
 
+// Объект списка сущностей для заполнения БД в первую очередь.
+export const entityClassesToFillFirst = {
+  starships: Starship,
+  vehicles: Vehicle,
+  species: Species,
+  planets: Planet,
+}
+
+// Объект списка сущностей для заполнения БД в первую очередь.
+export const entityClassesToFillNext = {
+  people: People,
+  films: Film,
+}
+
 // Определение типа, который объединяет все классы сущностей
 export type EntityClass =
   | typeof People
