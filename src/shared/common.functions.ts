@@ -74,9 +74,9 @@ export async function isCurrentUserAdmin(user: User): Promise<boolean> {
 }
 
 /**
- * 
- * @param url 
- * @returns 
+ *
+ * @param url
+ * @returns
  */
 export async function extractIdFromURL(url: string): Promise<number> {
   if (url === null || url === undefined) return 0
@@ -89,23 +89,20 @@ export async function extractIdFromURL(url: string): Promise<number> {
   }
 }
 
-// /**
-//  *
-//  * @param url
-//  * @returns
-//  */
-// export async function extractIdFromUrl(url: string): Promise<string> {
-//   if (url === null || url === undefined) return '0'
-//   // Извлечение 'id' (последнего числового значения) из 'URL'
-//   const match = url.match(/\/(\d+)\/?$/)
-//   if (match) {
-//     return match[1]
-//   } else {
-//     throw new Error(`Invalid URL: ${url}`)
-//   }
-// }
+/**
+ *
+ * @param entityName
+ * @param objectId
+ * @returns
+ */
+export async function getUrlFromId(
+  entityName: string,
+  objectId: number,
+): Promise<string> {
+  return `${localUrl}${entityName}/${objectId}/`
+}
 
-    // Замена URL-адресов связанных данных у конкретной сущности на локальные URL-адреса.
-   export async function replaceUrl(url: string): Promise<string> {
-      return url.replace(swapiUrl, localUrl)
-    }
+// Замена URL-адресов связанных данных у конкретной сущности на локальные URL-адреса.
+export async function replaceUrl(url: string): Promise<string> {
+  return url.replace(swapiUrl, localUrl)
+}

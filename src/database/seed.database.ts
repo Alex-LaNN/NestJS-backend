@@ -1,21 +1,22 @@
 import {
+  BaseEntity,
   SwapiResponse,
   entityClasses,
-  entityClassesToFillFirst,
-  entityClassesToFillNext,
+  entityClassesToConvert,
   relatedEntitiesMap,
   swapiUrl,
 } from 'src/shared/utils'
-import {
-  DataSource,
-  DeepPartial,
-  ObjectLiteral,
-  QueryRunner,
-  Repository,
-} from 'typeorm'
+import { DataSource, DeepPartial, QueryRunner, Repository } from 'typeorm'
 import fetch from 'cross-fetch'
-import { extractIdFromURL, getResponceOfException, replaceUrl } from 'src/shared/common.functions'
+import {
+  extractIdFromURL,
+  getResponceOfException,
+  getUrlFromId,
+  replaceUrl,
+} from 'src/shared/common.functions'
 import { InjectDataSource } from '@nestjs/typeorm'
+import { People } from 'src/people/entities/people.entity'
+import { AbstractEntity } from 'src/shared/abstract.entity'
 
 /**
  * Класс заполнения локальной БД из удаленного источника данных
@@ -34,21 +35,15 @@ export class SeedDatabase {
    */
   synchronizeDatabase = async () => {
     this.queryRunner = this.dataSource.createQueryRunner()
+    const withRelations: boolean = true
     try {
       await this.queryRunner.startTransaction()
       console.log(`Data source initialized. Let's start seeding...`)
-      let isNeedToFillRelatedEntities: boolean = true
 
-      //await this.addData('species', isNeedToFillRelatedEntities)
-
-      // Заполнения БД первоочередными сущностями
-      for (const entityName of Object.keys(entityClassesToFillFirst)) {
-        await this.addData(entityName, isNeedToFillRelatedEntities)
+      // Заполнение БД
+      for (const entityName of Object.keys(entityClassesToConvert)) {
+        await this.addData(entityName, !withRelations)
       }
-      // Заполнения БД остальными сущностями
-      // for (const entityName of Object.keys(entityClassesToFillNext)) {
-      //   await this.addData(entityName, isNeedToFillRelatedEntities)
-      // }
       // Подтверждение транзакции
       await this.queryRunner.commitTransaction()
       console.log('Finish seeding ok!...')
@@ -62,35 +57,47 @@ export class SeedDatabase {
       await this.queryRunner.release()
       await this.dataSource.destroy()
     }
+    // // Трвнсформация некоторых данных БД.
+    // try {
+    //   await this.queryRunner.startTransaction()
+    //   console.log(`Start of data transformation...`)
+
+    //   for (const entityName of Object.keys(entityClassesToConvert)) {
+    //     await this.convertObjects(entityName)
+    //   }
+    //   // Подтверждение транзакции
+    //   await this.queryRunner.commitTransaction()
+    //   console.log('Data conversion completed successfully!...')
+    // } catch (error) {
+    //   // Откат транзакции в случае ошибки
+    //   await this.queryRunner.rollbackTransaction()
+    //   console.error('Error during data conversion: ', error)
+    //   throw getResponceOfException(error)
+    // } finally {
+    //   // Освобождение ресурсов 'queryRunner' и 'dataSource'
+    //   await this.queryRunner.release()
+    //   await this.dataSource.destroy()
+    // }
   }
 
   /**
    *  Заполнение БД.
    *
    * @param entityName Имя сущности.
-   * @param isNeedToFillRelatedEntities
    */
-  private async addData<T extends Record<string, unknown>>(
+  private async addData<T extends BaseEntity>(
     entityName: string,
-    isNeedToFillRelatedEntities: boolean,
+    withRelations: boolean,
   ): Promise<void> {
-    let entityRepository: Repository<T>
+    const entityRepository: Repository<T> =
+      await this.getRepository<T>(entityName)
     try {
-      // Получение репозитория TypeORM для данной сущности.
-      entityRepository = this.queryRunner.manager.getRepository<T>(
-        entityClasses[entityName],
-      )
-      } catch (error) {
-      //   console.error(
-      //     `sd:85 - Failed to get repository for '${relationName}', message: '${error.message}'`,
-      //)
-        throw new Error(`No metadata found for '${entityName}'`)
-    }
-    try {
+      console.log(`sd:95 - Старт заполнения БД сущностью ${entityName}...`)
       // Формирование URL-адреса для запроса к SWAPI.
       const urlForRequest: string = `${swapiUrl}${entityName}/`
       // Запрос к SWAPI (Star Wars API) для получения всех доступных ресурсов типа 'entityName'.
       let response: Response = await fetch(urlForRequest)
+      // Детекция получения неудачного ответа
       if (!response.ok) {
         throw new Error(
           `Failed to fetch data for ${entityName}: ${response.statusText}`,
@@ -99,90 +106,122 @@ export class SeedDatabase {
       // Извлечение массива результатов и 'URL' следующей страницы из полученного ответа сервера.
       let data: SwapiResponse<T> = (await response.json()) as SwapiResponse<T>
       let { results, next } = data
-      //console.log(`sd:102 - 'Results[0]' for '${entityName}': `, results[0]) ////////////////////////////
+      console.log(`sd:109 - 'Results[0]' for '${entityName}': `, results[0]) ////////////////////////////
       while (next) {
-        // Сохранение объектов в БД без связанных сущностей
-        if (!isNeedToFillRelatedEntities) {
-          await this.prioritySaveEntities<T>(
-            results,
-            entityName,
-            entityRepository,
-          )
-          // Сохранение объектов в БД с заполнением связанных сущностей
-        } else await this.saveEntities<T>(results, entityName, entityRepository)
-        // Получение ответа сервера с данными следующей страницы
+        // Сохранение полученного массива объектов из ответа сервера в БД
+        await this.saveEntities<T>(
+          results,
+          entityName,
+          entityRepository,
+          withRelations,
+        )
+        // Получение ответа сервера со следующими данными
         response = await fetch(next)
         if (!response.ok) {
           throw new Error(
-            `sd:117 - Failed to fetch data for '${entityName}', received: '${response.statusText}'`,
+            `sd:122 - Failed to fetch data for '${entityName}', received: '${response.statusText}'`,
           )
         }
         data = (await response.json()) as SwapiResponse<T>
         // Обновление значений 'results' и 'next' для следующей итерации.
         ;({ results, next } = data)
       }
+      console.log(`sd:129 - Сущность ${entityName} добавлена в БД...`)
     } catch (err) {
       console.error(
-        `sd:126 - Failed to add entity '${entityName}': "${err.message}"!!!`,
+        `sd:132 - Failed to add entity '${entityName}': "${err.message}"!!!`,
       )
       throw getResponceOfException(err)
     }
   }
 
-/**
- * 
- * @param results 
- * @param entityName 
- * @param entityRepository 
- */
-  private async prioritySaveEntities<T>(
-    results: T[],
-    entityName: string,
-    entityRepository: Repository<T>,
-  ): Promise<void> {
-    results.forEach(async (result: any) => {
-      if (entityName === 'species') {
-        if (result.homeworld) {
-          result.homeworld = await extractIdFromURL(result.homeworld)
-        } else result.homeworld = null
-      }
-    })
-    console.log(`sd:150 - Data for saving ${entityName}: `, results[0]) /////////////////////////////////////
-    //entityRepository.save(results)
-  }
-
   /**
-   * Сохранение данных сущности в базе данных с заполнением её связанных данных.
+   * Сохранение данных сущности в базу данных.
    *
-   * @param results Массив данных сущностей.
+   * @param results Массив данных объектов, полученных из ответа сервера.
    * @param entityName Имя сущности.
    * @param entityRepository Репозиторий сущности.
    */
-  private async saveEntities<T extends Record<string, unknown>>(
+  private async saveEntities<T extends BaseEntity>(
     results: T[],
     entityName: string,
     entityRepository: Repository<T>,
+    withRelations: boolean,
   ): Promise<void> {
-    for (const object of results) {
-      // Заполнение связанных данных сущности.
-      const filledObject: DeepPartial<T> = (await this.addRelations(
-        entityName,
-        object,
-      )) as DeepPartial<T>
-      //console.log(`sd:172 - Data for saving ${entityName}: `, filledObject) /////////////////////////////////////
-      // Сохранение полученных данных сущности в БД.
-      await entityRepository.save(filledObject)
+    // Проверка на null или undefined
+    if (!results || !entityRepository) {
+      throw new Error(
+        `sd:154 - Недопустимые аргументы: 'results' или 'entityRepository' равны null или undefined.`,
+      )
     }
+    // Создание пустого объекта для последующего модифицирования
+    let modifiedObject: T
+    // Параллельная обработка всех объектов и сохранение в массиве модифицированных объектов
+    const modifiedObjects: T[] = await Promise.all(
+      results.map(async (object) => {
+        if (withRelations) {
+          modifiedObject = (await this.saveObjectWithRelations(
+            entityName,
+            object,
+          )) as T
+        } else {
+          modifiedObject = await this.saveObject(
+            entityName,
+            object,
+            entityRepository.create(),
+          ) as T
+        }
+        return modifiedObject
+      }),
+    )
+    // Сохранение всех измененных объектов в базу данных
+    await entityRepository.save(modifiedObjects)
   }
 
   /**
-   * Добавляет связанные сущности к объекту данных сущности.
+   * Метод для сохранения объекта без связей
+   * @param entityName
+   * @param object
+   * @param modifiedObject
+   * @returns
+   */
+  private async saveObject<T extends BaseEntity>(
+    entityName: string,
+    object: Partial<T>,
+    modifiedObject: Partial<T>,
+  ): Promise<T> {
+    // Извлечение идентификатора из URL
+    const objectId: number = await extractIdFromURL(object.url as string)
+    modifiedObject.id = objectId
+    // Генерация URL на основе идентификатора
+    modifiedObject.url = await getUrlFromId(entityName, objectId)
+    // Фильтрация и копирование нужных ключей
+    const allowedKeys = Object.keys(object).filter(
+      (key) =>
+        !Array.isArray(object[key]) &&
+        !['homeworld', 'created', 'edited'].includes(key),
+    ) as (keyof T)[]
+    //
+    allowedKeys.forEach((key) => {
+      modifiedObject[key] = object[key]
+    })
+    // Проверка, был ли объект модифицирован
+    if (Object.keys(modifiedObject).length === 0) {
+      console.warn(
+        `sd:201 - Объект ${entityName} не был модифицирован и не будет сохранен.`,
+      )
+    }
+    return modifiedObject as T
+  }
+
+  /**
+   * Инициализирует отсутствующие связанные сущности, а затем добавляет их к объекту.
    *
    * @param entityName Имя сущности, для которой добавляются связанные сущности.
    * @param object Объект данных сущности, к которому добавляются связанные сущности.
-   * @returns Обновленный объект данных сущности с уже добавленными связанными сущностями.
+   * @returns Обновленный объект с измененными соответствующими полями.
    */
-  private async addRelations(
+  private async saveObjectWithRelations(
     entityName: string,
     object: Record<string, any>,
   ): Promise<Record<string, any>> {
@@ -191,58 +230,73 @@ export class SeedDatabase {
       relatedEntitiesMap[entityName]?.relatedEntities || []
     // Заполнение связанных сущностей
     for (const relationName of relatedNames) {
-      // Получение данных связанной сущности
+      // Получение данных для связанной сущности
       let relationData: string | string[] = object[relationName]
       // Данные по связанной сущности отсутствуют => инициализация соответствующего поля
       if (!relationData) {
         object[relationName] =
           Array.isArray(relationData) || relationName === 'images' ? [] : null
         // console.log(
-        //   `sd:195 - No related data found for '${relationEntity}' in '${entityName}'. Installed by default...`,
+        //   `sd:223 - No related data found for '${relationEntity}' in '${entityName}'. Installed by default...`,
         // )
         continue
       }
-      // Замена всех полей с 'Url-адресами' данного объекта на локальные
-      relationData = await urlsTransformObject(
-        object,
-        relationData,
-        relationName,
-      ) // Просмотреть логику в этом месте!!!!!!!!!!!!
+      // Изменение всех полей с 'Url-адресами' данного объекта на локальные
+      relationData = await changeUrlsObject(object, relationData, relationName)
     }
     return object
 
     /**
-     *
-     * @param object Объект данных.
-     * @param relationData
-     * @param relationEntity
+     * Заменяет все поля с 'Url-адресами' объекта локальными.
+     * @param object Обрабатываемый объект.
+     * @param relationData Данные связанной сущности.
+     * @param relationName  Название связанной сущности.
      * @returns
      */
-    async function urlsTransformObject(
+    async function changeUrlsObject(
       object: Record<string, any>,
       relationData: string | string[],
-      relationEntity: string,
-    ) {
+      relationName: string,
+    ): Promise<string | string[]> {
       try {
-        let idFromUrl: number
         // Замена основного Url-а объекта на локальный
         object.url = await replaceUrl(object.url)
         if (Array.isArray(relationData)) {
-          // Обработка массива URL
+          // Обработка массива URL-ов
           relationData = await Promise.all(
             relationData.map(async (url: string) => await replaceUrl(url)),
           )
         } else if (typeof relationData === 'string') {
-          // Обработка одного URL
-          object[relationEntity] = await extractIdFromURL(relationData)
+          // Обработка одного URL-а
+          object[relationName] = await extractIdFromURL(relationData)
         }
       } catch (error) {
         console.error(
-          `sd:202 - Ошибка при замене URL для '${relationEntity}': ${error.message}`,
+          `sd:258 - Ошибка при замене URL-а для '${relationName}': ${error.message}. URL отсутствует!`,
         )
-        object[relationEntity] = Array.isArray(relationData) ? [] : null
+        // В случае ошибки - дефолтные значения.
+        object[relationName] = Array.isArray(relationData) ? [] : null
       }
       return relationData
     }
+  }
+
+  /**
+   *
+   * @param entityName
+   * @returns
+   */
+  private async getRepository<T extends Record<string, unknown>>(
+    entityName: string,
+  ) {
+    let entityRepository: Repository<T>
+    try {
+      entityRepository = this.queryRunner.manager.getRepository<T>(
+        entityClasses[entityName],
+      )
+    } catch (error) {
+      throw new Error(`No metadata found for '${entityName}'`)
+    }
+    return entityRepository
   }
 }

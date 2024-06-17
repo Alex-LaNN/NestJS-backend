@@ -14,6 +14,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import { User } from 'src/user/entities/user.entity'
+import { AbstractEntity } from './abstract.entity'
 
 // Получение конфигурации.
 const config = getConfig()
@@ -89,23 +90,26 @@ export const entityClasses = {
   vehicles: Vehicle,
   species: Species,
   planets: Planet,
-  images: Image,
   films: Film,
   people: People,
+  images: Image,
 }
 
-// Объект списка сущностей для заполнения БД в первую очередь.
-export const entityClassesToFillFirst = {
+// Объект списка сущностей для конвартации.
+export const entityClassesToConvert = {
   starships: Starship,
   vehicles: Vehicle,
   species: Species,
   planets: Planet,
+  films: Film,
+  people: People,
 }
 
-// Объект списка сущностей для заполнения БД в первую очередь.
+// Объект списка сущностей для заполнения БД.
 export const entityClassesToFillNext = {
-  people: People,
   films: Film,
+  people: People,
+  images: Image,
 }
 
 // Определение типа, который объединяет все классы сущностей
@@ -122,6 +126,13 @@ export type EntityClass =
 export type RepositoryForEntity<T> = T extends keyof typeof entityClasses // возможно ли тип 'T' присвоить одному из ключей объекта 'entities'
   ? Repository<(typeof entityClasses)[T]>
   : never // тип 'T' не соответствует ни одному ключу 'entities' => такой тип недопустим!
+
+// Интерфейс базовой сущности
+export interface BaseEntity {
+  id: number
+  url: string
+  [key: string]: any
+}
 
 // Интерфейс для описания информации о сущности.
 export interface EntityInfo {
