@@ -51,7 +51,7 @@ export class CreatePeopleDto {
     description: 'Id of the planet this person was born on or inhabits.',
     nullable: true,
   })
-  homeworld?: string
+  homeworld?: number
 
   @ApiProperty({
     description: 'An array of film resource URLs that this person has been in.',

@@ -78,7 +78,7 @@ export class Planet extends AbstractEntity<Planet> {
     description: 'An array of People URL Resources that live on this planet.',
   })
   @OneToMany(() => People, (people) => people.homeworld)
-  @JoinTable({ name: 'people_planets' })
+  //@JoinTable({ name: 'people_planets' })
   residents?: People[] | null
 
   @ApiProperty({

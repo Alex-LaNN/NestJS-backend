@@ -30,7 +30,7 @@ export class Film extends AbstractEntity<Film> {
   @ApiProperty({ description: 'The episode number of this film.' })
   episode_id: number
 
-  @Column()
+  @Column({ type: 'text'})
   @ApiProperty({
     description: 'The opening paragraphs at the beginning of this film.',
   })

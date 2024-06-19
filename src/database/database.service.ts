@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm'
-import { config, dataSourceOptions } from './config'
+import { config } from './config'
 
 @Injectable()
 export class DatabaseService implements TypeOrmOptionsFactory {
@@ -20,12 +20,15 @@ export class DatabaseService implements TypeOrmOptionsFactory {
     const options: TypeOrmModuleOptions = {
       type: 'mysql',
       host: dbHost,
-      port: dbPort,
+      port: Number(dbPort),
       username: dbUser,
       password: dbPass,
       database: dbName,
       entities: ['dist/**/*.entity{.ts,.js}'],
-      //synchronize: true,
+      migrations: [__dirname + '/migrations/*{.ts,.js}'],
+      synchronize: false,
+      migrationsRun: false,
+      logging: true,
     }
 
     return options

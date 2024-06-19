@@ -61,7 +61,7 @@ export class CreatePlanetDto {
     description: 'An array of People URL Resources that live on this planet.',
   })
   @IsArray()
-  residents: string[]
+  residents: number[]
 
   @ApiProperty({
     description:

@@ -19,27 +19,14 @@ export const dataSourceOptions: DataSourceOptions = {
   password: dbPass,
   database: dbName,
   entities: ['dist/**/*.entity{.ts,.js}'],
-  synchronize: true,
-  //migrationsRun: true,
-  //migrations: ['dist/src/database/migrations/*{.ts,.js}'],
   migrations: [__dirname + '/migrations/*{.ts,.js}'],
-  //logging: true,
+  synchronize: false,
+  migrationsRun: false,
+  logging: true,
 }
 
-// console.log(`entities: ${dataSourceOptions.entities}`)
-// console.log(`migrations: ${dataSourceOptions.migrations}`)
 export const dataSource = new DataSource(dataSourceOptions)
 
-// async function runMigrations() {
-//   await dataSource.initialize()
-//   await dataSource.runMigrations()
-// }
 
-// runMigrations()
-//   .then(() => console.log(`Миграции выполнены...`))
-//   .catch((error) => {
-//   console.error('Ошибка при выполнении миграций: ', error)
-//   process.exit(1)
-// })
 
 // npx typeorm migration:generate -d ./dist/src/database/config.js ./src/database/migrations/LastMigration

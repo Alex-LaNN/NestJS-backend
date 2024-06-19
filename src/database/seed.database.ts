@@ -17,6 +17,7 @@ import {
 import { InjectDataSource } from '@nestjs/typeorm'
 import { People } from 'src/people/entities/people.entity'
 import { AbstractEntity } from 'src/shared/abstract.entity'
+import { runMigrations } from './migrations'
 
 /**
  * Класс заполнения локальной БД из удаленного источника данных
@@ -34,16 +35,24 @@ export class SeedDatabase {
    * - Выполняет операции по заполнению базы данных
    */
   synchronizeDatabase = async () => {
+    // Запуск миграций базы данных
+    //await runMigrations()
     this.queryRunner = this.dataSource.createQueryRunner()
     const withRelations: boolean = true
     try {
       await this.queryRunner.startTransaction()
       console.log(`Data source initialized. Let's start seeding...`)
 
+      //await this.addData('starships', !withRelations)
+      //await this.addData('planets', !withRelations)
+      //await this.addData('vehicles', !withRelations)
+      //await this.addData('species', !withRelations)
+      //await this.addData('films', !withRelations)
+      await this.addData('people', !withRelations)
       // Заполнение БД
-      for (const entityName of Object.keys(entityClassesToConvert)) {
-        await this.addData(entityName, !withRelations)
-      }
+      // for (const entityName of Object.keys(entityClassesToConvert)) {
+      //   await this.addData(entityName, !withRelations)
+      // }
       // Подтверждение транзакции
       await this.queryRunner.commitTransaction()
       console.log('Finish seeding ok!...')
@@ -107,25 +116,36 @@ export class SeedDatabase {
       let data: SwapiResponse<T> = (await response.json()) as SwapiResponse<T>
       let { results, next } = data
       console.log(`sd:109 - 'Results[0]' for '${entityName}': `, results[0]) ////////////////////////////
-      while (next) {
-        // Сохранение полученного массива объектов из ответа сервера в БД
+      //if (!entityName.includes('films')) {
+      // Количество сущностей превышает одну страницу для отображения
+      if (next) {
+        while (next) {
+          // Сохранение полученного массива объектов из ответа сервера в БД
+          await this.saveEntities<T>(
+            results,
+            entityName,
+            entityRepository,
+            withRelations,
+          )
+          // Получение ответа сервера со следующими данными
+          response = await fetch(next)
+          if (!response.ok) {
+            throw new Error(
+              `sd:122 - Failed to fetch data for '${entityName}', received: '${response.statusText}'`,
+            )
+          }
+          data = (await response.json()) as SwapiResponse<T>
+          // Обновление значений 'results' и 'next' для следующей итерации.
+          ;({ results, next } = data)
+        }
+      } // Сохранение полученного массива объектов из ответа сервера в БД
+      else
         await this.saveEntities<T>(
           results,
           entityName,
           entityRepository,
           withRelations,
         )
-        // Получение ответа сервера со следующими данными
-        response = await fetch(next)
-        if (!response.ok) {
-          throw new Error(
-            `sd:122 - Failed to fetch data for '${entityName}', received: '${response.statusText}'`,
-          )
-        }
-        data = (await response.json()) as SwapiResponse<T>
-        // Обновление значений 'results' и 'next' для следующей итерации.
-        ;({ results, next } = data)
-      }
       console.log(`sd:129 - Сущность ${entityName} добавлена в БД...`)
     } catch (err) {
       console.error(
@@ -160,19 +180,24 @@ export class SeedDatabase {
     const modifiedObjects: T[] = await Promise.all(
       results.map(async (object) => {
         if (withRelations) {
+          //console.log(`withRelations +++`)
           modifiedObject = (await this.saveObjectWithRelations(
             entityName,
             object,
           )) as T
         } else {
-          modifiedObject = await this.saveObject(
+          //console.log(`withRelations ---`)
+          modifiedObject = (await this.saveObject(
             entityName,
             object,
             entityRepository.create(),
-          ) as T
+          )) as T
         }
         return modifiedObject
       }),
+    )
+    console.log(
+      `sd:177 - modifiedObjects[0]: ${JSON.stringify(modifiedObjects[0], null, 2)}`,
     )
     // Сохранение всех измененных объектов в базу данных
     await entityRepository.save(modifiedObjects)
@@ -196,11 +221,11 @@ export class SeedDatabase {
     // Генерация URL на основе идентификатора
     modifiedObject.url = await getUrlFromId(entityName, objectId)
     // Фильтрация и копирование нужных ключей
-    const allowedKeys = Object.keys(object).filter(
+    const allowedKeys: (keyof T)[] = Object.keys(object).filter(
       (key) =>
         !Array.isArray(object[key]) &&
         !['homeworld', 'created', 'edited'].includes(key),
-    ) as (keyof T)[]
+    )
     //
     allowedKeys.forEach((key) => {
       modifiedObject[key] = object[key]
