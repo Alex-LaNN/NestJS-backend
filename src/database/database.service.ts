@@ -25,10 +25,9 @@ export class DatabaseService implements TypeOrmOptionsFactory {
       password: dbPass,
       database: dbName,
       entities: ['dist/**/*.entity{.ts,.js}'],
-      migrations: [__dirname + '/migrations/*{.ts,.js}'],
+      migrations: ['dist/src/database/migrations/*{.ts,.js}'],
       synchronize: false,
-      migrationsRun: false,
-      logging: true,
+      //logging: true,
     }
 
     return options

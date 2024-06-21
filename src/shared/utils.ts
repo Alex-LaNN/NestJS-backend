@@ -95,22 +95,8 @@ export const entityClasses = {
   images: Image,
 }
 
-// Объект списка сущностей для конвартации.
-export const entityClassesToConvert = {
-  starships: Starship,
-  vehicles: Vehicle,
-  species: Species,
-  planets: Planet,
-  films: Film,
-  people: People,
-}
-
-// Объект списка сущностей для заполнения БД.
-export const entityClassesToFillNext = {
-  films: Film,
-  people: People,
-  images: Image,
-}
+// Получение объекта списка сущностей для заполнения БД.
+export const { images, ...entityClassesForFill} = entityClasses
 
 // Определение типа, который объединяет все классы сущностей
 export type EntityClass =
@@ -149,10 +135,10 @@ export interface DbConfig {
 }
 
 export interface SwapiResponse<T> {
-  count: number,
-  results: T[];
-  next: string | null;
-  previous: string | null;
+  count: number
+  results: T[]
+  next: string | null
+  previous: string | null
 }
 
 // Массив всех допустимых названий связанных сущностей.

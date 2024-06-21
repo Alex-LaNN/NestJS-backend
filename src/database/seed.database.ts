@@ -2,22 +2,20 @@ import {
   BaseEntity,
   SwapiResponse,
   entityClasses,
-  entityClassesToConvert,
+  entityClassesForFill,
   relatedEntitiesMap,
   swapiUrl,
 } from 'src/shared/utils'
-import { DataSource, DeepPartial, QueryRunner, Repository } from 'typeorm'
+import { DataSource, QueryRunner, Repository } from 'typeorm'
 import fetch from 'cross-fetch'
 import {
   extractIdFromURL,
   getResponceOfException,
   getUrlFromId,
-  replaceUrl,
+  replaceUrl
 } from 'src/shared/common.functions'
 import { InjectDataSource } from '@nestjs/typeorm'
-import { People } from 'src/people/entities/people.entity'
-import { AbstractEntity } from 'src/shared/abstract.entity'
-import { runMigrations } from './migrations'
+import { runMigrations } from './migrate'
 
 /**
  * Класс заполнения локальной БД из удаленного источника данных
@@ -35,22 +33,22 @@ export class SeedDatabase {
    * - Выполняет операции по заполнению базы данных
    */
   synchronizeDatabase = async () => {
-    // Запуск миграций базы данных
-    //await runMigrations()
     this.queryRunner = this.dataSource.createQueryRunner()
     const withRelations: boolean = true
+    // Выполнение миграций БД.
+    await runMigrations(this.queryRunner)
     try {
       await this.queryRunner.startTransaction()
-      console.log(`Data source initialized. Let's start seeding...`)
+      console.log(`Start seeding...`)
 
       //await this.addData('starships', !withRelations)
-      //await this.addData('planets', !withRelations)
-      //await this.addData('vehicles', !withRelations)
-      //await this.addData('species', !withRelations)
-      //await this.addData('films', !withRelations)
-      await this.addData('people', !withRelations)
+      // await this.addData('planets', !withRelations)
+      // await this.addData('vehicles', !withRelations)
+      // await this.addData('species', !withRelations)
+      // await this.addData('films', !withRelations)
+      //await this.addData('people', !withRelations)
       // Заполнение БД
-      // for (const entityName of Object.keys(entityClassesToConvert)) {
+      // for (const entityName of Object.keys(entityClassesForFill)) {
       //   await this.addData(entityName, !withRelations)
       // }
       // Подтверждение транзакции
@@ -65,8 +63,9 @@ export class SeedDatabase {
       // Освобождение ресурсов 'queryRunner' и 'dataSource'
       await this.queryRunner.release()
       await this.dataSource.destroy()
+      console.log(`After filling with data, the connection to the database is closed...`)
     }
-    // // Трвнсформация некоторых данных БД.
+    // // Трансформация некоторых данных БД.
     // try {
     //   await this.queryRunner.startTransaction()
     //   console.log(`Start of data transformation...`)
@@ -98,8 +97,10 @@ export class SeedDatabase {
     entityName: string,
     withRelations: boolean,
   ): Promise<void> {
+    // Получение репозитория TypeORM для данной сущности.
     const entityRepository: Repository<T> =
       await this.getRepository<T>(entityName)
+    if (!entityRepository) throw new Error(`Репозиторий не получен!!!`)
     try {
       console.log(`sd:95 - Старт заполнения БД сущностью ${entityName}...`)
       // Формирование URL-адреса для запроса к SWAPI.
@@ -115,9 +116,8 @@ export class SeedDatabase {
       // Извлечение массива результатов и 'URL' следующей страницы из полученного ответа сервера.
       let data: SwapiResponse<T> = (await response.json()) as SwapiResponse<T>
       let { results, next } = data
-      console.log(`sd:109 - 'Results[0]' for '${entityName}': `, results[0]) ////////////////////////////
-      //if (!entityName.includes('films')) {
-      // Количество сущностей превышает одну страницу для отображения
+      console.log(`sd:119 - 'Results[0]' for '${entityName}': `, results[0]) ////////////////////////////
+      // Общее количество объектов превышает одну страницу для отображения
       if (next) {
         while (next) {
           // Сохранение полученного массива объектов из ответа сервера в БД
@@ -138,18 +138,17 @@ export class SeedDatabase {
           // Обновление значений 'results' и 'next' для следующей итерации.
           ;({ results, next } = data)
         }
-      } // Сохранение полученного массива объектов из ответа сервера в БД
-      else
+      } else
         await this.saveEntities<T>(
           results,
           entityName,
           entityRepository,
           withRelations,
         )
-      console.log(`sd:129 - Сущность ${entityName} добавлена в БД...`)
+      console.log(`sd:148 - Сущность ${entityName} добавлена в БД...`)
     } catch (err) {
       console.error(
-        `sd:132 - Failed to add entity '${entityName}': "${err.message}"!!!`,
+        `sd:151 - Failed to add entity '${entityName}': "${err.message}"!!!`,
       )
       throw getResponceOfException(err)
     }
@@ -171,22 +170,20 @@ export class SeedDatabase {
     // Проверка на null или undefined
     if (!results || !entityRepository) {
       throw new Error(
-        `sd:154 - Недопустимые аргументы: 'results' или 'entityRepository' равны null или undefined.`,
+        `sd:173 - Недопустимые аргументы: 'results' или 'entityRepository' равны null или undefined.`,
       )
     }
-    // Создание пустого объекта для последующего модифицирования
+    // Создание нового объекта для записи и сохранения полученных данных
     let modifiedObject: T
-    // Параллельная обработка всех объектов и сохранение в массиве модифицированных объектов
+    // Параллельная обработка всех объектов и сохранение в массиве измененных объектов
     const modifiedObjects: T[] = await Promise.all(
       results.map(async (object) => {
         if (withRelations) {
-          //console.log(`withRelations +++`)
           modifiedObject = (await this.saveObjectWithRelations(
             entityName,
             object,
           )) as T
         } else {
-          //console.log(`withRelations ---`)
           modifiedObject = (await this.saveObject(
             entityName,
             object,
@@ -199,15 +196,15 @@ export class SeedDatabase {
     console.log(
       `sd:177 - modifiedObjects[0]: ${JSON.stringify(modifiedObjects[0], null, 2)}`,
     )
-    // Сохранение всех измененных объектов в базу данных
+    // Сохранение всех новых объектов в базу данных
     await entityRepository.save(modifiedObjects)
   }
 
   /**
-   * Метод для сохранения объекта без связей
-   * @param entityName
-   * @param object
-   * @param modifiedObject
+   * Метод для сохранения объекта
+   * @param entityName название сущности, к которой пренадлежит копируемый объект
+   * @param object копируемый объект
+   * @param modifiedObject новый объект для записи и сохранения полученных данных
    * @returns
    */
   private async saveObject<T extends BaseEntity>(
@@ -215,22 +212,22 @@ export class SeedDatabase {
     object: Partial<T>,
     modifiedObject: Partial<T>,
   ): Promise<T> {
-    // Извлечение идентификатора из URL
+    // Извлечение идентификатора сохраняемого объекта из его URL
     const objectId: number = await extractIdFromURL(object.url as string)
     modifiedObject.id = objectId
     // Генерация URL на основе идентификатора
     modifiedObject.url = await getUrlFromId(entityName, objectId)
-    // Фильтрация и копирование нужных ключей
+    // Фильтрация и копирование нужных ключей (свойств объекта для записи их значений)
     const allowedKeys: (keyof T)[] = Object.keys(object).filter(
       (key) =>
         !Array.isArray(object[key]) &&
         !['homeworld', 'created', 'edited'].includes(key),
     )
-    //
+    // Запись значений свойств копируемого объекта
     allowedKeys.forEach((key) => {
       modifiedObject[key] = object[key]
     })
-    // Проверка, был ли объект модифицирован
+    // Проверка, был ли заполнен новый объект
     if (Object.keys(modifiedObject).length === 0) {
       console.warn(
         `sd:201 - Объект ${entityName} не был модифицирован и не будет сохранен.`,
@@ -262,7 +259,7 @@ export class SeedDatabase {
         object[relationName] =
           Array.isArray(relationData) || relationName === 'images' ? [] : null
         // console.log(
-        //   `sd:223 - No related data found for '${relationEntity}' in '${entityName}'. Installed by default...`,
+        //   `sd:262 - No related data found for '${relationEntity}' in '${entityName}'. Installed by default...`,
         // )
         continue
       }

@@ -11,7 +11,7 @@ import { ConfigModule } from '@nestjs/config'
       useClass: DatabaseService,
     }),
   ],
-  providers: [DatabaseService, SeedDatabase],
+  providers: [DatabaseService, SeedDatabase, ],
   exports: [DatabaseService],
 })
 export class DatabaseModule implements OnModuleInit {

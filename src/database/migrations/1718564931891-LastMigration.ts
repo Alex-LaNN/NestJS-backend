@@ -238,7 +238,9 @@ export class LastMigration1718564931891 implements MigrationInterface {
         await queryRunner.query(`DROP TABLE \`vehicles\``);
         await queryRunner.query(`DROP INDEX \`IDX_6c40323ce20cc863369cc33ee8\` ON \`films\``);
         await queryRunner.query(`DROP TABLE \`films\``);
+        //await queryRunner.query(`DROP INDEX \`IDX_6c40323ce20cc753159cc33ee7\` ON \`people\``);
         await queryRunner.query(`DROP TABLE \`people\``);
+        //await queryRunner.query(`DROP INDEX \`IDX_6c40323ce20cc951357cc33ee6\` ON \`planets\``);
         await queryRunner.query(`DROP TABLE \`planets\``);
         await queryRunner.query(`DROP TABLE \`images\``);
         await queryRunner.query(`DROP TABLE \`species\``);

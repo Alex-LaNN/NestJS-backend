@@ -19,14 +19,11 @@ export const dataSourceOptions: DataSourceOptions = {
   password: dbPass,
   database: dbName,
   entities: ['dist/**/*.entity{.ts,.js}'],
-  migrations: [__dirname + '/migrations/*{.ts,.js}'],
+  migrations: ['dist/src/database/migrations/*{.ts,.js}'],
   synchronize: false,
-  migrationsRun: false,
   logging: true,
 }
 
 export const dataSource = new DataSource(dataSourceOptions)
-
-
 
 // npx typeorm migration:generate -d ./dist/src/database/config.js ./src/database/migrations/LastMigration
