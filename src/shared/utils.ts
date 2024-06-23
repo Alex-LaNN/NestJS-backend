@@ -96,7 +96,13 @@ export const entityClasses = {
 }
 
 // Получение объекта списка сущностей для заполнения БД.
-export const { images, ...entityClassesForFill} = entityClasses
+export const { images, ...entityClassesForFill } = entityClasses
+
+// Объект списка сущностей для заполнения связанных данных
+export const EntityClassesToPopulateRelationships = {
+  people: People,
+  films: Film
+}
 
 // Определение типа, который объединяет все классы сущностей
 export type EntityClass =
@@ -117,8 +123,20 @@ export type RepositoryForEntity<T> = T extends keyof typeof entityClasses // в�
 export interface BaseEntity {
   id: number
   url: string
+  homeworld?: string
+  homeworldId?: number
+  residents?: string[]
+  residentsId?: number[]
   [key: string]: any
 }
+
+// Динамическое создание типа для связанных сущностей
+type RelationsEntity = {
+  [K in typeof listOfRelations[number]]?: number | string | number[] | string[];
+};
+
+// Интерфейс базовой сущности с учетом связанных сущностей
+export interface ExtendedBaseEntity extends BaseEntity, RelationsEntity {}
 
 // Интерфейс для описания информации о сущности.
 export interface EntityInfo {
@@ -219,3 +237,6 @@ export interface ErrorResponce {
   user: User | null
   isActionCompleted: boolean
 }
+
+export const saveToDbString: string = `заполнения БД сущностью`
+export const fillRelatedDataString: string = `заполнения связанных данных для сущности`

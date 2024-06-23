@@ -5,11 +5,50 @@ export class LastMigration1718564931891 implements MigrationInterface {
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`starships\` (
-            \`id\` int NOT NULL AUTO_INCREMENT, \`created\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6), \`edited\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6), \`name\` varchar(255) NOT NULL, \`url\` varchar(255) NOT NULL, \`model\` varchar(255) NOT NULL, \`starship_class\` varchar(255) NOT NULL, \`manufacturer\` varchar(255) NOT NULL, \`cost_in_credits\` varchar(255) NOT NULL, \`length\` varchar(255) NOT NULL, \`crew\` varchar(255) NOT NULL, \`passengers\` varchar(255) NOT NULL, \`max_atmosphering_speed\` varchar(255) NOT NULL, \`hyperdrive_rating\` varchar(255) NOT NULL, \`MGLT\` varchar(255) NOT NULL, \`cargo_capacity\` varchar(255) NOT NULL, \`consumables\` varchar(255) NOT NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`)
+            \`id\` int NOT NULL AUTO_INCREMENT,
+            \`created\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+            \`edited\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6), \`name\` varchar(255) NOT NULL,
+            \`url\` varchar(255) NOT NULL,
+            \`model\` varchar(255) NOT NULL,
+            \`starship_class\` varchar(255) NOT NULL,
+            \`manufacturer\` varchar(255) NOT NULL,
+            \`cost_in_credits\` varchar(255) NOT NULL,
+            \`length\` varchar(255) NOT NULL,
+            \`crew\` varchar(255) NOT NULL,
+            \`passengers\` varchar(255) NOT NULL,
+            \`max_atmosphering_speed\` varchar(255) NOT NULL,
+            \`hyperdrive_rating\` varchar(255) NOT NULL,
+            \`MGLT\` varchar(255) NOT NULL,
+            \`cargo_capacity\` varchar(255) NOT NULL,
+            \`consumables\` varchar(255) NOT NULL,
+            PRIMARY KEY (\`id\`)) ENGINE=InnoDB`)
         await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`species\` (
-            \`id\` int NOT NULL AUTO_INCREMENT, \`created\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6), \`edited\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6), \`name\` varchar(255) NOT NULL, \`url\` varchar(255) NOT NULL, \`classification\` varchar(255) NOT NULL, \`designation\` varchar(255) NOT NULL, \`average_height\` varchar(255) NOT NULL, \`average_lifespan\` varchar(255) NOT NULL, \`eye_colors\` varchar(255) NOT NULL, \`hair_colors\` varchar(255) NOT NULL, \`skin_colors\` varchar(255) NOT NULL, \`language\` varchar(255) NOT NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`)
+            \`id\` int NOT NULL AUTO_INCREMENT,
+            \`created\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+            \`edited\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6), \`name\` varchar(255) NOT NULL,
+            \`url\` varchar(255) NOT NULL,
+            \`classification\` varchar(255) NOT NULL,
+            \`designation\` varchar(255) NOT NULL,
+            \`average_height\` varchar(255) NOT NULL,
+            \`average_lifespan\` varchar(255) NOT NULL,
+            \`eye_colors\` varchar(255) NOT NULL,
+            \`hair_colors\` varchar(255) NOT NULL,
+            \`skin_colors\` varchar(255) NOT NULL,
+            \`language\` varchar(255) NOT NULL,
+            \`homeworldId\` int NULL,
+            PRIMARY KEY (\`id\`)) ENGINE=InnoDB`)
         await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`images\` (
-            \`id\` int NOT NULL AUTO_INCREMENT, \`name\` varchar(255) NOT NULL, \`description\` varchar(255) NOT NULL, \`url\` varchar(255) NOT NULL, \`peopleId\` int NULL, \`filmsId\` int NULL, \`planetsId\` int NULL, \`starshipsId\` int NULL, \`vehiclesId\` int NULL, \`speciesId\` int NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`)
+            \`id\` int NOT NULL AUTO_INCREMENT,
+            \`name\` varchar(255) NOT NULL,
+            \`description\` varchar(255) NOT NULL,
+            \`url\` varchar(255) NOT NULL,
+            \`peopleId\` int NULL,
+            \`filmsId\` int NULL,
+            \`planetsId\` int NULL,
+            \`starshipsId\` int NULL,
+            \`vehiclesId\` int NULL,
+            \`speciesId\` int NULL,
+            PRIMARY KEY (\`id\`)) ENGINE=InnoDB`)
         await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`planets\` (
             \`id\` int NOT NULL AUTO_INCREMENT,
             \`created\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
@@ -23,7 +62,7 @@ export class LastMigration1718564931891 implements MigrationInterface {
             \`population\` varchar(255) NOT NULL,
             \`terrain\` varchar(255) NOT NULL,
             \`surface_water\` varchar(255) NOT NULL,
-            \`residents\` varchar(255) NULL,
+            \`residentsId\` int NULL,
             PRIMARY KEY (\`id\`)) ENGINE=InnoDB`)
         await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`people\` (
             \`id\` int NOT NULL AUTO_INCREMENT,
@@ -37,7 +76,7 @@ export class LastMigration1718564931891 implements MigrationInterface {
             \`eye_color\` varchar(255) NOT NULL,
             \`birth_year\` varchar(255) NOT NULL,
             \`gender\` varchar(255) NOT NULL,
-            \`homeworld\` varchar(255) NULL,
+            \`homeworldId\` int NULL,
             PRIMARY KEY (\`id\`)) ENGINE=InnoDB`)
         await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`films\` (
             \`id\` int NOT NULL AUTO_INCREMENT,
