@@ -13,6 +13,7 @@ import { People } from '../../people/entities/people.entity'
 import { Film } from '../../films/entities/film.entity'
 import { Image } from 'src/images/entities/image.entity'
 import { Planet } from '../../planets/entities/planet.entity'
+import { IsOptional } from 'class-validator'
 
 @Entity({ name: 'species' })
 export class Species extends AbstractEntity<Species> {
@@ -76,12 +77,14 @@ export class Species extends AbstractEntity<Species> {
   })
   language: string
 
-  @OneToOne(() => Planet, (planets) => planets.id, { nullable: true })
+  @IsOptional()
+  @OneToOne(() => Planet, (planets) => planets.id)
   @ApiProperty({
     description:
       'The URL of a planet resource, a planet that this species originates from.',
   })
-  homeworld: Planet | null
+  @JoinColumn()
+  homeworld?: Planet | null
 
   @ManyToMany(() => People, (people) => people.species)
   @JoinTable({ name: 'people_species' })

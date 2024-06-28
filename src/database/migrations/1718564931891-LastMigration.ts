@@ -36,6 +36,7 @@ export class LastMigration1718564931891 implements MigrationInterface {
             \`skin_colors\` varchar(255) NOT NULL,
             \`language\` varchar(255) NOT NULL,
             \`homeworldId\` int NULL,
+            UNIQUE INDEX \`REL_6c65872be20cc863369cc11ee8\` (\`homeworldId\`),
             PRIMARY KEY (\`id\`)) ENGINE=InnoDB`)
         await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`images\` (
             \`id\` int NOT NULL AUTO_INCREMENT,
@@ -62,7 +63,6 @@ export class LastMigration1718564931891 implements MigrationInterface {
             \`population\` varchar(255) NOT NULL,
             \`terrain\` varchar(255) NOT NULL,
             \`surface_water\` varchar(255) NOT NULL,
-            \`residentsId\` int NULL,
             PRIMARY KEY (\`id\`)) ENGINE=InnoDB`)
         await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`people\` (
             \`id\` int NOT NULL AUTO_INCREMENT,
@@ -88,7 +88,7 @@ export class LastMigration1718564931891 implements MigrationInterface {
             \`director\` varchar(255) NOT NULL,
             \`producer\` varchar(255) NOT NULL,
             \`release_date\` datetime NOT NULL,
-            INDEX \`IDX_6c40323ce20cc863369cc33ee8\` (\`url\`),
+            UNIQUE INDEX \`REL_6c40323ce20cc863369cc33ee8\` (\`url\`),
             PRIMARY KEY (\`id\`)) ENGINE=InnoDB`)
         await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`vehicles\` (
             \`id\` int NOT NULL AUTO_INCREMENT,
@@ -107,50 +107,50 @@ export class LastMigration1718564931891 implements MigrationInterface {
             \`consumables\` varchar(255) NOT NULL,
             PRIMARY KEY (\`id\`)) ENGINE=InnoDB`)
         await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`users\` (
-            \`userId\` varchar(36) NOT NULL,
+            \`Id\` varchar(36) NOT NULL,
             \`userName\` varchar(255) NOT NULL,
             \`password\` varchar(255) NOT NULL,
             \`email\` varchar(255) NOT NULL,
             \`role\` enum ('user', 'admin') NOT NULL DEFAULT 'user',
             UNIQUE INDEX \`IDX_226bb9aa7aa8a69991209d58f5\` (\`userName\`),
             UNIQUE INDEX \`IDX_97672ac88f789774dd47f7c8be\` (\`email\`),
-            PRIMARY KEY (\`userId\`)) ENGINE=InnoDB`)
+            PRIMARY KEY (\`Id\`)) ENGINE=InnoDB`)
         await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`films_starships\` (
-            \`starshipsId\` int NOT NULL,
             \`filmsId\` int NOT NULL,
-            INDEX \`IDX_98904c9cab6a9c3c11aeacf768\` (\`starshipsId\`),
+            \`starshipsId\` int NOT NULL,
             INDEX \`IDX_c6ae67fefde29efc7325b74baa\` (\`filmsId\`),
-            PRIMARY KEY (\`starshipsId\`, \`filmsId\`)) ENGINE=InnoDB`)
+            INDEX \`IDX_98904c9cab6a9c3c11aeacf768\` (\`starshipsId\`),
+            PRIMARY KEY (\`filmsId\`, \`starshipsId\`)) ENGINE=InnoDB`)
         await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`people_starships\` (
+            \`peopleId\` int NOT NULL,
             \`starshipsId\` int NOT NULL,
-            \`peopleId\` int NOT NULL,
-            INDEX \`IDX_2ee1350798626e1c52a83f26c0\` (\`starshipsId\`),
             INDEX \`IDX_25cb50d5fba38a9219e6b2eb79\` (\`peopleId\`),
-            PRIMARY KEY (\`starshipsId\`, \`peopleId\`)) ENGINE=InnoDB`)
+            INDEX \`IDX_2ee1350798626e1c52a83f26c0\` (\`starshipsId\`),
+            PRIMARY KEY (\`peopleId\`, \`starshipsId\`)) ENGINE=InnoDB`)
         await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`people_species\` (
-            \`speciesId\` int NOT NULL,
             \`peopleId\` int NOT NULL,
-            INDEX \`IDX_3f0fe0fa1df5ad0ef0afc4e9fb\` (\`speciesId\`),
-            INDEX \`IDX_56f67794e6fc76cd1c1427ed1a\` (\`peopleId\`),
-            PRIMARY KEY (\`speciesId\`, \`peopleId\`)) ENGINE=InnoDB`)
-        await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`films_species\` (
             \`speciesId\` int NOT NULL,
+            INDEX \`IDX_56f67794e6fc76cd1c1427ed1a\` (\`peopleId\`),
+            INDEX \`IDX_3f0fe0fa1df5ad0ef0afc4e9fb\` (\`speciesId\`),
+            PRIMARY KEY (\`peopleId\`, \`speciesId\`)) ENGINE=InnoDB`)
+        await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`films_species\` (
             \`filmsId\` int NOT NULL,
-            INDEX \`IDX_b5b68c8f3779bcdaa9afda0378\` (\`speciesId\`),
+            \`speciesId\` int NOT NULL,
             INDEX \`IDX_30663fc8495f09199efa33ab85\` (\`filmsId\`),
-            PRIMARY KEY (\`speciesId\`, \`filmsId\`)) ENGINE=InnoDB`)
+            INDEX \`IDX_b5b68c8f3779bcdaa9afda0378\` (\`speciesId\`),
+            PRIMARY KEY (\`filmsId\`, \`speciesId\`)) ENGINE=InnoDB`)
         await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`films_planets\` (
-            \`planetsId\` int NOT NULL,
             \`filmsId\` int NOT NULL,
-            INDEX \`IDX_56eec3c43f5246c6a26f4e61d8\` (\`planetsId\`),
+            \`planetsId\` int NOT NULL,
             INDEX \`IDX_a8db04b134255125a4a990c656\` (\`filmsId\`),
-            PRIMARY KEY (\`planetsId\`, \`filmsId\`)) ENGINE=InnoDB`)
-        await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`people_planets\` (
-            \`homeworldId\` int NOT NULL,
-            \`residentsId\` int NOT NULL,
-            INDEX \`IDX_56eec3c43f5246c6a26f4e61d7\` (\`homeworldId\`),
-            INDEX \`IDX_a8db04b134255125a4a990c657\` (\`residentsId\`),
-            PRIMARY KEY (\`homeworldId\`, \`residentsId\`)) ENGINE=InnoDB`)
+            INDEX \`IDX_56eec3c43f5246c6a26f4e61d8\` (\`planetsId\`),
+            PRIMARY KEY (\`filmsId\`, \`planetsId\`)) ENGINE=InnoDB`)
+        // await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`people_planets\` (
+        //     \`residentsId\` int NOT NULL,
+        //     \`homeworldId\` int NOT NULL,
+        //     INDEX \`IDX_a8db04b134255125a4a990c657\` (\`residentsId\`),
+        //     INDEX \`IDX_56eec3c43f5246c6a26f4e61d7\` (\`homeworldId\`),
+        //     PRIMARY KEY (\`residentsId\`, \`homeworldId\`)) ENGINE=InnoDB`)
         await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`people_films\` (
             \`peopleId\` int NOT NULL,
             \`filmsId\` int NOT NULL,
@@ -181,10 +181,16 @@ export class LastMigration1718564931891 implements MigrationInterface {
             ALTER TABLE \`images\` ADD CONSTRAINT \`FK_0ac1a8463eba3c1ce97f04ac097\` FOREIGN KEY (\`vehiclesId\`) REFERENCES \`vehicles\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`
             ALTER TABLE \`images\` ADD CONSTRAINT \`FK_c02a4e67aceb74f955901a6464a\` FOREIGN KEY (\`speciesId\`) REFERENCES \`species\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
-        await queryRunner.query(`
-            ALTER TABLE \`people_planets\` ADD CONSTRAINT \`FK_8f79bb03eba3c1c585da15ef3a6\` FOREIGN KEY (\`homeworldId\`) REFERENCES \`planets\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`)
-        await queryRunner.query(`
-            ALTER TABLE \`people_planets\` ADD CONSTRAINT \`FK_8f79bb098a482f95590115ef3a7\` FOREIGN KEY (\`residentsId\`) REFERENCES \`people\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        // await queryRunner.query(`
+        //     ALTER TABLE \`people_planets\` ADD CONSTRAINT \`FK_8f79bb03eba3c1c585da15ef3a6\` FOREIGN KEY (\`homeworldId\`) REFERENCES \`planets\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`)
+        // await queryRunner.query(`
+        //     ALTER TABLE \`people_planets\` ADD CONSTRAINT \`FK_8f79bb098a482f95590115ef3a7\` FOREIGN KEY (\`residentsId\`) REFERENCES \`people\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(
+            `ALTER TABLE \`people\` ADD CONSTRAINT \`FK_8f79bb03eba3c1c585da15ef3a6\` FOREIGN KEY (\`homeworldId\`) REFERENCES \`planets\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`,
+        );
+        await queryRunner.query(
+            `ALTER TABLE \`species\` ADD CONSTRAINT \`FK_8f79bb098a482f95590115ef3a7\` FOREIGN KEY (\`homeworldId\`) REFERENCES \`planets\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`,
+        );
         await queryRunner.query(`
             ALTER TABLE \`films_starships\` ADD CONSTRAINT \`FK_98904c9cab6a9c3c11aeacf768b\` FOREIGN KEY (\`starshipsId\`) REFERENCES \`starships\`(\`id\`) ON DELETE CASCADE ON UPDATE CASCADE`);
         await queryRunner.query(`
@@ -236,8 +242,8 @@ export class LastMigration1718564931891 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE \`people_starships\` DROP FOREIGN KEY \`FK_2ee1350798626e1c52a83f26c0f\``);
         await queryRunner.query(`ALTER TABLE \`films_starships\` DROP FOREIGN KEY \`FK_c6ae67fefde29efc7325b74baa4\``);
         await queryRunner.query(`ALTER TABLE \`films_starships\` DROP FOREIGN KEY \`FK_98904c9cab6a9c3c11aeacf768b\``);
-        await queryRunner.query(`ALTER TABLE \`people_planets\` DROP FOREIGN KEY \`FK_8f79bb03eba3c1c585da15ef3a6\``);
-        await queryRunner.query(`ALTER TABLE \`people_planets\` DROP FOREIGN KEY \`FK_8f79bb098a482f95590115ef3a7\``);
+        await queryRunner.query(`ALTER TABLE \`people\` DROP FOREIGN KEY \`FK_8f79bb03eba3c1c585da15ef3a6\``);
+        await queryRunner.query(`ALTER TABLE \`species\` DROP FOREIGN KEY \`FK_8f79bb098a482f95590115ef3a7\``);
         await queryRunner.query(`ALTER TABLE \`images\` DROP FOREIGN KEY \`FK_c02a4e67aceb74f955901a6464a\``);
         await queryRunner.query(`ALTER TABLE \`images\` DROP FOREIGN KEY \`FK_0ac1a8463eba3c1ce97f04ac097\``);
         await queryRunner.query(`ALTER TABLE \`images\` DROP FOREIGN KEY \`FK_53ea6b0269e66436dfe00628f31\``);
@@ -253,9 +259,9 @@ export class LastMigration1718564931891 implements MigrationInterface {
         await queryRunner.query(`DROP INDEX \`IDX_a6ae8e23d835bdbc6b9fe43823\` ON \`people_films\``);
         await queryRunner.query(`DROP INDEX \`IDX_f9d0038e205e511024d88b4c44\` ON \`people_films\``);
         await queryRunner.query(`DROP TABLE \`people_films\``);
-        await queryRunner.query(`DROP INDEX \`IDX_a8db04b134255125a4a990c657\` ON \`people_planets\``);
-        await queryRunner.query(`DROP INDEX \`IDX_56eec3c43f5246c6a26f4e61d7\` ON \`people_planets\``);
-        await queryRunner.query(`DROP TABLE \`people_planets\``);
+        // await queryRunner.query(`DROP INDEX \`IDX_a8db04b134255125a4a990c657\` ON \`people_planets\``);
+        // await queryRunner.query(`DROP INDEX \`IDX_56eec3c43f5246c6a26f4e61d7\` ON \`people_planets\``);
+        // await queryRunner.query(`DROP TABLE \`people_planets\``);
         await queryRunner.query(`DROP INDEX \`IDX_a8db04b134255125a4a990c656\` ON \`films_planets\``);
         await queryRunner.query(`DROP INDEX \`IDX_56eec3c43f5246c6a26f4e61d8\` ON \`films_planets\``);
         await queryRunner.query(`DROP TABLE \`films_planets\``);
@@ -275,13 +281,14 @@ export class LastMigration1718564931891 implements MigrationInterface {
         await queryRunner.query(`DROP INDEX \`IDX_226bb9aa7aa8a69991209d58f5\` ON \`users\``);
         await queryRunner.query(`DROP TABLE \`users\``);
         await queryRunner.query(`DROP TABLE \`vehicles\``);
-        await queryRunner.query(`DROP INDEX \`IDX_6c40323ce20cc863369cc33ee8\` ON \`films\``);
+        await queryRunner.query(`DROP INDEX \`REL_6c40323ce20cc863369cc33ee8\` ON \`films\``);
         await queryRunner.query(`DROP TABLE \`films\``);
-        //await queryRunner.query(`DROP INDEX \`IDX_6c40323ce20cc753159cc33ee7\` ON \`people\``);
+        //await queryRunner.query(`DROP INDEX \`REL_6c40323ce20cc753159cc33ee7\` ON \`people\``);
         await queryRunner.query(`DROP TABLE \`people\``);
-        //await queryRunner.query(`DROP INDEX \`IDX_6c40323ce20cc951357cc33ee6\` ON \`planets\``);
+        //await queryRunner.query(`DROP INDEX \`REL_6c40323ce20cc951357cc33ee6\` ON \`planets\``);
         await queryRunner.query(`DROP TABLE \`planets\``);
         await queryRunner.query(`DROP TABLE \`images\``);
+        await queryRunner.query(`DROP INDEX \`REL_6c65872be20cc863369cc11ee8\` ON \`species\``)
         await queryRunner.query(`DROP TABLE \`species\``);
         await queryRunner.query(`DROP TABLE \`starships\``);
     }

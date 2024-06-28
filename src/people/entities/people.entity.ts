@@ -72,7 +72,6 @@ export class People extends AbstractEntity<People> {
       'The URL of a planet resource, a planet that this person was born on or inhabits.',
   })
   @ManyToOne(() => Planet, (planets) => planets.residents, { cascade: true })
-  @JoinTable({ name: 'people_planets' })
   homeworld?: Planet | null
 
   @ApiProperty({

@@ -1,16 +1,25 @@
 import { HttpException, InternalServerErrorException } from '@nestjs/common'
-import { DataSource, ObjectLiteral, Repository } from 'typeorm'
 import {
-  EntityClass,
+  ExtendedBaseEntity,
   Role,
-  entityClasses,
   errorMap,
-  listOfRelations,
   localUrl,
+  relationMappings,
   swapiUrl,
 } from './utils'
 import * as bcrypt from 'bcrypt'
 import { User } from 'src/user/entities/user.entity'
+
+/**
+ * Устанавливает значение для объекта.
+ */
+export function setObjectField<T extends ExtendedBaseEntity, K extends keyof T>(
+  obj: T,
+  key: K,
+  value: T[K],
+) {
+  obj[key] = value
+}
 
 /**
  * Функция, определяющая тип ошибки и возвращающая объект ошибки с корректным сообщением.
@@ -74,22 +83,40 @@ export async function isCurrentUserAdmin(user: User): Promise<boolean> {
 }
 
 /**
+ * Извлечение ID из URL
  *
- * @param url
- * @returns
+ * @param url URL для извлечения ID
+ * @returns ID, извлеченный из URL
  */
-export async function extractIdFromURL(url: string): Promise<number> {
-  if (url === null || url === undefined) return 0
+export async function extractIdFromUrl(
+  url: any,
+): Promise<number | number[] | null> {
+  if (Array.isArray(url)) {
+    if (!url) return []
+    const ids = await Promise.all(
+      url.map(async (element: any) => {
+        const id = await extractIdFromUrl(element)
+        // Проверка, является ли результат числом или массивом чисел
+        if (Array.isArray(id)) {
+          throw new Error('Nested arrays not supported')
+        }
+        return id
+      }),
+    )
+    return ids as number[]
+  }
+  if (!url) return null
   const regex = /\/(\d+)\/?$/
   const match = url.match(regex)
   if (match && match[1]) {
     return parseInt(match[1], 10)
   } else {
-    throw new Error(`Число не найдено. Не корректный Url: ${url}`)
+    throw new Error(`cf:114 - Number not found. Invalid URL: ${url}`)
   }
 }
 
 /**
+ * Генерация значения локального URL объекта по его Id
  *
  * @param entityName
  * @param objectId
@@ -102,7 +129,55 @@ export async function getUrlFromId(
   return `${localUrl}${entityName}/${objectId}/`
 }
 
-// Замена URL-адресов связанных данных у конкретной сущности на локальные URL-адреса.
+/**
+ * Замена URL-адресов у объекта на локальные URL-адреса.
+ *
+ * @param url
+ * @returns
+ */
 export async function replaceUrl(url: string): Promise<string> {
   return url.replace(swapiUrl, localUrl)
 }
+
+/**
+ * Функция для определения имени связанной сущности по её URL и извлечения её данных.
+ *
+ * @param url - URL, содержащий имя связанной сущности и его Id.
+ * @returns Объект, содержащий основную сущность и найденную группу.
+ */
+export async function findNameAndDataOfRelationEntity(
+  url: string | string[],
+): Promise<{
+  nameOfRelationEntity: string
+  relationDataIdToInsert: number | number[]
+}> {
+  // Выделение имени связанной сущности.
+  const nameOfRelationEntity: string = await getNameFromId(url)
+  // Извлечение данных связанной сущности с преобразованием их в нужный формат.
+  const relationDataIdToInsert: number | number[] =
+    await extractIdFromUrl(url)
+
+  return {
+    nameOfRelationEntity,
+    relationDataIdToInsert,
+  }
+}
+
+/**
+ * 
+ * @param url 
+ * @returns 
+ */
+export async function getNameFromId(url: string | string[]): Promise<string> {
+  // Если URL является массивом, берется первое значение.
+  const actualUrl: string = Array.isArray(url) ? url[0] : url
+  // Разбивка URL на части.
+  const urlParts: string[] = actualUrl.split('/').filter(Boolean)
+  if (urlParts.length < 5) {
+    throw new Error(`cf:125 - Неверный формат URL: ${actualUrl}`)
+  }
+  // Выделение значения 'name' из 'Url'.
+  const name: string = urlParts[3]
+  // Возврат выделенного значения.
+  return name
+} 

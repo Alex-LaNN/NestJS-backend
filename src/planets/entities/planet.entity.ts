@@ -12,6 +12,7 @@ import {
 import { People } from '../../people/entities/people.entity'
 import { Film } from '../../films/entities/film.entity'
 import { Image } from '../../images/entities/image.entity'
+import { IsOptional } from 'class-validator'
 
 @Entity({ name: 'planets' })
 export class Planet extends AbstractEntity<Planet> {
@@ -74,11 +75,11 @@ export class Planet extends AbstractEntity<Planet> {
   })
   surface_water: string
 
+  @IsOptional()
   @ApiProperty({
     description: 'An array of People URL Resources that live on this planet.',
   })
   @OneToMany(() => People, (people) => people.homeworld)
-  @JoinTable({ name: 'people_planets' })
   residents?: People[] | null
 
   @ApiProperty({

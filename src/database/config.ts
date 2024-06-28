@@ -27,3 +27,4 @@ export const dataSourceOptions: DataSourceOptions = {
 export const dataSource = new DataSource(dataSourceOptions)
 
 // npx typeorm migration:generate -d ./dist/src/database/config.js ./src/database/migrations/LastMigration
+// npx typeorm migration:create ./src/database/migrations/LastMigration
