@@ -4,7 +4,6 @@ import {
   Role,
   errorMap,
   localUrl,
-  relationMappings,
   swapiUrl,
 } from './utils'
 import * as bcrypt from 'bcrypt'
@@ -164,20 +163,22 @@ export async function findNameAndDataOfRelationEntity(
 }
 
 /**
+ * Функция извлечения имени объекта из URL типа 'http://localhost:3000/films/5/'.
  * 
- * @param url 
- * @returns 
+ * @param url URL-адрес для обработки.
+ * @returns Возвращает извлеченное имя объекта
  */
 export async function getNameFromId(url: string | string[]): Promise<string> {
-  // Если URL является массивом, берется первое значение.
+  // Преобразование URL к первой строке, если он представлен массивом.
   const actualUrl: string = Array.isArray(url) ? url[0] : url
-  // Разбивка URL на части.
+  // Разделение URL на части и фильтрация пустых строк.
   const urlParts: string[] = actualUrl.split('/').filter(Boolean)
-  if (urlParts.length < 5) {
+  // Проверка длины URL-частей (минимум 4, применительно к вышеуказанному типу URL).
+  if (urlParts.length < 4) {
     throw new Error(`cf:125 - Неверный формат URL: ${actualUrl}`)
   }
-  // Выделение значения 'name' из 'Url'.
-  const name: string = urlParts[3]
-  // Возврат выделенного значения.
+  // Извлечение имени объекта из 3-й части URL.
+  const name: string = urlParts[2]
+  // Возврат извлеченного имени.
   return name
-} 
+}

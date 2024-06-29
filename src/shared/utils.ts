@@ -147,7 +147,9 @@ export interface EntityInfo {
 }
 
 /**
+ * Интерфейс для конфигурации базы данных.
  * 
+ * Описывает свойства, необходимые для подключения к базе данных.
  */
 export interface DbConfig {
   dbHost: string
@@ -294,7 +296,9 @@ export const relationMappings = {
 }
 
 /**
- * 
+ * Интерфейс для описания структуры полезной нагрузки (payload) JWT-токена
+ *
+ * Описывает поля, содержащиеся в 'payload' токена, используемого для авторизации.
  */
 export interface Payload {
   sub: string
@@ -302,7 +306,9 @@ export interface Payload {
 }
 
 /**
- * 
+ * Интерфейс для описания структуры объекта ответа об ошибке
+ *
+ * Используется для унифицированного представления информации об ошибке при ответах API.
  */
 export interface ErrorResponce {
   error: Error

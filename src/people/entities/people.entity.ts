@@ -6,8 +6,6 @@ import {
   ManyToMany,
   ManyToOne,
   OneToMany,
-  JoinColumn,
-  Index,
 } from 'typeorm'
 import { ApiProperty } from '@nestjs/swagger'
 import { Planet } from '../../planets/entities/planet.entity'

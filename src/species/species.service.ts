@@ -15,10 +15,17 @@ import {
 import { getResponceOfException } from 'src/shared/common.functions'
 import { localUrl, relatedEntitiesMap } from 'src/shared/utils'
 
+/**
+ * Сервис для работы с сущностью 'Species' (виды)
+ *
+ * Предоставляет методы для создания, получения, обновления и удаления записей
+ * о видах существ в базе данных.
+ */
 @Injectable()
 export class SpeciesService {
   private readonly relatedEntities: string[]
   constructor(
+    // Репозиторий для сущности 'Species'
     @InjectRepository(Species)
     private readonly speciesRepository: Repository<Species>,
     // Инъекции репозиториев для связанных сущностей.
@@ -35,9 +42,11 @@ export class SpeciesService {
   }
 
   /**
+   * Создает новую запись о виде существа
    *
-   * @param createSpeciesDto
-   * @returns
+   * @param createSpeciesDto Данные для создания новой записи (объект CreateSpeciesDto)
+   * @returns Promise<Species> Возвращает созданный объект сущности 'Species'
+   * @throws HttpException Ошибка с кодом HttpStatus.FORBIDDEN, если вид с таким названием уже существует
    */
   async create(createSpeciesDto: CreateSpeciesDto): Promise<Species> {
     try {
@@ -53,7 +62,7 @@ export class SpeciesService {
       // Проход по полям DTO и заполнение объекта 'Species'.
       for (const key in createSpeciesDto) {
         newSpecies[key] = this.relatedEntities.includes(key)
-          ? []
+          ? [] // Инициализация пустого массива для связанных сущностей
           : createSpeciesDto[key]
       }
       // Заполнение связанных сущностей.
@@ -65,9 +74,11 @@ export class SpeciesService {
   }
 
   /**
+   * Получает список видов существ с пагинацией
    *
-   * @param options
-   * @returns
+   * @param options Параметры пагинации (объект IPaginationOptions)
+   * @returns Promise<Pagination<Species>> Возвращает объект пагинации с данными о видах
+   * @throws HttpException Ошибка с кодом HttpStatus.INTERNAL_SERVER_ERROR
    */
   async findAll(options: IPaginationOptions): Promise<Pagination<Species>> {
     try {
@@ -78,9 +89,11 @@ export class SpeciesService {
   }
 
   /**
+   * Получает запись о виде существа по идентификатору
    *
-   * @param speciesId
-   * @returns
+   * @param speciesId Идентификатор вида существа (строка)
+   * @returns Promise<Species> Возвращает объект сущности 'Species'
+   * @throws throws HttpException Ошибка, если запись не найдена
    */
   async findOne(speciesId: string) {
     const species: Species = await this.speciesRepository.findOne({
@@ -92,10 +105,12 @@ export class SpeciesService {
   }
 
   /**
+   * Обновляет запись о виде существа
    *
-   * @param speciesId
-   * @param updateSpeciesDto
-   * @returns
+   * @param speciesId Идентификатор вида существа (строка)
+   * @param updateSpeciesDto Данные для обновления записи (объект UpdateSpeciesDto)
+   * @returns Promise<Species> Возвращает обновленный объект сущности 'Species'
+   * @throws HttpException Ошибка, если запись не найдена
    */
   async update(
     speciesId: string,
@@ -120,8 +135,10 @@ export class SpeciesService {
   }
 
   /**
+   * Удаляет запись о виде существа по идентификатору
    *
-   * @param speciesId
+   * @param speciesId Идентификатор вида существа (строка)
+   * @throws HttpException Ошибка, если запись не найдена
    */
   async remove(speciesId: string) {
     try {
@@ -133,9 +150,11 @@ export class SpeciesService {
   }
 
   /**
-   * Заполняет связанные сущности.
-   * @param species Объект сущности.
-   * @param newSpeciesDto Данные для создания новой записи о сущности.
+   * Заполняет связанные сущности для новой или обновляемой записи 'Species'.
+   *
+   * @param species Объект сущности 'Species'
+   * @param newSpeciesDto Данные для создания или обновления записи (объект CreateSpeciesDto | UpdateSpeciesDto)
+   * @returns Promise<void>
    */
   private async fillRelatedEntities(
     species: Species,
