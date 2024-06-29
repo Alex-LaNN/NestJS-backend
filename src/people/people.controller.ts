@@ -48,7 +48,7 @@ export class PeopleController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get resource "people" by its "id"' })
-  async findOne(@Param('id') id: string): Promise<People> {
+  async findOne(@Param('id') id: number): Promise<People> {
     return await this.peopleService.findOne(id)
   }
 
@@ -57,7 +57,7 @@ export class PeopleController {
   @ApiBody({ type: UpdatePeopleDto })
   @ApiOperation({ summary: 'Update resource "people" by its "id"' })
   async update(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() updatePeopleDto: UpdatePeopleDto,
   ): Promise<People> {
     return await this.peopleService.update(id, updatePeopleDto)
@@ -66,7 +66,7 @@ export class PeopleController {
   @Roles(Role.Admin)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete resource "people" by its "id"' })
-  async remove(@Param('id') id: string): Promise<void> {
+  async remove(@Param('id') id: number): Promise<void> {
     await this.peopleService.remove(id)
   }
 }

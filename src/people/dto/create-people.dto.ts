@@ -1,4 +1,4 @@
-import { IsArray, IsString } from 'class-validator'
+import { IsArray, IsOptional, IsString } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
 
 export class CreatePeopleDto {
@@ -46,12 +46,12 @@ export class CreatePeopleDto {
   @IsString()
   gender: string
 
+  @IsOptional()
   @ApiProperty({
-    description:
-      'The URL of a planet resource, a planet that this person was born on or inhabits.',
+    description: 'Id of the planet this person was born on or inhabits.',
+    nullable: true,
   })
-  @IsString()
-  homeworld: string
+  homeworld?: number
 
   @ApiProperty({
     description: 'An array of film resource URLs that this person has been in.',

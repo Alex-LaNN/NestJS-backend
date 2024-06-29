@@ -15,11 +15,15 @@ import {
 } from '@nestjs/common'
 import { User } from 'src/user/entities/user.entity'
 
-// Получение конфигурации.
+/**
+ * Получение конфигурации.
+ */
 const config = getConfig()
-export const { host, port, limitCount } = config
+export const { host, port, limitCount, dbName } = config
 
-// Перечисление HTTP-кодов состояния.
+/**
+ * Перечисление HTTP-кодов состояния.
+ */
 enum HttpStatusCode {
   NOT_FOUND = 404,
   BAD_REQUEST = 400,
@@ -27,7 +31,9 @@ enum HttpStatusCode {
   FORBIDDEN = 403,
 }
 
-// Отображение кодов ошибок HTTP на соответствующие объекты ошибок.
+/**
+ * Отображение кодов ошибок HTTP на соответствующие объекты ошибок.
+ */
 export const errorMap: Record<HttpStatusCode, Error> = {
   404: new NotFoundException('Object is not found'),
   400: new BadRequestException('Invalid input data'),
@@ -35,7 +41,9 @@ export const errorMap: Record<HttpStatusCode, Error> = {
   403: new ForbiddenException('Access denied'),
 }
 
-// Перечисления для полов.
+/**
+ * Перечисления для полов.
+ */
 export enum E_Gender {
   Male = 'Male',
   Female = 'Female',
@@ -43,17 +51,23 @@ export enum E_Gender {
   Other = 'n/a',
 }
 
-// Перечисления для ролей пользователей.
+/**
+ * Перечисления для ролей пользователей.
+ */
 export enum Role {
   User = 'user',
   Admin = 'admin',
 }
 
-// URL для SWAPI и локального сервера.
+/**
+ * URL для SWAPI и локального сервера.
+ */
 export const swapiUrl: string = 'https://swapi.dev/api/'
 export const localUrl: string = `http://${host}:${port}/`
 
-// Интерфейс, описывающий объект с ссылками на доступные ресурсы SWAPI
+/**
+ * Интерфейс, описывающий объект с ссылками на доступные ресурсы SWAPI
+ */
 export type SwapiEndpoints = {
   people: string
   planets: string
@@ -63,7 +77,9 @@ export type SwapiEndpoints = {
   starships: string
 }
 
-// Интерфейс, описывающий объект ответа об ошибке
+/**
+ * Интерфейс, описывающий объект ответа об ошибке
+ */
 export type ErrorResponse = {
   statusCode: number
   timestamp: string
@@ -73,7 +89,9 @@ export type ErrorResponse = {
   message: string
 }
 
-// Общий тип для сущностей
+/**
+ * Общий тип для сущностей
+ */
 export type Entity =
   | Film
   | People
@@ -83,18 +101,27 @@ export type Entity =
   | Starship
   | Vehicle
 
-// Объект списка сущностей, содержащий имена и соответствующие классы сущностей.
+/**
+ * Объект списка сущностей, содержащий имена и соответствующие классы сущностей.
+ */
 export const entityClasses = {
   starships: Starship,
   vehicles: Vehicle,
-  species: Species,
   planets: Planet,
-  images: Image,
+  species: Species,
   films: Film,
   people: People,
+  images: Image,
 }
 
-// Определение типа, который объединяет все классы сущностей
+/**
+ * Получение объекта списка сущностей для заполнения БД.
+ */
+export const { images, ...entityClassesForFill } = entityClasses
+
+/**
+ * Определение общего типа, который объединяет все классы сущностей.
+ */
 export type EntityClass =
   | typeof People
   | typeof Film
@@ -104,17 +131,24 @@ export type EntityClass =
   | typeof Planet
   | typeof Image
 
-// Динамическое определение типа репозитория в зависимости от конкретной сущности.
+/**
+ * Динамическое определение типа репозитория в зависимости от конкретной сущности.
+ */
 export type RepositoryForEntity<T> = T extends keyof typeof entityClasses // возможно ли тип 'T' присвоить одному из ключей объекта 'entities'
   ? Repository<(typeof entityClasses)[T]>
   : never // тип 'T' не соответствует ни одному ключу 'entities' => такой тип недопустим!
 
-// Интерфейс для описания информации о сущности.
+/**
+ * Интерфейс для описания информации о сущности.
+ */
 export interface EntityInfo {
   repository: Repository<Entity>
   relatedEntities: string[]
 }
 
+/**
+ * 
+ */
 export interface DbConfig {
   dbHost: string
   dbPort: number
@@ -123,14 +157,51 @@ export interface DbConfig {
   dbName: string
 }
 
-export interface SwapiResponse<T> {
-  count: number,
-  results: T[];
-  next: string | null;
-  previous: string | null;
+/**
+ * Интерфейс для одиночного ответа
+ */
+export interface SingleEntityResponse<T extends BaseEntity> {
+  data: T;
 }
 
-// Массив всех допустимых названий связанных сущностей.
+/**
+ * Интерфейс для списка сущностей
+ */
+export interface SwapiResponse<T extends BaseEntity> {
+  count: number
+  results: T[]
+  next: string | null
+  previous: string | null
+}
+
+/**
+ * Универсальный интерфейс базовой сущности.
+ */
+export interface BaseEntity {
+  id: number
+  url: string
+  homeworld?: number | string
+  homeworldId?: number
+  residents?:number[]
+  residentsId?: number[]
+  [key: string]: any
+}
+
+/**
+ * Интерфейс базовой сущности с учетом связанных сущностей
+ */
+export interface ExtendedBaseEntity extends BaseEntity, RelationsEntity {}
+  
+/**
+ * Динамическое создание типа для связанных сущностей
+ */
+type RelationsEntity = {
+  [K in typeof listOfRelations[number]]?: number | string | number[] | string[];
+};
+
+/**
+ * Массив всех допустимых названий связанных сущностей.
+ */
 export const listOfRelations: string[] = [
   'people',
   'characters',
@@ -145,27 +216,38 @@ export const listOfRelations: string[] = [
   'images',
 ]
 
-// Отображение связанных сущностей для всех типов сущностей, описанных в 'entityClasses'
+/**
+ * Универсальный тип ответа
+ */
+export type ApiResponse<T extends BaseEntity> =
+  | SingleEntityResponse<T>
+  | SwapiResponse<T>;
+
+/**
+ * Отображение связанных сущностей для всех типов сущностей, описанных в 'entityClasses'
+ */
 export type RelatedEntitiesMap = {
   [key in keyof typeof entityClasses]: {
     relatedEntities: string[]
   }
 }
 
-// Отображение связанных сущностей для каждого ресурса SWAPI
+/**
+ * Отображение связанных сущностей для каждого ресурса SWAPI
+ */
 export const relatedEntitiesMap: RelatedEntitiesMap = {
   films: {
     relatedEntities: [
       'characters',
-      'species',
+      'planets',
       'starships',
       'vehicles',
-      'planets',
+      'species',
       'images',
     ],
   },
   starships: {
-    relatedEntities: ['pilots', 'films', 'images'],
+    relatedEntities: ['films', 'pilots', 'images'],
   },
   people: {
     relatedEntities: [
@@ -198,11 +280,30 @@ export const relatedEntitiesMap: RelatedEntitiesMap = {
   },
 }
 
+/**
+ * Объект, описывающий связь между сущностями и их отношениями.
+ */
+export const relationMappings = {
+  people: ['people', 'characters', 'pilots', 'residents'],
+  films: ['films'],
+  planets: ['planets', 'homeworld'],
+  starships: ['starships'],
+  vehicles: ['vehicles'],
+  species: ['species'],
+  images: ['images'],
+}
+
+/**
+ * 
+ */
 export interface Payload {
   sub: string
   role: string
 }
 
+/**
+ * 
+ */
 export interface ErrorResponce {
   error: Error
   user: User | null

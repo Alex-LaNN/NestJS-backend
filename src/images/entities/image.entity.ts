@@ -35,41 +35,35 @@ export class Image {
   @ApiProperty({
     description: 'The URL to the People resource featured in these images.',
   })
-  @JoinTable({ name: 'image_people' })
-  people: string
+  people: People
 
   @ManyToOne(() => Film, (films) => films.images)
   @ApiProperty({
     description: 'The URL to the Film resource found in these images.',
   })
-  @JoinTable({ name: 'image_films' })
-  films: string
+  films: Film
 
   @ManyToOne(() => Planet, (planets) => planets.images)
   @ApiProperty({
     description: 'The URL to the Planet resource featured in these images.',
   })
-  @JoinTable({ name: 'image_planets' })
-  planets: string
+  planets: Planet
 
   @ManyToOne(() => Starship, (starships) => starships.images)
   @ApiProperty({
     description: 'The URL to the Starship resource featured in these images.',
   })
-  @JoinTable({ name: 'image_starships' })
-  starships: string
+  starships: Starship
 
   @ManyToOne(() => Vehicle, (vehicles) => vehicles.images)
   @ApiProperty({
     description: 'The URL to the Vehicle resource featured in these images.',
   })
-  @JoinTable({ name: 'image_vehicles' })
-  vehicles: string
+  vehicles: Vehicle
 
   @ManyToOne(() => Species, (species) => species.images)
   @ApiProperty({
     description: 'The URL to the Species resource featured in these images.',
   })
-  @JoinTable({ name: 'image_species' })
-  species: string
+  species: Species
 }

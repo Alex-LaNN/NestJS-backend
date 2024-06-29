@@ -6,7 +6,6 @@ import {
   JoinTable,
   ManyToMany,
   OneToMany,
-  JoinColumn,
   Index,
 } from 'typeorm'
 import { People } from '../../people/entities/people.entity'
@@ -31,7 +30,7 @@ export class Film extends AbstractEntity<Film> {
   @ApiProperty({ description: 'The episode number of this film.' })
   episode_id: number
 
-  @Column()
+  @Column({ type: 'text'})
   @ApiProperty({
     description: 'The opening paragraphs at the beginning of this film.',
   })
@@ -90,7 +89,6 @@ export class Film extends AbstractEntity<Film> {
   @ApiProperty({
     description: 'An array of planet resource URLs that are in this film.',
   })
-  //@JoinColumn({ referencedColumnName: 'url' })
   planets: Planet[]
 
   @OneToMany(() => Image, (images) => images.films)

@@ -14,7 +14,7 @@ import { Film } from 'src/films/entities/film.entity'
 import { Starship } from 'src/starships/entities/starship.entity'
 import { Planet } from 'src/planets/entities/planet.entity'
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
-import { relatedEntitiesMap } from 'src/shared/utils'
+import { localUrl, relatedEntitiesMap } from 'src/shared/utils'
 import { Image } from 'src/images/entities/image.entity'
 
 @Injectable()
@@ -84,14 +84,12 @@ export class PeopleService {
    * @param peopleId Идентификатор персонажа.
    * @returns Данные о персонаже.
    */
-  async findOne(peopleId: string): Promise<People> {
-    const searchParam: number = Number(peopleId)
-    const person = await this.peopleRepository.findOne({
+  async findOne(peopleId: number): Promise<People> {
+    return await this.peopleRepository.findOne({
       where: {
-        id: searchParam,
+        id: peopleId,
       },
     })
-    return person
   }
 
   /**
@@ -101,7 +99,7 @@ export class PeopleService {
    * @returns Обновленные данные о персонаже.
    */
   async update(
-    peopleId: string,
+    peopleId: number,
     updatePeopleDto: UpdatePeopleDto,
   ): Promise<People> {
     const person = await this.findOne(peopleId)
@@ -122,7 +120,7 @@ export class PeopleService {
    * Удаляет данные о персонаже по его идентификатору.
    * @param peopleId Идентификатор персонажа.
    */
-  async remove(peopleId: string): Promise<void> {
+  async remove(peopleId: number): Promise<void> {
     const person = await this.findOne(peopleId)
     await this.peopleRepository.remove(person)
   }
@@ -139,8 +137,9 @@ export class PeopleService {
     await Promise.all(
       this.relatedEntities.map(async (key) => {
         if (key === 'homeworld' && newPersonDto.homeworld) {
+          const urlToSearch: string = `${localUrl}planets/${newPersonDto.homeworld}/`
           const planet: Planet = await this.repositories.homeworld.findOne({
-            where: { url: newPersonDto.homeworld },
+            where: { url: urlToSearch },
           })
           newPeople.homeworld = planet
         } else if (newPersonDto[key]) {

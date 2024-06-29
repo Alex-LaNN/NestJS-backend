@@ -8,7 +8,7 @@ export class FileUploadDto {
 
   @ApiProperty({ description: 'Description of the image.' })
   @IsString()
-  description: string
+  description?: string
 
   @ApiProperty({ description: 'File', type: 'string', format: 'binary' })
   file: Express.Multer.File

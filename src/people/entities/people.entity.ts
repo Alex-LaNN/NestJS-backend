@@ -7,6 +7,7 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
+  Index,
 } from 'typeorm'
 import { ApiProperty } from '@nestjs/swagger'
 import { Planet } from '../../planets/entities/planet.entity'
@@ -71,8 +72,7 @@ export class People extends AbstractEntity<People> {
       'The URL of a planet resource, a planet that this person was born on or inhabits.',
   })
   @ManyToOne(() => Planet, (planets) => planets.residents, { cascade: true })
-  //@JoinColumn({ referencedColumnName: 'url' })
-  homeworld: Planet | null
+  homeworld?: Planet | null
 
   @ApiProperty({
     description: 'An array of film resource URLs that this person has been in.',
@@ -112,5 +112,5 @@ export class People extends AbstractEntity<People> {
   })
   @OneToMany(() => Image, (images) => images.people)
   @JoinTable({ name: 'people_images' })
-  images: Image[]
+  images?: Image[]
 }

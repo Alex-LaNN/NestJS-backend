@@ -68,10 +68,4 @@ export class CreateFilmDto {
   })
   @IsArray()
   planets: string[]
-
-  @ApiProperty({
-    description: 'An array of images resource URLs for this film.',
-  })
-  @IsArray()
-  images?: string[]
 }

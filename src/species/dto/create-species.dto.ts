@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsString } from "class-validator";
+import { IsArray, IsOptional, IsString } from "class-validator";
 
 export class CreateSpeciesDto {
   @ApiProperty({ description: 'The name of this species.' })
@@ -56,12 +56,12 @@ export class CreateSpeciesDto {
   @IsString()
   language: string
 
+  @IsOptional()
   @ApiProperty({
-    description:
-      'The URL of a planet resource, a planet that this species originates from.',
+    description: 'Id of the planet from which this species originated.',
+    nullable: true,
   })
-  @IsString()
-  homeworld: string
+  homeworld?: number
 
   @ApiProperty({
     description:
@@ -76,10 +76,4 @@ export class CreateSpeciesDto {
   })
   @IsArray()
   films: string[]
-
-  @ApiProperty({
-    description: 'An array of images resource URLs for this species.',
-  })
-  @IsArray()
-  images: string[]
 }

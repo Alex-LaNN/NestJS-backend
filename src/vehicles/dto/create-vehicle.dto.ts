@@ -88,10 +88,4 @@ export class CreateVehicleDto {
   })
   @IsArray()
   pilots: string[]
-
-  @ApiProperty({
-    description: 'An array of images resource URLs for this vehicle.',
-  })
-  @IsArray()
-  images: string[]
 }
