@@ -1,13 +1,16 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { Role } from "src/shared/utils";
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { ApiProperty } from '@nestjs/swagger'
+import { Expose } from 'class-transformer'
+import { IsEmail } from 'class-validator'
+import { UserRoles } from 'src/shared/utils'
+import { Column, Entity, Index, PrimaryGeneratedColumn, Unique } from 'typeorm'
 
 @Entity({ name: 'users' })
+@Unique(['userName', 'email'])
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  userId: string
+  id: number
 
-  @Column({ unique: true })
+  @Column()
   @ApiProperty({ description: 'Username (at least 2 characters).' })
   userName: string
 
@@ -15,15 +18,18 @@ export class User {
   @ApiProperty({ description: 'User password (at least 5 characters).' })
   password: string
 
-  @Column({ unique: true })
+  @Expose()
+  @Index()
+  @IsEmail()
+  @Column({ length: 50 })
   @ApiProperty({ description: 'User email.' })
   email: string
 
   @Column({
     type: 'enum',
-    enum: Role,
-    default: Role.User,
+    enum: UserRoles,
+    default: UserRoles.User,
   })
   @ApiProperty({ description: 'User role.' })
-  role: Role
+  role: UserRoles
 }

@@ -1,9 +1,8 @@
 import { DataSource, DataSourceOptions } from 'typeorm'
 import getConfig from '../configurrations/dotenv.config'
-import { DbConfig } from 'src/shared/utils'
 
-export const config: DbConfig = getConfig()
-export const { dbHost, dbPort, dbUser, dbPass, dbName } = config
+export const config = getConfig()
+export const { dbHost, dbPort, dbUser, dbPass, dbName, saltRounds } = config
 
 if (!dbHost || !dbPort || !dbUser || !dbPass || !dbName) {
   throw new Error(

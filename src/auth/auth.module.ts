@@ -10,6 +10,7 @@ import { User } from 'src/user/entities/user.entity'
 import { PassportModule } from '@nestjs/passport'
 import { LocalStrategy } from './strategies/local.strategy'
 import { JwtStrategy } from './strategies/jwt.strategy'
+import { AuthController } from './auth.controller'
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { JwtStrategy } from './strategies/jwt.strategy'
       useClass: AuthGuard,
     },
   ],
+  controllers: [AuthController],
   exports: [AuthService],
 })
 export class AuthModule {}

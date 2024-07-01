@@ -107,14 +107,14 @@ export class LastMigration1718564931891 implements MigrationInterface {
             \`consumables\` varchar(255) NOT NULL,
             PRIMARY KEY (\`id\`)) ENGINE=InnoDB`)
         await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`users\` (
-            \`Id\` varchar(36) NOT NULL,
+            \`id\` varchar(36) NOT NULL,
             \`userName\` varchar(255) NOT NULL,
             \`password\` varchar(255) NOT NULL,
             \`email\` varchar(255) NOT NULL,
             \`role\` enum ('user', 'admin') NOT NULL DEFAULT 'user',
             UNIQUE INDEX \`IDX_226bb9aa7aa8a69991209d58f5\` (\`userName\`),
             UNIQUE INDEX \`IDX_97672ac88f789774dd47f7c8be\` (\`email\`),
-            PRIMARY KEY (\`Id\`)) ENGINE=InnoDB`)
+            PRIMARY KEY (\`id\`)) ENGINE=InnoDB`)
         await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`films_starships\` (
             \`filmsId\` int NOT NULL,
             \`starshipsId\` int NOT NULL,

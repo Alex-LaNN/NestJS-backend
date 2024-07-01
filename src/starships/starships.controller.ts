@@ -16,7 +16,7 @@ import { UpdateStarshipDto } from './dto/update-starship.dto'
 import { ApiOperation, ApiTags } from '@nestjs/swagger'
 import { Starship } from 'src/starships/entities/starship.entity'
 import { Pagination } from 'nestjs-typeorm-paginate'
-import { Role, limitCount } from 'src/shared/utils'
+import { UserRoles, limitCount } from 'src/shared/utils'
 import { Roles } from 'src/auth/decorator/roles.decorator'
 import { RolesGuard } from 'src/auth/guards/roles.guard'
 
@@ -26,7 +26,7 @@ import { RolesGuard } from 'src/auth/guards/roles.guard'
 export class StarshipsController {
   constructor(private readonly starshipsService: StarshipsService) {}
 
-  @Roles(Role.Admin)
+  @Roles(UserRoles.Admin)
   @Post('create')
   @ApiOperation({ summary: 'Create new "starship"' })
   async create(
@@ -50,7 +50,7 @@ export class StarshipsController {
     return this.starshipsService.findOne(id)
   }
 
-  @Roles(Role.Admin)
+  @Roles(UserRoles.Admin)
   @Patch(':id')
   @ApiOperation({ summary: 'Update resource "starship" by its "id"' })
   async update(
@@ -60,7 +60,7 @@ export class StarshipsController {
     return this.starshipsService.update(id, updateStarshipDto)
   }
 
-  @Roles(Role.Admin)
+  @Roles(UserRoles.Admin)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete resource "starship" by its "id"' })
   async remove(@Param('id') id: string): Promise<void> {

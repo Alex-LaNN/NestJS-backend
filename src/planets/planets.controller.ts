@@ -15,7 +15,7 @@ import { CreatePlanetDto } from './dto/create-planet.dto'
 import { UpdatePlanetDto } from './dto/update-planet.dto'
 import { ApiOperation, ApiTags } from '@nestjs/swagger'
 import { Pagination } from 'nestjs-typeorm-paginate'
-import { Role, limitCount } from 'src/shared/utils'
+import { UserRoles, limitCount } from 'src/shared/utils'
 import { Roles } from 'src/auth/decorator/roles.decorator'
 import { RolesGuard } from 'src/auth/guards/roles.guard'
 import { Planet } from 'src/planets/entities/planet.entity'
@@ -26,7 +26,7 @@ import { Planet } from 'src/planets/entities/planet.entity'
 export class PlanetsController {
   constructor(private readonly planetsService: PlanetsService) {}
 
-  @Roles(Role.Admin)
+  @Roles(UserRoles.Admin)
   @Post('create')
   @ApiOperation({ summary: 'Create new "planet"' })
   async create(@Body() createPlanetDto: CreatePlanetDto): Promise<Planet> {
@@ -48,7 +48,7 @@ export class PlanetsController {
     return this.planetsService.findOne(id)
   }
 
-  @Roles(Role.Admin)
+  @Roles(UserRoles.Admin)
   @Patch(':id')
   @ApiOperation({ summary: 'Update resource "planet" by its "id"' })
   async update(
@@ -58,7 +58,7 @@ export class PlanetsController {
     return this.planetsService.update(id, updatePlanetDto)
   }
 
-  @Roles(Role.Admin)
+  @Roles(UserRoles.Admin)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete resource "planet" by its "id"' })
   async remove(@Param('id') id: string): Promise<void> {

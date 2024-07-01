@@ -1,7 +1,7 @@
 import { HttpException, InternalServerErrorException } from '@nestjs/common'
 import {
   ExtendedBaseEntity,
-  Role,
+  UserRoles,
   errorMap,
   localUrl,
   swapiUrl,
@@ -78,7 +78,7 @@ export async function hashPassword(enteredPassword: string): Promise<string> {
  */
 export async function isCurrentUserAdmin(user: User): Promise<boolean> {
   // Сравнение роли пользователя с ролью администратора
-  return user.role === Role.Admin
+  return user.role === UserRoles.Admin
 }
 
 /**
@@ -153,8 +153,7 @@ export async function findNameAndDataOfRelationEntity(
   // Выделение имени связанной сущности.
   const nameOfRelationEntity: string = await getNameFromId(url)
   // Извлечение данных связанной сущности с преобразованием их в нужный формат.
-  const relationDataIdToInsert: number | number[] =
-    await extractIdFromUrl(url)
+  const relationDataIdToInsert: number | number[] = await extractIdFromUrl(url)
 
   return {
     nameOfRelationEntity,
@@ -164,7 +163,7 @@ export async function findNameAndDataOfRelationEntity(
 
 /**
  * Функция извлечения имени объекта из URL типа 'http://localhost:3000/films/5/'.
- * 
+ *
  * @param url URL-адрес для обработки.
  * @returns Возвращает извлеченное имя объекта
  */

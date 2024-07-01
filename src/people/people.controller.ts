@@ -15,7 +15,7 @@ import { CreatePeopleDto } from './dto/create-people.dto'
 import { UpdatePeopleDto } from './dto/update-people.dto'
 import { ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
 import { Pagination } from 'nestjs-typeorm-paginate'
-import { Role, limitCount } from 'src/shared/utils'
+import { UserRoles, limitCount } from 'src/shared/utils'
 import { Roles } from 'src/auth/decorator/roles.decorator'
 import { RolesGuard } from 'src/auth/guards/roles.guard'
 import { People } from './entities/people.entity'
@@ -26,7 +26,7 @@ import { People } from './entities/people.entity'
 export class PeopleController {
   constructor(private readonly peopleService: PeopleService) {}
 
-  @Roles(Role.Admin)
+  @Roles(UserRoles.Admin)
   @Post('create')
   @ApiBody({ type: CreatePeopleDto })
   @ApiOperation({ summary: 'Create new "people"' })
@@ -52,7 +52,7 @@ export class PeopleController {
     return await this.peopleService.findOne(id)
   }
 
-  @Roles(Role.Admin)
+  @Roles(UserRoles.Admin)
   @Patch(':id')
   @ApiBody({ type: UpdatePeopleDto })
   @ApiOperation({ summary: 'Update resource "people" by its "id"' })
@@ -63,7 +63,7 @@ export class PeopleController {
     return await this.peopleService.update(id, updatePeopleDto)
   }
 
-  @Roles(Role.Admin)
+  @Roles(UserRoles.Admin)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete resource "people" by its "id"' })
   async remove(@Param('id') id: number): Promise<void> {
