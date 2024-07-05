@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt'
 import { User } from 'src/user/entities/user.entity'
@@ -15,55 +15,19 @@ export class AuthService {
   ) {}
 
   /**
-   * Handles user sign-in or registration based on the provided data.
    *
-   * This method checks the DTO type (`RegistrationRequestDto` or `LoginRequestDto`)
-   * to determine if the user is attempting to register or login.
-   *
-   * @param user User data for registration or login (either RegistrationRequestDto or LoginRequestDto)
-   * @returns Promise<{ access_token: string }> Object containing the access token on success
-   * @throws BadRequestException Error thrown for invalid credentials, username conflicts, or other bad requests
+   * @param user
+   * @returns
    */
-  async signIn(
-    user: RegistrationRequestDto | LoginRequestDto,
-  ): Promise<{ access_token: string }> {
-    let existingUser: User | null = null
-    if ('repeatedPassword' in user) {
-      // Registration Logic
-      const registrationUser = user as RegistrationRequestDto
-      // Check for username uniqueness
-      const userExists = await this.userService.findOneByName(
-        registrationUser.userName,
-      )
-      if (userExists) {
-        throw new BadRequestException('User with this username already exists')
-      }
-      // Create new user
-      const result = await this.userService.create(registrationUser)
-      if (this.isErrorResponse(result)) {
-        throw new BadRequestException(result as ErrorResponce)
-      }
-      existingUser = result
-    } else {
-      // Login Logic
-      const loginUser = user as LoginRequestDto
-      existingUser = await this.validateUser(
-        loginUser.userName,
-        loginUser.password,
-      )
-      if (!existingUser) {
-        throw new BadRequestException('Invalid credentials')
-      }
+  async signIn(user: LoginRequestDto): Promise<{ access_token: string }> {
+    const verifiedUser: User = await this.validateUser(
+      user.userName,
+      user.password,
+    )
+    if (verifiedUser) {
+      return this.createToken(verifiedUser)
     }
-
-    const payload = {
-      sub: existingUser.id,
-      userName: existingUser.userName,
-      role: existingUser.role,
-    }
-    return {
-      access_token: await this.jwtService.signAsync(payload),
-    }
+    throw new Error (`aus:30 - Неверное имя пользователя или пароль!..`)
   }
 
   /**
@@ -76,8 +40,8 @@ export class AuthService {
    * @returns Promise<User | null> Resolved user object if credentials are valid, otherwise null
    */
   async validateUser(name: string, pass: string): Promise<User | null> {
-    const user = await this.userService.findOneByName(name)
-    if (user && 'password' in user) {
+    const user: User = await this.userService.findOneByName(name)
+    if (user) {
       const isMatch = await bcrypt.compare(pass, user.password)
       return isMatch ? user : null
     }
@@ -103,27 +67,30 @@ export class AuthService {
     // Check if user creation was successful (not an error response)
     if (newUser instanceof User) {
       // Generate token for the newly created user
-      return this.signIn(newUser)
+      return this.createToken(newUser)
+      //return this.signIn(newUser)
     } else {
       // Handle user creation error
       throw new Error(
-        `as:110 - Error creating user: ${JSON.stringify(newUser as ErrorResponce), null, 2}`,
+        `aus:76 - Error creating user: ${(JSON.stringify(newUser as ErrorResponce), null, 2)}`,
       )
     }
   }
 
   /**
-   * Checks if the provided response object is an instance of the `ErrorResponse` class.
    *
-   * This helper method is used to distinguish between successful user creation responses (of type `User`)
-   * and error responses (of type `ErrorResponse`) returned by the `userService.create` method.
-   *
-   * @param response The response object to be checked
-   * @returns boolean True if the response is an `ErrorResponse`, false otherwise
+   * @param user
+   * @returns
    */
-  private isErrorResponse(
-    response: User | ErrorResponce,
-  ): response is ErrorResponce {
-    return response && 'isActionCompleted' in response
+  async createToken(user: User): Promise<{ access_token: string }> {
+    const payload = {
+      sub: user.id,
+      userName: user.userName,
+      email: user.email,
+      role: user.role,
+    }
+    return {
+      access_token: await this.jwtService.signAsync(payload),
+    }
   }
 }

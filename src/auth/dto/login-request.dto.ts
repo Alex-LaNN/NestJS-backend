@@ -5,12 +5,11 @@ import { IsEmail, IsNotEmpty, IsString } from "class-validator"
 export class LoginRequestDto {
   @IsString()
   @IsNotEmpty()
-  @IsEmail()
   @Transform(({ value }) => value.toLowerCase())
   @ApiProperty()
-  readonly userName: string
+  userName: string
 
   @IsString()
   @ApiProperty()
-  readonly password: string
+  password: string
 }

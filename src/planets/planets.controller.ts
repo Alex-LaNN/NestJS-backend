@@ -13,10 +13,10 @@ import {
 import { PlanetsService } from './planets.service'
 import { CreatePlanetDto } from './dto/create-planet.dto'
 import { UpdatePlanetDto } from './dto/update-planet.dto'
-import { ApiOperation, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { Pagination } from 'nestjs-typeorm-paginate'
 import { UserRoles, limitCount } from 'src/shared/utils'
-import { Roles } from 'src/auth/decorator/roles.decorator'
+import { Roles } from 'src/auth/decorators/roles.decorator'
 import { RolesGuard } from 'src/auth/guards/roles.guard'
 import { Planet } from 'src/planets/entities/planet.entity'
 
@@ -26,6 +26,7 @@ import { Planet } from 'src/planets/entities/planet.entity'
 export class PlanetsController {
   constructor(private readonly planetsService: PlanetsService) {}
 
+  @ApiBearerAuth()
   @Roles(UserRoles.Admin)
   @Post('create')
   @ApiOperation({ summary: 'Create new "planet"' })
@@ -48,6 +49,7 @@ export class PlanetsController {
     return this.planetsService.findOne(id)
   }
 
+  @ApiBearerAuth()
   @Roles(UserRoles.Admin)
   @Patch(':id')
   @ApiOperation({ summary: 'Update resource "planet" by its "id"' })
@@ -58,6 +60,7 @@ export class PlanetsController {
     return this.planetsService.update(id, updatePlanetDto)
   }
 
+  @ApiBearerAuth()
   @Roles(UserRoles.Admin)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete resource "planet" by its "id"' })

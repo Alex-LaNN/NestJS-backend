@@ -14,17 +14,18 @@ import {
 import { VehiclesService } from './vehicles.service'
 import { CreateVehicleDto } from './dto/create-vehicle.dto'
 import { UpdateVehicleDto } from './dto/update-vehicle.dto'
-import { ApiOperation, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
 import { Pagination } from 'nestjs-typeorm-paginate'
 import { UserRoles, limitCount } from 'src/shared/utils'
-import { Roles } from 'src/auth/decorator/roles.decorator'
+import { Roles } from 'src/auth/decorators/roles.decorator'
 
 @ApiTags('vehicles')
 @Controller('vehicles')
 export class VehiclesController {
   constructor(private readonly vehiclesService: VehiclesService) {}
 
+  @ApiBearerAuth()
   @Roles(UserRoles.Admin)
   @Post('create')
   @ApiOperation({ summary: 'Create new "vehicle"' })
@@ -47,6 +48,7 @@ export class VehiclesController {
     return this.vehiclesService.findOne(id)
   }
 
+  @ApiBearerAuth()
   @Roles(UserRoles.Admin)
   @Patch(':id')
   @ApiOperation({ summary: 'Update resource "vehicle" by its "id"' })
@@ -57,6 +59,7 @@ export class VehiclesController {
     return this.vehiclesService.update(id, updateVehicleDto)
   }
 
+  @ApiBearerAuth()
   @Roles(UserRoles.Admin)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete resource "vehicle" by its "id"' })

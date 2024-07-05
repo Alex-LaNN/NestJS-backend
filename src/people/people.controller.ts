@@ -13,10 +13,16 @@ import {
 import { PeopleService } from './people.service'
 import { CreatePeopleDto } from './dto/create-people.dto'
 import { UpdatePeopleDto } from './dto/update-people.dto'
-import { ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger'
 import { Pagination } from 'nestjs-typeorm-paginate'
 import { UserRoles, limitCount } from 'src/shared/utils'
-import { Roles } from 'src/auth/decorator/roles.decorator'
+import { Roles } from 'src/auth/decorators/roles.decorator'
 import { RolesGuard } from 'src/auth/guards/roles.guard'
 import { People } from './entities/people.entity'
 
@@ -26,6 +32,7 @@ import { People } from './entities/people.entity'
 export class PeopleController {
   constructor(private readonly peopleService: PeopleService) {}
 
+  @ApiBearerAuth()
   @Roles(UserRoles.Admin)
   @Post('create')
   @ApiBody({ type: CreatePeopleDto })
@@ -52,6 +59,7 @@ export class PeopleController {
     return await this.peopleService.findOne(id)
   }
 
+  @ApiBearerAuth()
   @Roles(UserRoles.Admin)
   @Patch(':id')
   @ApiBody({ type: UpdatePeopleDto })
@@ -63,6 +71,7 @@ export class PeopleController {
     return await this.peopleService.update(id, updatePeopleDto)
   }
 
+  @ApiBearerAuth()
   @Roles(UserRoles.Admin)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete resource "people" by its "id"' })

@@ -2,8 +2,6 @@ import {
   ApiResponse,
   BaseEntity,
   ExtendedBaseEntity,
-  SingleEntityResponse,
-  SwapiResponse,
   entityClasses,
   entityClassesForFill,
   relatedEntitiesMap,
@@ -27,8 +25,8 @@ import { dbName } from './config'
  * Класс заполнения локальной БД из удаленного источника данных
  */
 export class SeedDatabase {
-  private queryRunner: QueryRunner
-  constructor(@InjectDataSource() private readonly dataSource: DataSource) {
+  public queryRunner: QueryRunner
+  constructor(@InjectDataSource() public readonly dataSource: DataSource) {
     this.queryRunner = this.dataSource.createQueryRunner()
   }
 
@@ -41,29 +39,25 @@ export class SeedDatabase {
   synchronizeDatabase = async () => {
     this.queryRunner = this.dataSource.createQueryRunner()
     // Выполнение миграций БД.
-    await runMigrations(this.queryRunner)
+    //await runMigrations(this.queryRunner)
     try {
       await this.queryRunner.startTransaction()
       console.log(`Start filling the database...`)
       // Заполнение БД
-      for (const entityName of Object.keys(entityClassesForFill)) {
-        await this.addData(entityName)
-      }
+      // for (const entityName of Object.keys(entityClassesForFill)) {
+      //   await this.addData(entityName)
+      // }
       // Подтверждение транзакции
       await this.queryRunner.commitTransaction()
       console.log('All database additions are completed, ok!...')
     } catch (error) {
       // Откат транзакции в случае ошибки
       await this.queryRunner.rollbackTransaction()
-      console.error('sd:58 - Error during database synchronization: ', error)
+      console.error('sd:56 - Error during database synchronization: ', error)
       throw getResponceOfException(error)
     } finally {
-      // Освобождение ресурсов 'queryRunner' и 'dataSource'
+      // Освобождение ресурса 'queryRunner'
       await this.queryRunner.release()
-      await this.dataSource.destroy()
-      console.log(
-        `sd:65 - After filling with data, the connection to the database is closed...`,
-      )
     }
   }
 
@@ -80,7 +74,7 @@ export class SeedDatabase {
       await this.getRepository<T>(entityName)
     if (!entityRepository) throw new Error(`Repository not received!!!`)
     try {
-      console.log(`sd:83 - Start fill DB an entity ${entityName}...`)
+      console.log(`sd:77 - Start fill DB an entity ${entityName}...`)
       // Формирование URL-адреса для запроса к SWAPI.
       let next: string | null = `${swapiUrl}${entityName}/`
       // Переменная для хранения результатов текущей страницы.
@@ -90,7 +84,7 @@ export class SeedDatabase {
         const response: Response = await fetch(next)
         if (!response.ok) {
           throw new Error(
-            `sd:93 - Failed to fetch data for '${entityName}', received: '${response.statusText}'`,
+            `sd:87 - Failed to fetch data for '${entityName}', received: '${response.statusText}'`,
           )
         }
         const apiResponse: ApiResponse<T> = await response.json()
@@ -108,14 +102,13 @@ export class SeedDatabase {
         if (entityName === 'people' || entityName === 'films') {
           await this.fillRelatedData(entityName, results)
         }
-        //console.log(`sd:113 - 'Results[0]' for '${entityName}': `, results[0]) ////////////////////////////
       } while (next)
       console.log(
-        `sd:114 - Entity '${entityName}' added ok...`,
+        `sd:107 - Entity '${entityName}' added ok...`,
       )
     } catch (error) {
       console.error(
-        `sd:118 - Error when filling database with entity '${entityName}': "${error.message}"!!!`,
+        `sd:111 - Error when filling database with entity '${entityName}': "${error.message}"!!!`,
       )
       throw getResponceOfException(error)
     }
@@ -136,7 +129,7 @@ export class SeedDatabase {
     // Проверка на 'null' или 'undefined'
     if (!results || !entityRepository) {
       throw new Error(
-        `sd:139 - Invalid arguments: 'results' or 'entityRepository' are null or undefined.`,
+        `sd:132 - Invalid arguments: 'results' or 'entityRepository' are null or undefined.`,
       )
     }
     // Параллельная обработка всех объектов перед их сохранением
@@ -158,9 +151,6 @@ export class SeedDatabase {
         return object
       }),
     )
-    // console.log(
-    //   `sd:164 - modifiedObjects[0]: ${JSON.stringify(modifiedObjects[0], null, 2)}`,
-    // )
     // Сохранение объектов в базу данных
     await entityRepository.save(modifiedObjects)
   }
@@ -243,7 +233,7 @@ export class SeedDatabase {
             )
           }
         } catch (error) {
-          // спрятана несущественная ошибка
+          // несущественная ошибка (не влияет на корректность заполнения БД)
         }
       }
     }
@@ -276,7 +266,7 @@ export class SeedDatabase {
       }
     } catch (error) {
       console.error(
-        `sd:279 - Error replacing URL for '${relationName}': ${error.message}. URL missing!`,
+        `sd:269 - Error replacing URL for '${relationName}': ${error.message}. URL missing!`,
       )
       // В случае ошибки - дефолтные значения.
       object[relationName] = Array.isArray(relationData) ? [] : null
@@ -296,37 +286,8 @@ export class SeedDatabase {
         entityClasses[entityName],
       )
     } catch (error) {
-      throw new Error(`sd:299 - No metadata found for '${entityName}'`)
+      throw new Error(`sd:289 - No metadata found for '${entityName}'`)
     }
     return entityRepository
   }
-
-  // /**
-  //  *
-  //  * @param urlForRequest
-  //  * @param entityName
-  //  * @returns
-  //  */
-  // private async getEntityDataFromAPI<T extends BaseEntity>(
-  //   urlForRequest: string,
-  //   entityName: string,
-  // ): Promise<ApiResponse<T>> {
-  //   let response: Response = await fetch(urlForRequest)
-  //   // Детекция получения неудачного ответа
-  //   if (!response.ok) {
-  //     throw new Error(
-  //       `sd:323 - Failed to fetch data for ${entityName}: ${response.statusText}`,
-  //     )
-  //   }
-  //   /**
-  //    * Данные, полученные из ответа сервера.
-  //    */
-  //   const data = await response.json()
-  //   // Определение типа данных и возврат в соответствующем формате
-  //   if (Array.isArray(data.results)) {
-  //     return data as SwapiResponse<T>
-  //   } else {
-  //     return { data: data as T } as SingleEntityResponse<T>
-  //   }
-  // }
 }

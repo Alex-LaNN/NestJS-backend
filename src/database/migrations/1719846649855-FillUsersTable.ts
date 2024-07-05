@@ -13,9 +13,9 @@ export class FillUsersTable1719846649855 implements MigrationInterface {
       // Добавление пользователей
       await queryRunner.query(`
             INSERT INTO swapi.users (id, userName, password, email, role) VALUES
-            (UUID(), 'admin', '${passwordAdmin}', 'admin@example.com', 'admin'),
-            (UUID(), 'user1', '${passwordUser1}', 'user1@example.com', 'user'),
-            (UUID(), 'user2', '${passwordUser2}', 'user2@example.com', 'user');
+            (1, 'admin', '${passwordAdmin}', 'admin@example.com', 'admin'),
+            (2, 'user1', '${passwordUser1}', 'user1@example.com', 'user'),
+            (3, 'user2', '${passwordUser2}', 'user2@example.com', 'user');
         `)
     }
 

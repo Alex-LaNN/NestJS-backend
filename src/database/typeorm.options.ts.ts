@@ -3,7 +3,7 @@ import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm'
 import { config } from './config'
 
 @Injectable()
-export class DatabaseService implements TypeOrmOptionsFactory {
+export class TypeOrmOptions implements TypeOrmOptionsFactory {
 
   createTypeOrmOptions(): TypeOrmModuleOptions {
     const { dbHost, dbPort, dbUser, dbPass, dbName } = config

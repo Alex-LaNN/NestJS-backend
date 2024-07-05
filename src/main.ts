@@ -23,7 +23,7 @@ async function bootstrap() {
   const configService = app.get<ConfigService>(ConfigService)
   app.useGlobalPipes(new ValidationPipe())
   app.useGlobalInterceptors(new TransformInterceptor())
-  app.useGlobalFilters(new HttpExceptionFilter())
+  //app.useGlobalFilters(new HttpExceptionFilter())
   app.enableCors()
   await app.listen(configService.get('port'))
   console.log(`Application is running on: ${await app.getUrl()}`)

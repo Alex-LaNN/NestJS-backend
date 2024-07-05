@@ -39,7 +39,7 @@ export class UserService {
     )
     if (existingUser) {
       const error: Error = new Error(
-        'This username is already taken. Please choose a different one.',
+        'This username is already taken. Please choose another.',
       )
       return {
         error,
@@ -51,14 +51,14 @@ export class UserService {
     const hashedPassword: string = await hashPassword(createUserDto.password)
     console.log(`us 52: hashedPassword - ${hashedPassword}`) ////////////////////////////////////////////
     // Extract user data from 'createUserDto', excluding the 'password' field
-    const { password, ...userData } = createUserDto
+    const { password, ...newUserData } = createUserDto
     // Set the user's role to 'Admin' if the password matches the ADMIN_KEY
-    if (password === process.env.ADMIN_KEY) {
-      userData.roles = UserRoles.Admin
+    if (hashedPassword === process.env.ADMIN_KEY) {
+      newUserData.roles = UserRoles.Admin
     }
     // Create a new user object
     const newUser: User = this.usersRepository.create({
-      ...userData,
+      ...newUserData,
       password: hashedPassword,
     })
     // Save the newly created user to the database

@@ -30,6 +30,15 @@ export const dataSourceOptions: DataSourceOptions = {
 }
 
 export const dataSource = new DataSource(dataSourceOptions)
+  
+  ; (async () => {
+  try {
+    await dataSource.initialize()
+    console.log('config:37 - Data Source has been initialized!')
+  } catch (error) {
+    console.error('config:39 - Error during Data Source initialization', error)
+  }
+})()
 
 //  npx typeorm migration:generate -d ./dist/src/database/config.js ./src/database/migrations/LastMigration  - генерация миграции TypeORM
 // npx typeorm migration:create ./src/database/migrations/LastMigration   - генерация пустого файла миграции

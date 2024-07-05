@@ -10,18 +10,18 @@ import { LocalAuthGuard } from './guards/local-auth.guard'
 import { LoginRequestDto } from './dto/login-request.dto'
 import { RegistrationRequestDto } from './dto/registration-request.dto'
 
-@ApiTags('Auth')
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @UseGuards(LocalAuthGuard)
-  @Post('/login')
+  @Post('login')
   async login(@Body() user: LoginRequestDto) {
     return await this.authService.signIn(user)
   }
 
-  @Post('/register')
+  @Post('register')
   async register(@Body() user: RegistrationRequestDto) {
     return this.authService.signUp(user)
   }
