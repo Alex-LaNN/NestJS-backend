@@ -6,7 +6,7 @@ import * as packageJsone from '../package.json'
 import { ConfigService } from '@nestjs/config'
 import 'dotenv/config'
 import { TransformInterceptor } from './shared/Transform.interceptor'
-import { CustomExceptionFilter } from './app.custom-exception.filter'
+import { CustomExceptionFilter } from './shared/app.custom-exception.filter'
 
 async function bootstrap() {
   // Create a Nest application instance

@@ -68,10 +68,8 @@ export class AuthService {
   async signUp(
     user: RegistrationRequestDto,
   ): Promise<{ access_token: string }> {
-    console.log( `auth.service: In signUp()...`)
     // Create new user
     const newUser: User | ErrorResponce = await this.userService.create(user)
-
     // Check if user creation was successful (not an error response)
     if (newUser instanceof User) {
       // Generate token for the newly created user
@@ -80,7 +78,7 @@ export class AuthService {
     } else {
       // Handle user creation error
       throw new Error(
-        `aus:75 - Error creating user: ${(JSON.stringify(newUser as ErrorResponce), null, 2)}`,
+        `aus:81 - Error creating new user: ${(JSON.stringify(user))}`,
       )
     }
   }

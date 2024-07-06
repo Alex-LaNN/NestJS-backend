@@ -49,7 +49,7 @@ export class UserService {
     }
     // Hash the password for security
     const hashedPassword: string = await hashPassword(createUserDto.password)
-    console.log(`us 52: hashedPassword - ${hashedPassword}`) ////////////////////////////////////////////
+    //console.log(`us 52: hashedPassword - ${hashedPassword}`) ////////////////////////////////////////////
     // Extract user data from 'createUserDto', excluding the 'password' field
     const { password, ...newUserData } = createUserDto
     // Set the user's role to 'Admin' if the password matches the ADMIN_KEY

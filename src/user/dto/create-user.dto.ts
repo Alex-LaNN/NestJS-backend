@@ -5,7 +5,9 @@ import {
   MinLength,
   IsNotEmpty,
   IsEnum,
+  Validate,
 } from 'class-validator'
+import { EmailValidationService } from 'src/shared/email-validation'
 import { UserRoles } from 'src/shared/utils'
 
 export class CreateUserDto {
@@ -22,6 +24,7 @@ export class CreateUserDto {
   password: string
 
   @ApiProperty({ description: 'User email.' })
+  @Validate(EmailValidationService)
   @IsEmail({}, { message: 'Incorrect email address.' })
   email: string
 
