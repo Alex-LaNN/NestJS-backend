@@ -1,9 +1,8 @@
 import { DataSource, DataSourceOptions } from 'typeorm'
 import getConfig from '../configurrations/dotenv.config'
-import { DbConfig } from 'src/shared/utils'
 
-export const config: DbConfig = getConfig()
-export const { dbHost, dbPort, dbUser, dbPass, dbName } = config
+export const config = getConfig()
+export const { dbHost, dbPort, dbUser, dbPass, dbName, saltRounds } = config
 
 if (!dbHost || !dbPort || !dbUser || !dbPass || !dbName) {
   throw new Error(
@@ -11,6 +10,12 @@ if (!dbHost || !dbPort || !dbUser || !dbPass || !dbName) {
   )
 }
 
+/**
+ * Опции конфигурации для подключения к базе данных
+ *
+ * Определяет параметры для создания объекта `DataSource` библиотеки TypeORM,
+ * используемого для взаимодействия с базой данных MySQL.
+ */
 export const dataSourceOptions: DataSourceOptions = {
   type: 'mysql',
   host: dbHost,
@@ -21,10 +26,19 @@ export const dataSourceOptions: DataSourceOptions = {
   entities: ['dist/**/*.entity{.ts,.js}'],
   migrations: ['dist/src/database/migrations/*{.ts,.js}'],
   synchronize: false,
-  logging: true,
+  //logging: true,
 }
 
 export const dataSource = new DataSource(dataSourceOptions)
+  
+  ; (async () => {
+  try {
+    await dataSource.initialize()
+    console.log('config:37 - Data Source has been initialized!')
+  } catch (error) {
+    console.error('config:39 - Error during Data Source initialization', error)
+  }
+})()
 
-// npx typeorm migration:generate -d ./dist/src/database/config.js ./src/database/migrations/LastMigration
-// npx typeorm migration:create ./src/database/migrations/LastMigration
+//  npx typeorm migration:generate -d ./dist/src/database/config.js ./src/database/migrations/LastMigration  - генерация миграции TypeORM
+// npx typeorm migration:create ./src/database/migrations/LastMigration   - генерация пустого файла миграции

@@ -7,7 +7,7 @@ import { AuthService } from '../auth.service'
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
   constructor(private authService: AuthService) {
-    super()
+    super({ usernameField: `userName` })
   }
 
   async validate(
@@ -18,6 +18,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
       userName,
       password,
     )
+    console.log(`los:21 - user`, user)
     if (!user) {
       throw new UnauthorizedException()
     }

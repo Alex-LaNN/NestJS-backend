@@ -15,11 +15,11 @@ import {
 import { SpeciesService } from './species.service'
 import { CreateSpeciesDto } from './dto/create-species.dto'
 import { UpdateSpeciesDto } from './dto/update-species.dto'
-import { ApiOperation, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { Species } from 'src/species/entities/species.entity'
 import { Pagination } from 'nestjs-typeorm-paginate'
-import { Role, limitCount } from 'src/shared/utils'
-import { Roles } from 'src/auth/decorator/roles.decorator'
+import { UserRoles, limitCount } from 'src/shared/utils'
+import { Roles } from 'src/auth/decorators/roles.decorator'
 import { RolesGuard } from 'src/auth/guards/roles.guard'
 
 @ApiTags('species')
@@ -28,7 +28,8 @@ import { RolesGuard } from 'src/auth/guards/roles.guard'
 export class SpeciesController {
   constructor(private readonly speciesService: SpeciesService) {}
 
-  @Roles(Role.Admin)
+  @ApiBearerAuth()
+  @Roles(UserRoles.Admin)
   @Post('create')
   @ApiOperation({ summary: 'Create new "species"' })
   async create(@Body() createSpeciesDto: CreateSpeciesDto): Promise<Species> {
@@ -50,7 +51,8 @@ export class SpeciesController {
     return this.speciesService.findOne(id)
   }
 
-  @Roles(Role.Admin)
+  @ApiBearerAuth()
+  @Roles(UserRoles.Admin)
   @Patch(':id')
   @ApiOperation({ summary: 'Update resource "species" by its "id"' })
   async update(
@@ -60,7 +62,8 @@ export class SpeciesController {
     return this.speciesService.update(id, updateSpeciesDto)
   }
 
-  @Roles(Role.Admin)
+  @ApiBearerAuth()
+  @Roles(UserRoles.Admin)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete resource "species" by its "id"' })
   async remove(@Param('id') id: string): Promise<void> {

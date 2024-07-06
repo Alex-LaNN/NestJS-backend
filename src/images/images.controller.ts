@@ -9,16 +9,17 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { ImagesService } from './images.service'
-import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger'
 import { FileUploadDto } from './dto/create-image.dto'
-import { Roles } from 'src/auth/decorator/roles.decorator'
-import { Role } from 'src/shared/utils'
+import { Roles } from 'src/auth/decorators/roles.decorator'
+import { UserRoles } from 'src/shared/utils'
 import { RolesGuard } from 'src/auth/guards/roles.guard'
 
 @Controller('images')
 @ApiTags('images')
+@ApiBearerAuth()
 @UseGuards(RolesGuard)
-@Roles(Role.Admin)
+@Roles(UserRoles.Admin)
 export class ImagesController {
   constructor(private readonly imagesService: ImagesService) {}
 

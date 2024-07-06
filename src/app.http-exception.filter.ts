@@ -13,7 +13,7 @@ import { ErrorResponse } from './shared/utils'
 export class HttpExceptionFilter implements ExceptionFilter {
   private readonly logger: Logger
   constructor() {
-    this.logger = new Logger()
+    this.logger = new Logger(HttpExceptionFilter.name)
   }
   /**
    * Глобальный обработчик ошибок для перехвата необработанных исключений
@@ -21,6 +21,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
    * @param host Аргумент, который предоставляет информацию о контексте запроса
    */
   catch(exception: Error, host: ArgumentsHost) {
+    console.trace('TRACE')
     // Получение контекста HTTP запроса
     const ctx = host.switchToHttp()
     const response = ctx.getResponse<Response>()
@@ -41,8 +42,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
       timestamp: new Date().toISOString(),
       path: request.url,
       method: request.method,
-      errorName: exception?.name,
-      message: exception?.message,
+      errorName: exception.name,
+      message: typeof message === 'string' ? message : JSON.stringify(message),
     }
 
     // Отправление ответа с информацией об ошибке

@@ -4,6 +4,7 @@ export default () => ({
   host: process.env.HOST,
   port: Number(process.env.PORT),
   limitCount: Number(process.env.LIMIT_COUNT),
+  saltRounds: Number(process.env.SALT_ROUNDS),
   dbType: process.env.DB_TYPE,
   dbHost: process.env.DB_HOST,
   dbPort: Number(process.env.DB_PORT),

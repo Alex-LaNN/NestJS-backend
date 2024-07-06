@@ -3,10 +3,9 @@ import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm'
 import { config } from './config'
 
 @Injectable()
-export class DatabaseService implements TypeOrmOptionsFactory {
+export class TypeOrmOptions implements TypeOrmOptionsFactory {
 
   createTypeOrmOptions(): TypeOrmModuleOptions {
-
     const { dbHost, dbPort, dbUser, dbPass, dbName } = config
 
     if (!dbHost || !dbPort || !dbUser || !dbPass || !dbName) {
@@ -15,8 +14,12 @@ export class DatabaseService implements TypeOrmOptionsFactory {
       )
     }
 
-    //    const options: TypeOrmModuleOptions = dataSourceOptions
-    
+    /**
+     * Опции для модуля TypeORM
+     *
+     * Определяет параметры конфигурации для модуля TypeORM,
+     * используемого для взаимодействия с базой данных MySQL.
+     */
     const options: TypeOrmModuleOptions = {
       type: 'mysql',
       host: dbHost,
@@ -27,7 +30,6 @@ export class DatabaseService implements TypeOrmOptionsFactory {
       entities: ['dist/**/*.entity{.ts,.js}'],
       migrations: ['dist/src/database/migrations/*{.ts,.js}'],
       synchronize: false,
-      //logging: true,
     }
 
     return options

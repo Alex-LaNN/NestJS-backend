@@ -1,6 +1,6 @@
 import { Module, OnModuleInit } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
-import { DatabaseService } from './database.service'
+import { TypeOrmOptions } from './typeorm.options.ts'
 import { SeedDatabase } from './seed.database'
 import { ConfigModule } from '@nestjs/config'
 
@@ -8,11 +8,11 @@ import { ConfigModule } from '@nestjs/config'
   imports: [
     ConfigModule.forRoot(),
     TypeOrmModule.forRootAsync({
-      useClass: DatabaseService,
+      useClass: TypeOrmOptions,
     }),
   ],
-  providers: [DatabaseService, SeedDatabase, ],
-  exports: [DatabaseService],
+  providers: [TypeOrmOptions, SeedDatabase ],
+  exports: [TypeOrmOptions],
 })
 export class DatabaseModule implements OnModuleInit {
   constructor(private readonly seedDatabase: SeedDatabase) {}

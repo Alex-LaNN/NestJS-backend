@@ -14,18 +14,19 @@ import {
 import { VehiclesService } from './vehicles.service'
 import { CreateVehicleDto } from './dto/create-vehicle.dto'
 import { UpdateVehicleDto } from './dto/update-vehicle.dto'
-import { ApiOperation, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
 import { Pagination } from 'nestjs-typeorm-paginate'
-import { Role, limitCount } from 'src/shared/utils'
-import { Roles } from 'src/auth/decorator/roles.decorator'
+import { UserRoles, limitCount } from 'src/shared/utils'
+import { Roles } from 'src/auth/decorators/roles.decorator'
 
 @ApiTags('vehicles')
 @Controller('vehicles')
 export class VehiclesController {
   constructor(private readonly vehiclesService: VehiclesService) {}
 
-  @Roles(Role.Admin)
+  @ApiBearerAuth()
+  @Roles(UserRoles.Admin)
   @Post('create')
   @ApiOperation({ summary: 'Create new "vehicle"' })
   async create(@Body() createVehicleDto: CreateVehicleDto): Promise<Vehicle> {
@@ -47,7 +48,8 @@ export class VehiclesController {
     return this.vehiclesService.findOne(id)
   }
 
-  @Roles(Role.Admin)
+  @ApiBearerAuth()
+  @Roles(UserRoles.Admin)
   @Patch(':id')
   @ApiOperation({ summary: 'Update resource "vehicle" by its "id"' })
   async update(
@@ -57,7 +59,8 @@ export class VehiclesController {
     return this.vehiclesService.update(id, updateVehicleDto)
   }
 
-  @Roles(Role.Admin)
+  @ApiBearerAuth()
+  @Roles(UserRoles.Admin)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete resource "vehicle" by its "id"' })
   async remove(@Param('id') id: string): Promise<void> {

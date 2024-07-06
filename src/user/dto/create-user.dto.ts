@@ -1,6 +1,11 @@
-import { ApiProperty, OmitType } from '@nestjs/swagger';
-import { IsString, IsEmail, MinLength, IsEnum, IsNotEmpty } from 'class-validator';
-import { Role } from 'src/shared/utils';
+import { ApiProperty, OmitType } from '@nestjs/swagger'
+import {
+  IsString,
+  IsEmail,
+  MinLength,
+  IsNotEmpty,
+} from 'class-validator'
+import { UserRoles } from 'src/shared/utils'
 
 export class CreateUserDto {
   @IsNotEmpty()
@@ -16,12 +21,11 @@ export class CreateUserDto {
   password: string
 
   @IsEmail({}, { message: 'Incorrect email address.' })
-  @ApiProperty({ description: '' })
+  @ApiProperty({ description: 'User email.' })
   email: string
 
-  @IsEnum(Role)
-  @ApiProperty({ enum: Role, default: Role.User })
-  role: Role
+  @ApiProperty({ default: UserRoles.User })
+  roles?: string
 }
 
 export class UserWithoutPasswordDto extends OmitType(CreateUserDto, [

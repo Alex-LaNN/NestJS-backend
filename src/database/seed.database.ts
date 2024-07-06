@@ -2,8 +2,6 @@ import {
   ApiResponse,
   BaseEntity,
   ExtendedBaseEntity,
-  SingleEntityResponse,
-  SwapiResponse,
   entityClasses,
   entityClassesForFill,
   relatedEntitiesMap,
@@ -27,8 +25,8 @@ import { dbName } from './config'
  * Класс заполнения локальной БД из удаленного источника данных
  */
 export class SeedDatabase {
-  private queryRunner: QueryRunner
-  constructor(@InjectDataSource() private readonly dataSource: DataSource) {
+  public queryRunner: QueryRunner
+  constructor(@InjectDataSource() public readonly dataSource: DataSource) {
     this.queryRunner = this.dataSource.createQueryRunner()
   }
 
@@ -41,29 +39,25 @@ export class SeedDatabase {
   synchronizeDatabase = async () => {
     this.queryRunner = this.dataSource.createQueryRunner()
     // Выполнение миграций БД.
-    await runMigrations(this.queryRunner)
+    //await runMigrations(this.queryRunner)
     try {
       await this.queryRunner.startTransaction()
-      console.log(`Start seeding...`)
+      console.log(`Start filling the database...`)
       // Заполнение БД
-      for (const entityName of Object.keys(entityClassesForFill)) {
-        await this.addData(entityName)
-      }
+      // for (const entityName of Object.keys(entityClassesForFill)) {
+      //   await this.addData(entityName)
+      // }
       // Подтверждение транзакции
       await this.queryRunner.commitTransaction()
-      console.log('Finish seeding ok!...')
+      console.log('All database additions are completed, ok!...')
     } catch (error) {
       // Откат транзакции в случае ошибки
       await this.queryRunner.rollbackTransaction()
-      console.error('sd:58 - Error during database synchronization: ', error)
+      console.error('sd:56 - Error during database synchronization: ', error)
       throw getResponceOfException(error)
     } finally {
-      // Освобождение ресурсов 'queryRunner' и 'dataSource'
+      // Освобождение ресурса 'queryRunner'
       await this.queryRunner.release()
-      await this.dataSource.destroy()
-      console.log(
-        `sd:65 - After filling with data, the connection to the database is closed...`,
-      )
     }
   }
 
@@ -78,9 +72,9 @@ export class SeedDatabase {
     // Получение репозитория TypeORM для данной сущности.
     const entityRepository: Repository<T> =
       await this.getRepository<T>(entityName)
-    if (!entityRepository) throw new Error(`Репозиторий не получен!!!`)
+    if (!entityRepository) throw new Error(`Repository not received!!!`)
     try {
-      console.log(`sd:83 - Старт заполнения БД сущностью ${entityName}...`)
+      console.log(`sd:77 - Start fill DB an entity ${entityName}...`)
       // Формирование URL-адреса для запроса к SWAPI.
       let next: string | null = `${swapiUrl}${entityName}/`
       // Переменная для хранения результатов текущей страницы.
@@ -90,7 +84,7 @@ export class SeedDatabase {
         const response: Response = await fetch(next)
         if (!response.ok) {
           throw new Error(
-            `sd:93 - Failed to fetch data for '${entityName}', received: '${response.statusText}'`,
+            `sd:87 - Failed to fetch data for '${entityName}', received: '${response.statusText}'`,
           )
         }
         const apiResponse: ApiResponse<T> = await response.json()
@@ -108,19 +102,20 @@ export class SeedDatabase {
         if (entityName === 'people' || entityName === 'films') {
           await this.fillRelatedData(entityName, results)
         }
-        console.log(`sd:111 - 'Results[0]' for '${entityName}': `, results[0]) ////////////////////////////
       } while (next)
-      console.log(`sd:113 - Сущность '${entityName}' добавлена в БД...`)
+      console.log(
+        `sd:107 - Entity '${entityName}' added ok...`,
+      )
     } catch (error) {
       console.error(
-        `sd:116 - Ошибка, при заполнения БД сущностью '${entityName}': "${error.message}"!!!`,
+        `sd:111 - Error when filling database with entity '${entityName}': "${error.message}"!!!`,
       )
       throw getResponceOfException(error)
     }
   }
 
   /**
-   * Сохранение полученного массива данных объектов в базу данных.
+   * Сохраняет полученный массив данных объектов в базу данных.
    *
    * @param results Массив данных объектов, полученных из ответа сервера.
    * @param entityName Имя сущности, к которой пренадлежит массив объектов.
@@ -134,12 +129,13 @@ export class SeedDatabase {
     // Проверка на 'null' или 'undefined'
     if (!results || !entityRepository) {
       throw new Error(
-        `sd:137 - Недопустимые аргументы: 'results' или 'entityRepository' равны null или undefined.`,
+        `sd:132 - Invalid arguments: 'results' or 'entityRepository' are null or undefined.`,
       )
     }
     // Параллельная обработка всех объектов перед их сохранением
     const modifiedObjects: T[] = await Promise.all(
       results.map(async (object) => {
+        object.url = await replaceUrl(object.url)
         object.id = (await extractIdFromUrl(object.url)) as number
         if (entityName === 'people' || entityName === 'species') {
           const url = object.homeworld
@@ -154,9 +150,6 @@ export class SeedDatabase {
         }
         return object
       }),
-    )
-    console.log(
-      `sd:159 - modifiedObjects[0]: ${JSON.stringify(modifiedObjects[0], null, 2)}`,
     )
     // Сохранение объектов в базу данных
     await entityRepository.save(modifiedObjects)
@@ -180,6 +173,17 @@ export class SeedDatabase {
     for (const object of objects) {
       // Заполнение всех полей связанных данных объекта
       for (const relationName of relatedNames) {
+        const updatedRelationData: string | string[] =
+          await this.changeUrlsObject(
+            object,
+            object[relationName],
+            relationName,
+          )
+        // Преобразование значения в нужный тип для использования в 'setObjectField'
+        const typedUpdatedRelationData =
+          updatedRelationData as T[typeof relationName]
+        // Установка обновленного значения свойства
+        setObjectField(object, relationName, typedUpdatedRelationData)
         // Получение оригинальных данных для связанной сущности из объекта
         let relationDataForObject: string | string[] = object[relationName]
         // Данные по связанной сущности отсутствуют => инициализация соответствующего поля
@@ -229,46 +233,15 @@ export class SeedDatabase {
             )
           }
         } catch (error) {
-          console.error(
-            `sd:233 - Ошибка при заполнении связанных данных объекта ${object.url}: ${error.message}`,
-          )
+          // несущественная ошибка (не влияет на корректность заполнения БД)
         }
       }
     }
   }
 
   /**
-   *
-   * @param urlForRequest
-   * @param entityName
-   * @returns
-   */
-  private async getEntityDataFromAPI<T extends BaseEntity>(
-    urlForRequest: string,
-    entityName: string,
-  ): Promise<ApiResponse<T>> {
-    let response: Response = await fetch(urlForRequest)
-    // Детекция получения неудачного ответа
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch data for ${entityName}: ${response.statusText}`,
-      )
-    }
-    /**
-     * Данные, полученные из ответа сервера.
-     */
-    const data = await response.json()
-
-    // Определение типа данных и возврат в соответствующем формате
-    if (Array.isArray(data.results)) {
-      return data as SwapiResponse<T>
-    } else {
-      return { data: data as T } as SingleEntityResponse<T>
-    }
-  }
-
-  /**
    * Заменяет все поля с 'Url-адресами' объекта локальными.
+   *
    * @param object Обрабатываемый объект.
    * @param relationData Данные связанной сущности.
    * @param relationName  Название связанной сущности.
@@ -293,7 +266,7 @@ export class SeedDatabase {
       }
     } catch (error) {
       console.error(
-        `sd:296 - Ошибка при замене URL-а для '${relationName}': ${error.message}. URL отсутствует!`,
+        `sd:269 - Error replacing URL for '${relationName}': ${error.message}. URL missing!`,
       )
       // В случае ошибки - дефолтные значения.
       object[relationName] = Array.isArray(relationData) ? [] : null
@@ -313,7 +286,7 @@ export class SeedDatabase {
         entityClasses[entityName],
       )
     } catch (error) {
-      throw new Error(`No metadata found for '${entityName}'`)
+      throw new Error(`sd:289 - No metadata found for '${entityName}'`)
     }
     return entityRepository
   }

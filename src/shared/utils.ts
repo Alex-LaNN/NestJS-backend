@@ -54,7 +54,7 @@ export enum E_Gender {
 /**
  * Перечисления для ролей пользователей.
  */
-export enum Role {
+export enum UserRoles {
   User = 'user',
   Admin = 'admin',
 }
@@ -87,6 +87,17 @@ export type ErrorResponse = {
   method: string
   errorName?: string
   message: string
+}
+
+/**
+ * Интерфейс для описания структуры объекта ответа об ошибке
+ *
+ * Используется для унифицированного представления информации об ошибке при ответах API.
+ */
+export interface ErrorResponce {
+  error: Error
+  user: User | null
+  isActionCompleted: boolean
 }
 
 /**
@@ -147,7 +158,9 @@ export interface EntityInfo {
 }
 
 /**
- * 
+ * Интерфейс для конфигурации базы данных.
+ *
+ * Описывает свойства, необходимые для подключения к базе данных.
  */
 export interface DbConfig {
   dbHost: string
@@ -161,7 +174,7 @@ export interface DbConfig {
  * Интерфейс для одиночного ответа
  */
 export interface SingleEntityResponse<T extends BaseEntity> {
-  data: T;
+  data: T
 }
 
 /**
@@ -182,7 +195,7 @@ export interface BaseEntity {
   url: string
   homeworld?: number | string
   homeworldId?: number
-  residents?:number[]
+  residents?: number[]
   residentsId?: number[]
   [key: string]: any
 }
@@ -191,13 +204,17 @@ export interface BaseEntity {
  * Интерфейс базовой сущности с учетом связанных сущностей
  */
 export interface ExtendedBaseEntity extends BaseEntity, RelationsEntity {}
-  
+
 /**
  * Динамическое создание типа для связанных сущностей
  */
 type RelationsEntity = {
-  [K in typeof listOfRelations[number]]?: number | string | number[] | string[];
-};
+  [K in (typeof listOfRelations)[number]]?:
+    | number
+    | string
+    | number[]
+    | string[]
+}
 
 /**
  * Массив всех допустимых названий связанных сущностей.
@@ -221,7 +238,7 @@ export const listOfRelations: string[] = [
  */
 export type ApiResponse<T extends BaseEntity> =
   | SingleEntityResponse<T>
-  | SwapiResponse<T>;
+  | SwapiResponse<T>
 
 /**
  * Отображение связанных сущностей для всех типов сущностей, описанных в 'entityClasses'
@@ -294,18 +311,11 @@ export const relationMappings = {
 }
 
 /**
- * 
+ * Интерфейс для описания структуры полезной нагрузки (payload) JWT-токена
+ *
+ * Описывает поля, содержащиеся в 'payload' токена, используемого для авторизации.
  */
 export interface Payload {
   sub: string
   role: string
-}
-
-/**
- * 
- */
-export interface ErrorResponce {
-  error: Error
-  user: User | null
-  isActionCompleted: boolean
 }
