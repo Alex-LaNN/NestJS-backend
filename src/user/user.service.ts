@@ -136,7 +136,7 @@ export class UserService {
       return true
     } catch (error) {
       // Log the error with additional information
-      console.error(`Error removing user with username: ${name}: `, error)
+      console.error(`us:139 - Error removing user with username: ${name}: `, error)
       return false
     }
   }

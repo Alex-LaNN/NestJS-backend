@@ -4,27 +4,29 @@ import {
   IsEmail,
   MinLength,
   IsNotEmpty,
+  IsEnum,
 } from 'class-validator'
 import { UserRoles } from 'src/shared/utils'
 
 export class CreateUserDto {
+  @ApiProperty({ description: 'Username (at least 2 characters).' })
   @IsNotEmpty()
   @IsString()
   @MinLength(2, { message: 'The username must contain at least 2 characters.' })
-  @ApiProperty({ description: 'Username (at least 2 characters).' })
   userName: string
 
+  @ApiProperty({ description: 'User password (at least 5 characters).' })
   @IsNotEmpty()
   @IsString()
   @MinLength(5, { message: 'The password must contain at least 5 characters.' })
-  @ApiProperty({ description: 'User password (at least 5 characters).' })
   password: string
 
-  @IsEmail({}, { message: 'Incorrect email address.' })
   @ApiProperty({ description: 'User email.' })
+  @IsEmail({}, { message: 'Incorrect email address.' })
   email: string
 
   @ApiProperty({ default: UserRoles.User })
+  @IsEnum(UserRoles)
   roles?: string
 }
 

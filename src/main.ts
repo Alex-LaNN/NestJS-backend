@@ -6,10 +6,13 @@ import * as packageJsone from '../package.json'
 import { ConfigService } from '@nestjs/config'
 import 'dotenv/config'
 import { TransformInterceptor } from './shared/Transform.interceptor'
-import { HttpExceptionFilter } from './app.http-exception.filter'
+import { CustomExceptionFilter } from './app.custom-exception.filter'
 
 async function bootstrap() {
+  // Create a Nest application instance
   const app = await NestFactory.create(AppModule)
+
+  // Configure Swagger documentation
   const appConfig = new DocumentBuilder()
     .setTitle('The Star Wars API')
     .setDescription(
@@ -19,12 +22,20 @@ async function bootstrap() {
     .addBearerAuth()
     .build()
   const document = SwaggerModule.createDocument(app, appConfig)
+  // Mount Swagger at '/api' route
   SwaggerModule.setup('api', app, document)
+
+  // Get configuration service
   const configService = app.get<ConfigService>(ConfigService)
+
+  // Apply global middleware
   app.useGlobalPipes(new ValidationPipe())
   app.useGlobalInterceptors(new TransformInterceptor())
-  //app.useGlobalFilters(new HttpExceptionFilter())
+  //app.useGlobalFilters(new CustomExceptionFilter())
+
+  // Enable CORS (Cross-Origin Resource Sharing)
   app.enableCors()
+  // Start listening on the specified port
   await app.listen(configService.get('port'))
   console.log(`Application is running on: ${await app.getUrl()}`)
 }

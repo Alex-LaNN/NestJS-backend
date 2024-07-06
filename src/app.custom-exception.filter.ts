@@ -10,33 +10,37 @@ import { Request, Response } from 'express'
 import { ErrorResponse } from './shared/utils'
 
 @Catch()
-export class HttpExceptionFilter implements ExceptionFilter {
+export class CustomExceptionFilter implements ExceptionFilter {
   private readonly logger: Logger
   constructor() {
-    this.logger = new Logger(HttpExceptionFilter.name)
+    this.logger = new Logger(CustomExceptionFilter.name)
   }
   /**
-   * Глобальный обработчик ошибок для перехвата необработанных исключений
-   * @param exception Ошибка, которая была выброшена
-   * @param host Аргумент, который предоставляет информацию о контексте запроса
+   * Global exception handler to intercept unhandled exceptions.
+   *
+   * This method is called whenever an exception is thrown anywhere in the application.
+   * It handles both HTTP exceptions (those thrown by Express and NestJS) and generic JavaScript errors.
+   *
+   * @param exception The error object that was thrown.
+   * @param host The argument object that provides information about the request context.
    */
   catch(exception: Error, host: ArgumentsHost) {
     console.trace('TRACE')
-    // Получение контекста HTTP запроса
+    // Get the HTTP request context
     const ctx = host.switchToHttp()
     const response = ctx.getResponse<Response>()
     const request = ctx.getRequest<Request>()
-    // Определение кода ошибки
+    // Determine the error status code
     const statusCode =
       exception instanceof HttpException
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR
-    // Определение сообщения об ошибке
+    // Determine the error message
     const message =
       exception instanceof HttpException
         ? exception.message
-        : 'Internal server error'
-    // Создание объекта ответа об ошибке
+        : 'An unexpected error occurred'
+    // Create an error response object
     const errorResponse: ErrorResponse = {
       statusCode,
       timestamp: new Date().toISOString(),
@@ -46,7 +50,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
       message: typeof message === 'string' ? message : JSON.stringify(message),
     }
 
-    // Отправление ответа с информацией об ошибке
+    // Log the error details
+    this.logger.error(
+      `Error occurred during request: ${request.method} ${request.url}`,
+      exception,
+    )
+
+    // Send the error response to the client
     response.status(statusCode).json(errorResponse)
   }
 }

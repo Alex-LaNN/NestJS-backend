@@ -17,6 +17,7 @@ import { ConfigModule } from '@nestjs/config'
 export class DatabaseModule implements OnModuleInit {
   constructor(private readonly seedDatabase: SeedDatabase) {}
   async onModuleInit() {
+    // Seed the database with initial data (optional)
     await this.seedDatabase.synchronizeDatabase()
   }
 }

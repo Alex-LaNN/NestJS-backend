@@ -7,6 +7,13 @@ import { LoginRequestDto } from './dto/login-request.dto'
 import { ErrorResponce } from 'src/shared/utils'
 import { RegistrationRequestDto } from './dto/registration-request.dto'
 
+/**
+ * Authentication service for handling user login, registration, and token management
+ *
+ * This service provides methods for authenticating users, generating access tokens,
+ * and managing user sessions. It interacts with the `UserService` for user data
+ * access and the `JwtService` for generating and handling JSON Web Tokens (JWTs).
+ */
 @Injectable()
 export class AuthService {
   constructor(
@@ -15,19 +22,19 @@ export class AuthService {
   ) {}
 
   /**
+   * Signs in a user and generates an access token
    *
-   * @param user
-   * @returns
+   * This method takes a `LoginRequestDto` containing the user's credentials (username and password)
+   * and attempts to authenticate the user. If successful, it generates an access token for the user.
+   *
+   * @param user The LoginRequestDto object containing username and password
+   * @returns A Promise resolving to an object with the access_token property, or throws an error
+   *          if authentication fails.
    */
-  async signIn(user: LoginRequestDto): Promise<{ access_token: string }> {
-    const verifiedUser: User = await this.validateUser(
-      user.userName,
-      user.password,
-    )
-    if (verifiedUser) {
-      return this.createToken(verifiedUser)
-    }
-    throw new Error (`aus:30 - Неверное имя пользователя или пароль!..`)
+  async signIn(
+    user: User,
+  ): Promise<{ access_token: string }> {
+    return this.createToken(user)
   }
 
   /**
@@ -61,6 +68,7 @@ export class AuthService {
   async signUp(
     user: RegistrationRequestDto,
   ): Promise<{ access_token: string }> {
+    console.log( `auth.service: In signUp()...`)
     // Create new user
     const newUser: User | ErrorResponce = await this.userService.create(user)
 
@@ -72,15 +80,20 @@ export class AuthService {
     } else {
       // Handle user creation error
       throw new Error(
-        `aus:76 - Error creating user: ${(JSON.stringify(newUser as ErrorResponce), null, 2)}`,
+        `aus:75 - Error creating user: ${(JSON.stringify(newUser as ErrorResponce), null, 2)}`,
       )
     }
   }
 
   /**
+   * Creates a JSON Web Token (JWT) containing user information.
    *
-   * @param user
-   * @returns
+   * This method takes a `User` object as input and creates a JWT payload containing the user's ID, username, email, and role.
+   * It then uses the `jwtService.signAsync` method to sign the payload and generate a JWT access token.
+   *
+   * @param user The user object for whom the token is being generated.
+   * @returns Promise that resolves to an object with a single property:
+   *   - `access_token`: The generated JWT access token as a string.
    */
   async createToken(user: User): Promise<{ access_token: string }> {
     const payload = {

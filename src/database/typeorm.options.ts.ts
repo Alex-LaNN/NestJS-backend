@@ -6,19 +6,20 @@ import { config } from './config'
 export class TypeOrmOptions implements TypeOrmOptionsFactory {
 
   createTypeOrmOptions(): TypeOrmModuleOptions {
+    // Extract database connection details from config
     const { dbHost, dbPort, dbUser, dbPass, dbName } = config
-
+    // Validate required database connection parameters
     if (!dbHost || !dbPort || !dbUser || !dbPass || !dbName) {
       throw new Error(
-        'В файле конфигурации определены не все параметры для подключения к базе данных!',
+        'Not all parameters for connecting to the database are defined in the configuration file!',
       )
     }
 
     /**
-     * Опции для модуля TypeORM
+     * Configuration options for the TypeORM module
      *
-     * Определяет параметры конфигурации для модуля TypeORM,
-     * используемого для взаимодействия с базой данных MySQL.
+     * Defines configuration parameters for the TypeORM module,
+     * used to interact with the MySQL database.
      */
     const options: TypeOrmModuleOptions = {
       type: 'mysql',

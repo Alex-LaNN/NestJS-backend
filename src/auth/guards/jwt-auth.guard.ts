@@ -9,13 +9,16 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     super()
   }
   canActivate(context: ExecutionContext) {
+    // Check for the `@Public()` decorator on the handler or class
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
     ])
+    // If the route is public, bypass JWT authentication
     if (isPublic) {
       return true
     }
+    // Otherwise, perform default JWT authentication
     return super.canActivate(context)
   }
 }

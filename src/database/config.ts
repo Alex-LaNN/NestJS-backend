@@ -1,9 +1,11 @@
 import { DataSource, DataSourceOptions } from 'typeorm'
 import getConfig from '../configurrations/dotenv.config'
 
+// Load environment variables from .env file
 export const config = getConfig()
+// Extract database connection details from config
 export const { dbHost, dbPort, dbUser, dbPass, dbName, saltRounds } = config
-
+// Validate required database connection parameters
 if (!dbHost || !dbPort || !dbUser || !dbPass || !dbName) {
   throw new Error(
     'В файле конфигурации определены не все параметры для подключения к базе данных!',
@@ -11,10 +13,10 @@ if (!dbHost || !dbPort || !dbUser || !dbPass || !dbName) {
 }
 
 /**
- * Опции конфигурации для подключения к базе данных
+ * Configuration options for database connection
  *
- * Определяет параметры для создания объекта `DataSource` библиотеки TypeORM,
- * используемого для взаимодействия с базой данных MySQL.
+ * Defines parameters for creating a `DataSource` object from the TypeORM library,
+ * used to interact with the MySQL database.
  */
 export const dataSourceOptions: DataSourceOptions = {
   type: 'mysql',
@@ -29,14 +31,16 @@ export const dataSourceOptions: DataSourceOptions = {
   //logging: true,
 }
 
+// Create a TypeORM DataSource instance
 export const dataSource = new DataSource(dataSourceOptions)
-  
-  ; (async () => {
+
+// Initialize the data source and handle errors
+;(async () => {
   try {
     await dataSource.initialize()
-    console.log('config:37 - Data Source has been initialized!')
+    console.log('config:41 - Data Source has been initialized!')
   } catch (error) {
-    console.error('config:39 - Error during Data Source initialization', error)
+    console.error('config:43 - Error during Data Source initialization', error)
   }
 })()
 
