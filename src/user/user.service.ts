@@ -6,6 +6,15 @@ import { Repository } from 'typeorm'
 import { hashPassword } from 'src/shared/common.functions'
 import { ErrorResponce, UserRoles } from 'src/shared/utils'
 
+/**
+ * UserService class for managing user data in the application
+ *
+ * This service provides methods for creating, retrieving, updating, and deleting users
+ * in the database. It interacts with the `User` repository to perform these operations.
+ *
+ * The UserService is injected into other components of the application that need to
+ * access and manage user data.
+ */
 @Injectable()
 export class UserService {
   constructor(
@@ -16,23 +25,28 @@ export class UserService {
   /**
    * Creates a new user in the database.
    *
-   * This method checks for an existing user with the same username before creating the new user.
-   * If the username is unique, the password is hashed and the user is saved to the database.
-   * The user's role is set to 'User' by default, but if the provided password matches the ADMIN_KEY environment variable, the role is set to 'Admin'.
+   * This method performs the following actions:
+   * 1. Checks for an existing user with the same username.
+   * 2. Hashes the password for security before saving.
+   * 3. Sets the user's role based on provided parameters.
+   * 4. Saves the newly created user to the database.
    *
    * @param createUserDto An object containing user creation details:
    *   - `userName`: The unique username of the new user.
    *   - `email`: The email address of the new user.
-   *   - `password`: The password for the new user.
+   *   - `password`: The password for the new user (will be hashed).
    *   - (and potentially other user properties)
-   * @returns Promise that resolves to:
+   * @param isAdmin An optional boolean flag indicating admin creation (default: false).
+   * @returns A Promise resolving to:
    *   - `User`: The newly created user object if successful.
-   *   - `ErrorResponce`: An object containing error details if creation fails:
+   *   - `ErrorResponse`: An object containing error details if creation fails:
    *     - `error`: The error object describing the issue.
    *     - `user`: null (since no user was created).
    *     - `isActionCompleted`: false (indicates failed action).
    */
-  async create(createUserDto: CreateUserDto): Promise<User | ErrorResponce> {
+  async create(
+    createUserDto: CreateUserDto,
+  ): Promise<User | ErrorResponce> {
     // Check if a user with the same username already exists
     const existingUser: User | ErrorResponce = await this.findOneByName(
       createUserDto.userName,
@@ -52,10 +66,8 @@ export class UserService {
     //console.log(`us 52: hashedPassword - ${hashedPassword}`) ////////////////////////////////////////////
     // Extract user data from 'createUserDto', excluding the 'password' field
     const { password, ...newUserData } = createUserDto
-    // Set the user's role to 'Admin' if the password matches the ADMIN_KEY
-    if (hashedPassword === process.env.ADMIN_KEY) {
-      newUserData.roles = UserRoles.Admin
-    }
+    // Set the user's role to 'Admin' .....
+    newUserData.roles = createUserDto.roles || UserRoles.User
     // Create a new user object
     const newUser: User = this.usersRepository.create({
       ...newUserData,
@@ -136,7 +148,10 @@ export class UserService {
       return true
     } catch (error) {
       // Log the error with additional information
-      console.error(`us:139 - Error removing user with username: ${name}: `, error)
+      console.error(
+        `us:144 - Error removing user with username: ${name}: `,
+        error,
+      )
       return false
     }
   }

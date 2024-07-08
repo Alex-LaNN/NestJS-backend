@@ -15,6 +15,9 @@ import { dataSourceOptions } from './database/config'
 import { ConfigModule } from '@nestjs/config'
 import { SeedDatabase } from './database/seed.database'
 import { DatabaseModule } from './database/database.module'
+import { JwtService } from '@nestjs/jwt'
+import { APP_GUARD } from '@nestjs/core'
+import { AdminGuard } from './auth/guards/admin.guard'
 
 @Module({
   imports: [
