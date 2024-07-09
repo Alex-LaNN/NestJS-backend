@@ -13,22 +13,21 @@ import {
 import { StarshipsService } from './starships.service'
 import { CreateStarshipDto } from './dto/create-starship.dto'
 import { UpdateStarshipDto } from './dto/update-starship.dto'
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
 import { Starship } from 'src/starships/entities/starship.entity'
 import { Pagination } from 'nestjs-typeorm-paginate'
-import { UserRoles, limitCount } from 'src/shared/utils'
-import { Roles } from 'src/auth/decorators/roles.decorator'
-import { RolesGuard } from 'src/auth/guards/roles.guard'
+import { limitCount } from 'src/shared/utils'
+import { AdminGuard } from 'src/auth/guards/admin.guard'
 
 @ApiTags('starships')
 @Controller('starships')
-@UseGuards(RolesGuard)
 export class StarshipsController {
   constructor(private readonly starshipsService: StarshipsService) {}
 
-  @ApiBearerAuth()
-  @Roles(UserRoles.Admin)
+  @UseGuards(AdminGuard)
   @Post('create')
+  @ApiBody({ type: CreateStarshipDto })
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create new "starship"' })
   async create(
     @Body() createStarshipDto: CreateStarshipDto,
@@ -38,6 +37,8 @@ export class StarshipsController {
 
   @Get()
   @ApiOperation({ summary: 'Get all the "starships" resources' })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
   async findAll(
     @Query('page', new DefaultValuePipe(1)) page: number,
     @Query('limit', new DefaultValuePipe(limitCount)) limit: number,
@@ -47,26 +48,26 @@ export class StarshipsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get resource "starship" by its "id"' })
-  async findOne(@Param('id') id: string): Promise<Starship> {
+  async findOne(@Param('id') id: number): Promise<Starship> {
     return this.starshipsService.findOne(id)
   }
 
-  @ApiBearerAuth()
-  @Roles(UserRoles.Admin)
+  @UseGuards(AdminGuard)
   @Patch(':id')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update resource "starship" by its "id"' })
   async update(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() updateStarshipDto: UpdateStarshipDto,
   ): Promise<Starship> {
     return this.starshipsService.update(id, updateStarshipDto)
   }
 
-  @ApiBearerAuth()
-  @Roles(UserRoles.Admin)
+  @UseGuards(AdminGuard)
   @Delete(':id')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete resource "starship" by its "id"' })
-  async remove(@Param('id') id: string): Promise<void> {
+  async remove(@Param('id') id: number): Promise<void> {
     return this.starshipsService.remove(id)
   }
 }

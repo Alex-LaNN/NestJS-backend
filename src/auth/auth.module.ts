@@ -32,7 +32,7 @@ import { UserService } from 'src/user/user.service'
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '99999999999921600s' }, // 6 hours...
+      signOptions: { expiresIn: '21600s' }, // 6 hours...
     }),
   ],
   providers: [

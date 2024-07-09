@@ -81,10 +81,10 @@ export class StarshipsService {
    * @param starshipId
    * @returns
    */
-  async findOne(starshipId: string) {
+  async findOne(starshipId: number) {
     const starship: Starship = await this.starshipsRepository.findOne({
       where: {
-        id: Number(starshipId),
+        id: starshipId,
       },
     })
     return starship
@@ -96,7 +96,7 @@ export class StarshipsService {
    * @param updateStarshipDto
    * @returns
    */
-  async update(starshipId: string, updateStarshipDto: UpdateStarshipDto) {
+  async update(starshipId: number, updateStarshipDto: UpdateStarshipDto) {
     try {
       const starship: Starship = await this.findOne(starshipId)
       // Обновление свойств 'starship' на основе данных из 'updateStarshipDto'.
@@ -119,7 +119,7 @@ export class StarshipsService {
    *
    * @param starshipId
    */
-  async remove(starshipId: string) {
+  async remove(starshipId: number) {
     try {
       const starship: Starship = await this.findOne(starshipId)
       await this.starshipsRepository.remove(starship)

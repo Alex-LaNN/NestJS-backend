@@ -3,9 +3,8 @@ import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt'
 import { User } from 'src/user/entities/user.entity'
 import { UserService } from 'src/user/user.service'
-import { LoginRequestDto } from './dto/login-request.dto'
 import { ErrorResponce } from 'src/shared/utils'
-import { RegistrationRequestDto } from './dto/registration-request.dto'
+import { RegistrationUserDto } from './dto/registration-user.dto'
 
 /**
  * Authentication service for handling user login, registration, and token management
@@ -31,9 +30,7 @@ export class AuthService {
    * @returns A Promise resolving to an object with the access_token property, or throws an error
    *          if authentication fails.
    */
-  async signIn(
-    user: User,
-  ): Promise<{ access_token: string }> {
+  async signIn(user: User): Promise<{ access_token: string }> {
     return this.createToken(user)
   }
 
@@ -65,9 +62,7 @@ export class AuthService {
    * @returns Promise<{ access_token: string }> Object containing the access token on success
    * @throws Error Exception thrown for unexpected errors during user creation
    */
-  async signUp(
-    user: RegistrationRequestDto,
-  ): Promise<{ access_token: string }> {
+  async signUp(user: RegistrationUserDto): Promise<{ access_token: string }> {
     // Create new user
     const newUser: User | ErrorResponce = await this.userService.create(user)
     // Check if user creation was successful (not an error response)
@@ -78,7 +73,7 @@ export class AuthService {
     } else {
       // Handle user creation error
       throw new Error(
-        `aus:81 - Error creating new user: ${(JSON.stringify(user))}`,
+        `aus:81 - Error creating new user: ${JSON.stringify(user)}`,
       )
     }
   }

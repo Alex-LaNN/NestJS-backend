@@ -4,7 +4,7 @@ import {
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from 'class-validator'
-import { RegistrationRequestDto } from 'src/auth/dto/registration-request.dto'
+import { RegistrationUserDto } from 'src/auth/dto/registration-user.dto'
 
 /**
  * Custom validation constraint to ensure value consistency between properties.
@@ -25,7 +25,7 @@ export class MatchValidator implements ValidatorConstraintInterface {
    */
   validate(value: string, args: ValidationArguments): boolean {
     const [relatedPropertyName] = args.constraints
-    const relatedValue = (args.object as RegistrationRequestDto)[
+    const relatedValue = (args.object as RegistrationUserDto)[
       relatedPropertyName
     ]
     return value === relatedValue

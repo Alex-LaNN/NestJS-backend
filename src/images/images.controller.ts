@@ -11,15 +11,12 @@ import {
 import { ImagesService } from './images.service'
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger'
 import { FileUploadDto } from './dto/create-image.dto'
-import { Roles } from 'src/auth/decorators/roles.decorator'
-import { UserRoles } from 'src/shared/utils'
-import { RolesGuard } from 'src/auth/guards/roles.guard'
+import { AdminGuard } from 'src/auth/guards/admin.guard'
 
 @Controller('images')
 @ApiTags('images')
 @ApiBearerAuth()
-@UseGuards(RolesGuard)
-@Roles(UserRoles.Admin)
+@UseGuards(AdminGuard)
 export class ImagesController {
   constructor(private readonly imagesService: ImagesService) {}
 
@@ -58,7 +55,7 @@ export class ImagesController {
   @Delete('delete/entity/:id')
   async removeImagesOfAnObject(
     @Param('entity') entity: string,
-    @Param('id') id: string,
+    @Param('id') id: number,
   ): Promise<void> {
     return this.imagesService.removeImagesOfAnEntity(entity, id)
   }

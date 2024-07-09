@@ -95,10 +95,10 @@ export class SpeciesService {
    * @returns Promise<Species> Возвращает объект сущности 'Species'
    * @throws throws HttpException Ошибка, если запись не найдена
    */
-  async findOne(speciesId: string) {
+  async findOne(speciesId: number) {
     const species: Species = await this.speciesRepository.findOne({
       where: {
-        id: Number(speciesId),
+        id: speciesId,
       },
     })
     return species
@@ -113,7 +113,7 @@ export class SpeciesService {
    * @throws HttpException Ошибка, если запись не найдена
    */
   async update(
-    speciesId: string,
+    speciesId: number,
     updateSpeciesDto: UpdateSpeciesDto,
   ): Promise<Species> {
     try {
@@ -140,7 +140,7 @@ export class SpeciesService {
    * @param speciesId Идентификатор вида существа (строка)
    * @throws HttpException Ошибка, если запись не найдена
    */
-  async remove(speciesId: string) {
+  async remove(speciesId: number) {
     try {
       const species: Species = await this.findOne(speciesId)
       await this.speciesRepository.remove(species)

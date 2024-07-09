@@ -59,7 +59,7 @@ export class VehiclesService {
       // Сохранение нового объекта 'Vehicle' в репозитории.
       return this.vehicleRepository.save(newVehicle)
     } catch (error) {
-      // Обработка ошибки и преобразование в стандартный формат ответа.
+      // Обработка ошибки с преобразованием в стандартный формат ответа.
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST)
     }
   }
@@ -83,14 +83,12 @@ export class VehiclesService {
    * @param vehicleId Идентификатор объекта, который нужно найти.
    * @returns Промис, который разрешается после успешного нахождения объекта типа 'Vehicle'.
    */
-  async findOne(vehicleId: string) {
+  async findOne(vehicleId: number) {
     try {
-      // Преобразование идентификатора в число.
-      const searchParam: number = Number(vehicleId)
       // Поиск объекта по его идентификатору.
       const vehicle: Vehicle = await this.vehicleRepository.findOne({
         where: {
-          id: searchParam,
+          id: vehicleId,
         },
       })
       return vehicle
@@ -109,7 +107,7 @@ export class VehiclesService {
    * @param updateVehicleDto Данные для обновления сущности 'Vehicle'.
    * @returns Обновленную сущность 'Vehicle'.
    */
-  async update(vehicleId: string, updateVehicleDto: UpdateVehicleDto) {
+  async update(vehicleId: number, updateVehicleDto: UpdateVehicleDto) {
     try {
       // Получение сущности 'Vehicle' по ее идентификатору.
       const vehicle: Vehicle = await this.findOne(vehicleId)
@@ -134,7 +132,7 @@ export class VehiclesService {
    * Удаляет сущность 'Vehicle' по ее идентификатору.
    * @param vehicleId  Идентификатор сущности 'Vehicle', которую нужно удалить.
    */
-  async remove(vehicleId: string): Promise<void> {
+  async remove(vehicleId: number): Promise<void> {
     try {
       // Получение сущности 'Vehicle' по ее идентификатору.
       const vehicle: Vehicle = await this.findOne(vehicleId)

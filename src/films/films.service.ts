@@ -85,10 +85,10 @@ export class FilmsService {
    * @param filmId Идентификатор фильма.
    * @returns Данные о фильме.
    */
-  async findOne(filmId: string): Promise<Film> {
+  async findOne(filmId: number): Promise<Film> {
     const film: Film = await this.filmsRepository.findOne({
       where: {
-        id: Number(filmId),
+        id: filmId,
       },
     })
     return film
@@ -100,7 +100,7 @@ export class FilmsService {
    * @param updateFilmDto
    * @returns
    */
-  async update(filmId: string, updateFilmDto: UpdateFilmDto): Promise<Film> {
+  async update(filmId: number, updateFilmDto: UpdateFilmDto): Promise<Film> {
     try {
       const film: Film = await this.findOne(filmId)
       // Обновление свойств фильма на основе данных из 'updateFilmDto'.
@@ -123,7 +123,7 @@ export class FilmsService {
    *  Удаляет фильм со всеми его данными по его идентификатору.
    * @param filmId Идентификатор фильма.
    */
-  async remove(filmId: string): Promise<void> {
+  async remove(filmId: number): Promise<void> {
     try {
       const film: Film = await this.findOne(filmId)
       await this.filmsRepository.remove(film)

@@ -6,8 +6,6 @@ import {
   Patch,
   Param,
   Delete,
-  UsePipes,
-  ValidationPipe,
   Query,
   DefaultValuePipe,
   UseGuards,
@@ -15,22 +13,21 @@ import {
 import { FilmsService } from './films.service'
 import { CreateFilmDto } from './dto/create-film.dto'
 import { UpdateFilmDto } from './dto/update-film.dto'
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
 import { Pagination } from 'nestjs-typeorm-paginate'
-import { UserRoles, limitCount } from 'src/shared/utils'
-import { Roles } from 'src/auth/decorators/roles.decorator'
-import { RolesGuard } from 'src/auth/guards/roles.guard'
+import { limitCount } from 'src/shared/utils'
 import { Film } from 'src/films/entities/film.entity'
+import { AdminGuard } from 'src/auth/guards/admin.guard'
 
 @ApiTags('films')
 @Controller('films')
-@UseGuards(RolesGuard)
 export class FilmsController {
   constructor(private readonly filmsService: FilmsService) {}
 
-  @ApiBearerAuth()
-  @Roles(UserRoles.Admin)
+  @UseGuards(AdminGuard)
   @Post('create')
+  @ApiBearerAuth()
+  @ApiBody({ type: CreateFilmDto })
   @ApiOperation({ summary: 'Create new "film"' })
   async create(@Body() createFilmDto: CreateFilmDto): Promise<Film> {
     return this.filmsService.create(createFilmDto)
@@ -38,6 +35,8 @@ export class FilmsController {
 
   @Get()
   @ApiOperation({ summary: 'Get all the "films" resources' })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
   async findAll(
     @Query('page', new DefaultValuePipe(1)) page: number,
     @Query('limit', new DefaultValuePipe(limitCount)) limit: number,
@@ -48,26 +47,27 @@ export class FilmsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get resource "film" by its "id"' })
-  async findOne(@Param('id') id: string): Promise<Film> {
+  async findOne(@Param('id') id: number): Promise<Film> {
     return await this.filmsService.findOne(id)
   }
 
-  @ApiBearerAuth()
-  @Roles(UserRoles.Admin)
+  @UseGuards(AdminGuard)
   @Patch(':id')
+  @ApiBearerAuth()
+  @ApiBody({ type: UpdateFilmDto })
   @ApiOperation({ summary: 'Update resource "film" by its "id"' })
   async update(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() updateFilmDto: UpdateFilmDto,
   ): Promise<Film> {
     return await this.filmsService.update(id, updateFilmDto)
   }
 
-  @ApiBearerAuth()
-  @Roles(UserRoles.Admin)
+  @UseGuards(AdminGuard)
   @Delete(':id')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete resource "film" by its "id"' })
-  async remove(@Param('id') id: string): Promise<void> {
+  async remove(@Param('id') id: number): Promise<void> {
     await this.filmsService.remove(id)
   }
 }

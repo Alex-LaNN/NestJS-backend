@@ -11,11 +11,12 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { LocalAuthGuard } from './guards/local-auth.guard'
-import { LoginRequestDto } from './dto/login-request.dto'
-import { RegistrationRequestDto } from './dto/registration-request.dto'
+import { LoginUserDto } from './dto/login-user.dto'
+import { RegistrationUserDto } from './dto/registration-user.dto'
 import { AdminGuard } from './guards/admin.guard'
 import { UserRoles } from 'src/shared/utils'
 import { UserService } from 'src/user/user.service'
+import { RemoveUserDto } from './dto/remove-user.dto'
 
 /**
  * Authentication controller for user login, registration, and logout functionalities
@@ -46,7 +47,7 @@ export class AuthController {
    */
   @Post('/login')
   @UseGuards(LocalAuthGuard)
-  @ApiBody({ type: LoginRequestDto })
+  @ApiBody({ type: LoginUserDto })
   async login(@Req() req) {
     return await this.authService.signIn(req.user)
   }
@@ -63,8 +64,8 @@ export class AuthController {
    * @returns A Promise resolving to a response object
    */
   @Post('/register')
-  @ApiBody({ type: RegistrationRequestDto })
-  async register(@Body() registrationData: RegistrationRequestDto) {
+  @ApiBody({ type: RegistrationUserDto })
+  async register(@Body() registrationData: RegistrationUserDto) {
     return this.authService.signUp(registrationData)
   }
 
@@ -81,8 +82,8 @@ export class AuthController {
    */
   @Post('/register-admin')
   @UseGuards(AdminGuard)
-  @ApiBody({ type: RegistrationRequestDto })
-  async registerAdmin(@Body() registrationData: RegistrationRequestDto) {
+  @ApiBody({ type: RegistrationUserDto })
+  async registerAdmin(@Body() registrationData: RegistrationUserDto) {
     // Set the user's role to "Admin" before creating the user
     registrationData.role = UserRoles.Admin
     return this.authService.signUp(registrationData)
@@ -101,9 +102,7 @@ export class AuthController {
   @Post('/logout')
   async logout(@Response() res) {
     res.clearCookie('jwtToken')
-    return res
-      .status(200)
-      .json({ message: 'Выход из системы выполнен успешно...' })
+    return res.status(200).json({ message: 'Logout successfully completed...' })
   }
 
   /**
@@ -123,11 +122,12 @@ export class AuthController {
    */
   @Delete('/remove-user')
   @UseGuards(AdminGuard)
+  @ApiBody({ type: RemoveUserDto })
   async removeUser(@Body() body: { userName: string }) {
     const result = await this.userService.remove(body.userName)
     if (result) {
       return {
-        message: `User "${body.userName}" was removed successfully.`,
+        message: `User '${body.userName}' was removed successfully.`,
       }
     } else {
       throw new NotFoundException(

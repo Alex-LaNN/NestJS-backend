@@ -6,8 +6,6 @@ import {
   Patch,
   Param,
   Delete,
-  UsePipes,
-  ValidationPipe,
   Query,
   DefaultValuePipe,
   UseGuards,
@@ -15,22 +13,20 @@ import {
 import { SpeciesService } from './species.service'
 import { CreateSpeciesDto } from './dto/create-species.dto'
 import { UpdateSpeciesDto } from './dto/update-species.dto'
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
 import { Species } from 'src/species/entities/species.entity'
 import { Pagination } from 'nestjs-typeorm-paginate'
-import { UserRoles, limitCount } from 'src/shared/utils'
-import { Roles } from 'src/auth/decorators/roles.decorator'
-import { RolesGuard } from 'src/auth/guards/roles.guard'
+import { limitCount } from 'src/shared/utils'
+import { AdminGuard } from 'src/auth/guards/admin.guard'
 
 @ApiTags('species')
 @Controller('species')
-@UseGuards(RolesGuard)
 export class SpeciesController {
   constructor(private readonly speciesService: SpeciesService) {}
 
-  @ApiBearerAuth()
-  @Roles(UserRoles.Admin)
+  @UseGuards(AdminGuard)
   @Post('create')
+  @ApiBody({ type: CreateSpeciesDto })
   @ApiOperation({ summary: 'Create new "species"' })
   async create(@Body() createSpeciesDto: CreateSpeciesDto): Promise<Species> {
     return this.speciesService.create(createSpeciesDto)
@@ -38,6 +34,8 @@ export class SpeciesController {
 
   @Get()
   @ApiOperation({ summary: 'Get all the "species" resources' })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
   async findAll(
     @Query('page', new DefaultValuePipe(1)) page: number,
     @Query('limit', new DefaultValuePipe(limitCount)) limit: number,
@@ -47,26 +45,25 @@ export class SpeciesController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get resource "species" by its "id"' })
-  async findOne(@Param('id') id: string): Promise<Species> {
+  async findOne(@Param('id') id: number): Promise<Species> {
     return this.speciesService.findOne(id)
   }
 
-  @ApiBearerAuth()
-  @Roles(UserRoles.Admin)
+  @UseGuards(AdminGuard)
   @Patch(':id')
+  @ApiBody({ type: UpdateSpeciesDto })
   @ApiOperation({ summary: 'Update resource "species" by its "id"' })
   async update(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() updateSpeciesDto: UpdateSpeciesDto,
   ): Promise<Species> {
     return this.speciesService.update(id, updateSpeciesDto)
   }
 
-  @ApiBearerAuth()
-  @Roles(UserRoles.Admin)
+  @UseGuards(AdminGuard)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete resource "species" by its "id"' })
-  async remove(@Param('id') id: string): Promise<void> {
+  async remove(@Param('id') id: number): Promise<void> {
     return this.speciesService.remove(id)
   }
 }

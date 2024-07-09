@@ -79,10 +79,10 @@ export class PlanetsService {
    * @param planetId
    * @returns
    */
-  async findOne(planetId: string): Promise<Planet> {
+  async findOne(planetId: number): Promise<Planet> {
     const planet: Planet = await this.planetsRepository.findOne({
       where: {
-        id: Number(planetId),
+        id: planetId,
       },
     })
     return planet
@@ -95,7 +95,7 @@ export class PlanetsService {
    * @returns
    */
   async update(
-    planetId: string,
+    planetId: number,
     updatePlanetDto: UpdatePlanetDto,
   ): Promise<Planet> {
     try {
@@ -120,7 +120,7 @@ export class PlanetsService {
    *
    * @param planetId
    */
-  async remove(planetId: string): Promise<void> {
+  async remove(planetId: number): Promise<void> {
     try {
       const planet: Planet = await this.findOne(planetId)
       await this.planetsRepository.remove(planet)

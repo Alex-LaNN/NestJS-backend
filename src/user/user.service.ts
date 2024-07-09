@@ -63,7 +63,6 @@ export class UserService {
     }
     // Hash the password for security
     const hashedPassword: string = await hashPassword(createUserDto.password)
-    //console.log(`us 52: hashedPassword - ${hashedPassword}`) ////////////////////////////////////////////
     // Extract user data from 'createUserDto', excluding the 'password' field
     const { password, ...newUserData } = createUserDto
     // Set the user's role to 'Admin' .....
@@ -149,7 +148,7 @@ export class UserService {
     } catch (error) {
       // Log the error with additional information
       console.error(
-        `us:144 - Error removing user with username: ${name}: `,
+        `us:151 - Error removing user with username: ${name}: `,
         error,
       )
       return false

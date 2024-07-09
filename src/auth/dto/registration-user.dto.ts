@@ -10,7 +10,7 @@ import { EmailValidationService } from 'src/shared/email-validation'
 import { MatchValidator } from 'src/shared/password-validation'
 import { UserRoles } from 'src/shared/utils'
 
-export class RegistrationRequestDto {
+export class RegistrationUserDto {
   @ApiProperty({ description: 'User name', minLength: 2 })
   @IsNotEmpty()
   @IsString()

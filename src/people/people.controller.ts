@@ -21,20 +21,18 @@ import {
   ApiTags,
 } from '@nestjs/swagger'
 import { Pagination } from 'nestjs-typeorm-paginate'
-import { UserRoles, limitCount } from 'src/shared/utils'
-import { Roles } from 'src/auth/decorators/roles.decorator'
-import { RolesGuard } from 'src/auth/guards/roles.guard'
+import { limitCount } from 'src/shared/utils'
 import { People } from './entities/people.entity'
+import { AdminGuard } from 'src/auth/guards/admin.guard'
 
 @ApiTags('people')
 @Controller('people')
-@UseGuards(RolesGuard)
 export class PeopleController {
   constructor(private readonly peopleService: PeopleService) {}
 
-  @ApiBearerAuth()
-  @Roles(UserRoles.Admin)
+  @UseGuards(AdminGuard)
   @Post('create')
+  @ApiBearerAuth()
   @ApiBody({ type: CreatePeopleDto })
   @ApiOperation({ summary: 'Create new "people"' })
   async create(@Body() createPeopleDto: CreatePeopleDto): Promise<People> {
@@ -59,9 +57,9 @@ export class PeopleController {
     return await this.peopleService.findOne(id)
   }
 
-  @ApiBearerAuth()
-  @Roles(UserRoles.Admin)
+  @UseGuards(AdminGuard)
   @Patch(':id')
+  @ApiBearerAuth()
   @ApiBody({ type: UpdatePeopleDto })
   @ApiOperation({ summary: 'Update resource "people" by its "id"' })
   async update(
@@ -71,9 +69,9 @@ export class PeopleController {
     return await this.peopleService.update(id, updatePeopleDto)
   }
 
-  @ApiBearerAuth()
-  @Roles(UserRoles.Admin)
+  @UseGuards(AdminGuard)
   @Delete(':id')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete resource "people" by its "id"' })
   async remove(@Param('id') id: number): Promise<void> {
     await this.peopleService.remove(id)

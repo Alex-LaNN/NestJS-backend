@@ -1,9 +1,9 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsEmail, IsString, IsUUID } from "class-validator";
-import { LoginRequestDto } from "src/auth/dto/login-request.dto";
-import { UserRoles } from "src/shared/utils";
+import { ApiProperty } from '@nestjs/swagger'
+import { IsEmail, IsString, IsUUID } from 'class-validator'
+import { LoginUserDto } from 'src/auth/dto/login-user.dto'
+import { UserRoles } from 'src/shared/utils'
 
-export class UserResponseDto extends LoginRequestDto {
+export class UserResponseDto extends LoginUserDto {
   @ApiProperty()
   @IsUUID()
   id: string

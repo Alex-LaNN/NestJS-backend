@@ -131,7 +131,7 @@ export class ImagesService {
    */
   async removeImagesOfAnEntity(
     entityName: string,
-    entityId: string,
+    entityId: number,
   ): Promise<void> {
     try {
       // Поиск изображений для указанного объекта в репозитории.
