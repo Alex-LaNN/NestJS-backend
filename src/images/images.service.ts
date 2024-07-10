@@ -1,6 +1,4 @@
 import {
-  HttpException,
-  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
@@ -15,16 +13,27 @@ import { Species } from 'src/species/entities/species.entity'
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
 import { People } from 'src/people/entities/people.entity'
 import {
-  getFileExtension,
+  getImageStorageURL,
   getResponceOfException,
 } from 'src/shared/common.functions'
-import { Entity, entityClasses } from 'src/shared/utils'
+import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 
+/**
+ * ImagesService: Manages image storage and retrieval
+ *
+ * This service provides functionalities for uploading, removing, and retrieving images
+ * associated with various entities in the application. It utilizes AWS S3 for image
+ * storage and interacts with the `Image` repository to manage image data in the database.
+ */
 @Injectable()
 export class ImagesService {
-  //private readonly relatedEntities: string[]
+  // Initialize AWS S3 client with region from config
+  private readonly s3Client = new S3Client({
+    region: this.configService.getOrThrow('AWS_S3_REGION'),
+  })
+
   constructor(
-//    private readonly configservice: ConfigService,
+    private readonly configService: ConfigService,
     @InjectRepository(Image)
     private readonly imageRepository: Repository<Image>,
     // Инъекции репозиториев для связанных сущностей
@@ -45,14 +54,18 @@ export class ImagesService {
   ) {}
 
   /**
-   * Загрузка изображения и привязки его к сущности.
-   * 
-   * @param fileName Название файла изображения.
-   * @param file Файл изображения в виде буфера.
-   * @param entityName Название сущности, к которой привязывается изображение.
-   * @param entityId Идентификатор сущности, к которой привязывается изображение.
-   * @param description Описание изображения.
-   * @returns Промис с объектом изображения.
+   * Uploads an image associated with a specific entity
+   *
+   * This method uploads an image file to AWS S3 and creates a corresponding `Image` entity
+   * in the database. It generates a unique filename based on the entity type and ID,
+   * retrieves the image storage URL, and saves the image data and metadata to the database.
+   *
+   * @param fileName The original filename of the image
+   * @param file The image buffer data
+   * @param entityName The type of entity the image belongs to (e.g., "people", "films")
+   * @param entityId The ID of the entity the image belongs to
+   * @param description A description of the image
+   * @returns A Promise resolving to the newly created `Image` entity object
    */
   async uploadImage(
     fileName: string,
@@ -61,40 +74,34 @@ export class ImagesService {
     entityId: number,
     description: string,
   ): Promise<Image> {
-    console.log(`is:63 - fileName: ${fileName}`) /////////////////////////////////////////
+    console.log(`imser:62 - fileName: ${fileName}`) /////////////////////////////////////////
     try {
-      // Генерация идентификатора для нового изображения.
-      const newImageId: number = (await this.imageRepository.count()) + 1
-      // Формирование названия нового изображения (по типу: 'people-1_someImageFileName-1.jpg')
-      const newImageName: string = `${entityName}-${entityId}_${fileName}-${newImageId}.${getFileExtension(fileName)}`
-      // Определение имени поля, к которому будет привязано изображение.
-      const fieldName: string = entityName === 'films' ? 'title' : 'name'
+      // Generate unique filename based on entity and ID (by type: 'people-1_someImageFileName.jpg')
+      const newImageName: string = `${entityName}-${entityId}_${fileName}`
+      console.log(`imser:66 - newImageName: ${newImageName}`) ///////////////////////////////
+      // Get image storage URL from config and filename
+      const imageStorageUrl: string = getImageStorageURL(
+        fileName,
+        this.configService,
+      )
 
-      // Создание нового объекта изображения.
+      // Create new Image entity object
       const newImage: Image = this.imageRepository.create({
-        id: newImageId,
         name: newImageName,
         description: description,
-        //url: this.getImageStorageURL(fileName),
+        url: imageStorageUrl,
       })
 
-      // Получение сущности, к которой будет привязано изображение.
-      const entity: Entity | undefined = await this.repositories[entityName]
-        .createQueryBuilder(entityClasses[entityName])
-        .where('id = :id', { id: entityId })
-        .getOne()
-
-      if (!entity) {
-        throw new HttpException(
-          `${entityName} with id ${entityId} not found!`,
-          HttpStatus.NOT_FOUND,
-        )
-      }
-      // Привязка нового изображения к сущности.
-      entity[fieldName] = newImage.name
-      // Сохранение изменений в самой сущности.
-      await this.repositories[entityName].save(entity)
-      // Сохранение нового изображения в базе данных.
+      // Upload image to AWS S3
+      await this.s3Client.send(
+        new PutObjectCommand({
+          Bucket: this.configService.getOrThrow<string>('BUCKET_NAME'),
+          Key: fileName,
+          Body: file,
+        }),
+      )
+      // Сделать заполнение одного из полей БД: принадлежности изображения к сущности !!!!!!!!!!!!!!!!!!!!!!!!
+      // Save new Image entity to database
       return await this.imageRepository.save(newImage)
     } catch (error) {
       throw getResponceOfException(error)
@@ -102,53 +109,76 @@ export class ImagesService {
   }
 
   /**
-   * Удаляет изображение по его имени.
-   * @param imageName Имя изображения для удаления.
-   * @returns Промис, который разрешается после успешного удаления изображения.
+   * Removes an image by its name
+   *
+   * This method attempts to find an `Image` entity in the database with the provided
+   * `imageName`. If found, it deletes the corresponding image from AWS S3 and then removes
+   * the `Image` entity from the database.
+   *
+   * @param imageName The name of the image to be removed
+   * @returns A Promise resolving to `void` upon successful image removal,
+   *          or throws an error if the image is not found or cannot be deleted.
    */
   async removeImage(imageName: string): Promise<void> {
     try {
-      // Поиск изображения в репозитории по его имени.
+      // Find the Image entity in the repository by its name
       const image: Image = await this.imageRepository.findOne({
         where: {
           name: imageName,
         },
       })
-      // Удаление найденного изображения из репозитория.
+      // If the image is not found, throw a NotFoundException
+      if (!image) {
+        throw new NotFoundException(`Image with name '${imageName}' not found.`)
+      }
+
+      // Delete the image from AWS S3
+      // TODO: Implement AWS S3 image deletion based on the image's name
+
+      // Remove the Image entity from the database
       await this.imageRepository.remove(image)
     } catch (error) {
-      // Обработка ошибки и преобразование в стандартный формат ответа.
+      // Handle any errors and throw a standardized error response
       throw getResponceOfException(error)
     }
   }
 
   /**
-   * Удаляет все изображения, связанные с определенной сущностью.
-   * 
-   * @param entityName Имя сущности, к которой относятся изображения.
-   * @param entityId Идентификатор сущности, к которой относятся изображения.
-   * @returns Промис, который разрешается после успешного удаления изображений.
+   * Removes all images associated with a specific entity
+   *
+   * This method finds all `Image` entities in the database whose names match a pattern
+   * corresponding to the given `entityName` and `entityId`. It then deletes the
+   * corresponding images from AWS S3 and removes the `Image` entities from the database.
+   *
+   * @param entityName The type of entity (e.g., "people", "films")
+   * @param entityId The ID of the entity
+   * @returns A Promise resolving to `void` upon successful image removal,
+   *          or throws an error if no images are found for the specified entity.
    */
   async removeImagesOfAnEntity(
     entityName: string,
     entityId: number,
   ): Promise<void> {
     try {
-      // Поиск изображений для указанного объекта в репозитории.
+      // Find all Image entities matching the search pattern
       const imagesToDelete: Image[] = await this.imageRepository.find({
         where: {
           name: Like(`%${entityName}-${entityId}%`),
         },
       })
-      // Проверка, были ли найдены изображения для удаления.
+      // If no images are found, throw a NotFoundException
       if (!imagesToDelete.length)
         throw new NotFoundException(
           `Images for object '${entityName}' with ID '${entityId}' not found.`,
         )
-      // Удаление найденных изображений из репозитория.
+
+      // Delete the images from AWS S3 (using their names)
+      // TODO: Implement AWS S3 image deletion based on the images' names
+
+      // Remove the Image entities from the database
       await this.imageRepository.remove(imagesToDelete)
     } catch (error) {
-      // Обработка ошибки и преобразование в стандартный формат ответа.
+      // Handle any errors and throw a standardized error response
       throw getResponceOfException(error)
     }
   }

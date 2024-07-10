@@ -60,13 +60,13 @@ export enum UserRoles {
 }
 
 /**
- * URL для SWAPI и локального сервера.
+ * Значения URL для SWAPI и для локального сервера.
  */
 export const swapiUrl: string = 'https://swapi.dev/api/'
 export const localUrl: string = `http://${host}:${port}/`
 
 /**
- * Интерфейс, описывающий объект с ссылками на доступные ресурсы SWAPI
+ * Интерфейс, описывающий объект со ссылками на доступные ресурсы SWAPI
  */
 export type SwapiEndpoints = {
   people: string
@@ -78,7 +78,8 @@ export type SwapiEndpoints = {
 }
 
 /**
- * Интерфейс, описывающий объект ответа об ошибке
+ * Интерфейс, описывающий объект ответа об ошибке, для использования в 
+ * custom-exeption.filter
  */
 export type ErrorResponse = {
   statusCode: number
@@ -91,7 +92,6 @@ export type ErrorResponse = {
 
 /**
  * Интерфейс для описания структуры объекта ответа об ошибке
- *
  * Используется для унифицированного представления информации об ошибке при ответах API.
  */
 export interface ErrorResponce {

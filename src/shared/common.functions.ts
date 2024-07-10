@@ -8,6 +8,7 @@ import {
 } from './utils'
 import * as bcrypt from 'bcrypt'
 import { User } from 'src/user/entities/user.entity'
+import { ConfigService } from '@nestjs/config'
 
 /**
  * Устанавливает значение для объекта.
@@ -45,16 +46,16 @@ export function getResponceOfException(error: any): Error {
   return new InternalServerErrorException('Internal server error')
 }
 
-/**
- * Функция для получения расширения файла из его имени.
- *
- * @param fileName Имя файла.
- * @returns Расширение файла.
- */
-export function getFileExtension(fileName: string): string {
-  const fileParts: string[] = fileName.split('.')
-  return fileParts[fileParts.length - 1]
-}
+// /**
+//  * Функция для выделения значения расширения файла из его названия.
+//  *
+//  * @param fileName Название файла.
+//  * @returns Расширение файла.
+//  */
+// export function getFileExtension(fileName: string): string {
+//   const fileParts: string[] = fileName.split('.')
+//   return fileParts[fileParts.length - 1]
+// }
 
 /**
  * Функция для хеширования пароля пользователя.
@@ -76,7 +77,7 @@ export async function hashPassword(enteredPassword: string): Promise<string> {
  * @param user {User} Объект пользователя.
  * @returns {Promise<boolean>} 'true' - если пользователь является администратором, 'false' - обычным пользователем.
  */
-export async function isCurrentUserAdmin(user: User): Promise<boolean> {
+export async function isUserAdmin(user: User): Promise<boolean> {
   // Сравнение роли пользователя с ролью администратора
   return user.role === UserRoles.Admin
 }
@@ -180,4 +181,16 @@ export async function getNameFromId(url: string | string[]): Promise<string> {
   const name: string = urlParts[2]
   // Возврат извлеченного имени.
   return name
+}
+
+/**
+ * 
+ * @param fileName 
+ * @param configService 
+ * @returns 
+ */
+export function getImageStorageURL(fileName: string, configService: ConfigService): string {
+  const bucketName: string = configService.getOrThrow<string>('BUCKET_NAME')
+  const awsS3Region: string = configService.getOrThrow('AWS_S3_REGION')
+  return `https://${bucketName}.s3.${awsS3Region}.amazonaws.com/${fileName}`
 }
