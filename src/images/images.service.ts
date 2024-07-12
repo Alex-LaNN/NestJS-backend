@@ -16,7 +16,7 @@ import {
   getImageStorageURL,
   getResponceOfException,
 } from 'src/shared/common.functions'
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
+import { DeleteObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 
 /**
  * ImagesService: Manages image storage and retrieval
@@ -36,7 +36,7 @@ export class ImagesService {
     private readonly configService: ConfigService,
     @InjectRepository(Image)
     private readonly imageRepository: Repository<Image>,
-    // Инъекции репозиториев для связанных сущностей
+    // Injections for related entity repositories
     @InjectRepository(People)
     @InjectRepository(Film)
     @InjectRepository(Starship)
@@ -74,17 +74,16 @@ export class ImagesService {
     entityId: number,
     description: string,
   ): Promise<Image> {
-    console.log(`imser:62 - fileName: ${fileName}`) /////////////////////////////////////////
     try {
       // Generate unique filename based on entity and ID (by type: 'people-1_someImageFileName.jpg')
       const newImageName: string = `${entityName}-${entityId}_${fileName}`
-      console.log(`imser:66 - newImageName: ${newImageName}`) ///////////////////////////////
       // Get image storage URL from config and filename
       const imageStorageUrl: string = getImageStorageURL(
         fileName,
         this.configService,
       )
 
+      description = description !== '{description}' ? description : ''
       // Create new Image entity object
       const newImage: Image = this.imageRepository.create({
         name: newImageName,
@@ -92,15 +91,19 @@ export class ImagesService {
         url: imageStorageUrl,
       })
 
+      // Set the dynamic field for entity ID
+      newImage[`${entityName}Id`] = entityId
+
+
       // Upload image to AWS S3
-      await this.s3Client.send(
-        new PutObjectCommand({
-          Bucket: this.configService.getOrThrow<string>('BUCKET_NAME'),
-          Key: fileName,
-          Body: file,
-        }),
-      )
-      // Сделать заполнение одного из полей БД: принадлежности изображения к сущности !!!!!!!!!!!!!!!!!!!!!!!!
+      // await this.s3Client.send(
+      //   new PutObjectCommand({
+      //     Bucket: this.configService.getOrThrow<string>('BUCKET_NAME'),
+      //     Key: fileName,
+      //     Body: file,
+      //   }),
+      // )
+
       // Save new Image entity to database
       return await this.imageRepository.save(newImage)
     } catch (error) {
@@ -119,7 +122,7 @@ export class ImagesService {
    * @returns A Promise resolving to `void` upon successful image removal,
    *          or throws an error if the image is not found or cannot be deleted.
    */
-  async removeImage(imageName: string): Promise<void> {
+  async removeImage(imageName: string): Promise<string> {
     try {
       // Find the Image entity in the repository by its name
       const image: Image = await this.imageRepository.findOne({
@@ -133,10 +136,16 @@ export class ImagesService {
       }
 
       // Delete the image from AWS S3
-      // TODO: Implement AWS S3 image deletion based on the image's name
+      // await this.s3Client.send(
+      //   new DeleteObjectCommand({
+      //     Bucket: this.configService.getOrThrow<string>('BUCKET_NAME'),
+      //     Key: imageName,
+      //   }),
+      // )
 
       // Remove the Image entity from the database
       await this.imageRepository.remove(image)
+      return `Image deleted successfully...`
     } catch (error) {
       // Handle any errors and throw a standardized error response
       throw getResponceOfException(error)
@@ -158,12 +167,14 @@ export class ImagesService {
   async removeImagesOfAnEntity(
     entityName: string,
     entityId: number,
-  ): Promise<void> {
+  ): Promise<string> {
     try {
+      // The part of the image title string that will be used for deletion
+      const partOfNameToRemove: string = `${entityName}-${entityId}`
       // Find all Image entities matching the search pattern
       const imagesToDelete: Image[] = await this.imageRepository.find({
         where: {
-          name: Like(`%${entityName}-${entityId}%`),
+          name: Like(`%${partOfNameToRemove}%`),
         },
       })
       // If no images are found, throw a NotFoundException
@@ -173,10 +184,18 @@ export class ImagesService {
         )
 
       // Delete the images from AWS S3 (using their names)
-      // TODO: Implement AWS S3 image deletion based on the images' names
+      // for (const image of imagesToDelete) {
+      //   await this.s3Client.send(
+      //     new DeleteObjectCommand({
+      //       Bucket: this.configService.getOrThrow<string>('BUCKET_NAME'),
+      //       Key: image.name,
+      //     }),
+      //   )
+      // }
 
       // Remove the Image entities from the database
       await this.imageRepository.remove(imagesToDelete)
+      return `All images deleted successfully...`
     } catch (error) {
       // Handle any errors and throw a standardized error response
       throw getResponceOfException(error)

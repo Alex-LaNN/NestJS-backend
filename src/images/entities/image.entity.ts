@@ -2,7 +2,6 @@ import { ApiProperty } from '@nestjs/swagger'
 import {
   Column,
   Entity,
-  JoinTable,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm'
@@ -33,37 +32,37 @@ export class Image {
 
   @ManyToOne(() => People, (people) => people.images)
   @ApiProperty({
-    description: 'The URL to the People resource featured in these images.',
+    description: 'The ID of the People resource featured in this image.',
   })
   people: People
 
   @ManyToOne(() => Film, (films) => films.images)
   @ApiProperty({
-    description: 'The URL to the Film resource found in these images.',
+    description: 'The ID of the Film resource featured in this image.',
   })
   films: Film
 
   @ManyToOne(() => Planet, (planets) => planets.images)
   @ApiProperty({
-    description: 'The URL to the Planet resource featured in these images.',
+    description: 'The ID of the Planet resource featured in this image.',
   })
   planets: Planet
 
   @ManyToOne(() => Starship, (starships) => starships.images)
   @ApiProperty({
-    description: 'The URL to the Starship resource featured in these images.',
+    description: 'The ID of the Starship resource featured in this image.',
   })
   starships: Starship
 
   @ManyToOne(() => Vehicle, (vehicles) => vehicles.images)
   @ApiProperty({
-    description: 'The URL to the Vehicle resource featured in these images.',
+    description: 'The ID of the Vehicle resource featured in this image.',
   })
   vehicles: Vehicle
 
   @ManyToOne(() => Species, (species) => species.images)
   @ApiProperty({
-    description: 'The URL to the Species resource featured in these images.',
+    description: 'The ID of the Species resource featured in this image.',
   })
   species: Species
 }

@@ -81,7 +81,7 @@ export class People extends AbstractEntity<People> {
 
   @ApiProperty({
     description:
-      'An array of species resource URLs that this person belongs to',
+      'An array of resource IDs of the species to which this person belongs.',
   })
   @ManyToMany(() => Species, (species) => species.people, { cascade: true })
   @JoinTable({ name: 'people_species' })
@@ -89,7 +89,7 @@ export class People extends AbstractEntity<People> {
 
   @ApiProperty({
     description:
-      'An array of vehicle resource URLs that this person has piloted.',
+      'An array of resource IDs of the vehicles this person piloted.',
   })
   @ManyToMany(() => Vehicle, (vehicles) => vehicles.pilots, { cascade: true })
   @JoinTable({ name: 'people_vehicles' })
@@ -97,7 +97,7 @@ export class People extends AbstractEntity<People> {
 
   @ApiProperty({
     description:
-      'An array of starship resource URLs that this person has piloted.',
+      'An array of resource IDs of the spaceships that this person piloted.',
   })
   @ManyToMany(() => Starship, (starships) => starships.pilots, {
     cascade: true,
@@ -106,7 +106,7 @@ export class People extends AbstractEntity<People> {
   starships: Starship[]
 
   @ApiProperty({
-    description: 'An array of images resource URLs that are in this person.',
+    description: 'An array of image resource IDs owned by this person.',
   })
   @OneToMany(() => Image, (images) => images.people)
   @JoinTable({ name: 'people_images' })

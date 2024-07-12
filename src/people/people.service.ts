@@ -17,13 +17,21 @@ import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
 import { localUrl, relatedEntitiesMap } from 'src/shared/utils'
 import { Image } from 'src/images/entities/image.entity'
 
+/**
+ * PeopleService: Provides CRUD operations for "people" resources
+ *
+ * This service handles the creation, retrieval, update, and deletion of "people" resources
+ * within the application. It interacts with the `People` repository and injects repositories
+ * for related entities (films, starships, planets, species, vehicles, and images) to manage
+ * their associations.
+ */
 @Injectable()
 export class PeopleService {
   private readonly relatedEntities: string[]
   constructor(
     @InjectRepository(People)
     private readonly peopleRepository: Repository<People>,
-    // Инъекции репозиториев для связанных сущностей
+    // Injections for related entity repositories
     @InjectRepository(Film)
     @InjectRepository(Starship)
     @InjectRepository(Planet)
@@ -42,12 +50,21 @@ export class PeopleService {
   }
 
   /**
-   * Создает новую запись о персонаже.
-   * @param createPeopleDto Данные для создания новой записи.
-   * @returns Созданная запись о персонаже.
+   * Creates a new "people" resource
+   *
+   * This method creates a new "people" resource by accepting a `CreatePeopleDto` object.
+   * It checks for existing characters with the same name before creating the new entry.
+   * It then iterates through the DTO properties, populating the corresponding fields in the
+   * `People` entity and handling related entities (films, starships, planets, species,
+   * vehicles) by calling the `fillRelatedEntities` method. Finally, it saves the new
+   * "people" resource to the database.
+   *
+   * @param createPeopleDto A DTO object containing data for the new "people" resource
+   * @returns A Promise resolving to the newly created `People` entity object,
+   *          or `null` if a character with the same name already exists.
    */
   async create(createPeopleDto: CreatePeopleDto): Promise<People> {
-    // Проверка на существование персонажа с таким именем
+    // Check for existing character with the same name
     const existsPeople: People = await this.peopleRepository.findOne({
       where: { name: createPeopleDto.name },
     })
@@ -56,33 +73,43 @@ export class PeopleService {
       return null
     }
 
-    // Создание новой записи о персонаже
+    // Create a new People entity
     let newPeople = new People()
-    // Проход по полям DTO и заполнение объекта 'People'
+    // Populate People entity fields from DTO (excluding "homeworld")
     for (const key in createPeopleDto) {
       if (key === 'homeworld') continue
       newPeople[key] = this.relatedEntities.includes(key)
         ? []
         : createPeopleDto[key]
     }
-    // Заполнение связанных сущностей
+    // Fill related entities (films, starships, planets, species, vehicles)
     await this.fillRelatedEntities(newPeople, createPeopleDto)
+    //Save a new People entity to the database.
     return this.peopleRepository.save(newPeople)
   }
 
   /**
-   * Возвращает список всех персонажей с поддержкой пагинации.
-   * @param options Опции пагинации.
-   * @returns Объект пагинации, содержащий результаты запроса и мета-информацию о пагинации.
+   * Retrieves all "people" resources (paginated)
+   *
+   * This method retrieves a paginated list of "people" resources using the `nestjs-typeorm-paginate`
+   * library. It accepts pagination options (`IPaginationOptions`) to control the page number and
+   * number of items per page.
+   *
+   * @param options Pagination options object specifying page number and limit
+   * @returns A Promise resolving to a `Pagination<People>` object containing the paginated list
    */
   async findAll(options: IPaginationOptions): Promise<Pagination<People>> {
     return paginate<People>(this.peopleRepository, options)
   }
 
   /**
-   * Возвращает данные о персонаже по его идентификатору.
-   * @param peopleId Идентификатор персонажа.
-   * @returns Данные о персонаже.
+   * Retrieves a single "people" resource by ID
+   *
+   * This method retrieves a single "people" resource by its ID specified in the `peopleId` parameter.
+   *
+   * @param peopleId The ID of the "people" resource to retrieve
+   * @returns A Promise resolving to the `People` entity object representing the resource,
+   *          or `null` if not found
    */
   async findOne(peopleId: number): Promise<People> {
     return await this.peopleRepository.findOne({
@@ -93,32 +120,44 @@ export class PeopleService {
   }
 
   /**
-   *  Обновляет данные о персонаже по его идентификатору.
-   * @param peopleId Идентификатор персонажа.
-   * @param updatePeopleDto Новые данные о персонаже.
-   * @returns Обновленные данные о персонаже.
+   * Updates a "people" resource by ID
+   *
+   * This method updates an existing "people" resource by its ID. It fetches the resource first,
+   * then iterates through the `updatePeopleDto` object, updating the corresponding fields in the
+   * `People` entity. It also updates the `edited` field with the current date and calls the
+   * `fillRelatedEntities` method to handle updates for related entities (films, starships, planets,
+   * species, vehicles). Finally, it saves the updated resource to the database.
+   *
+   * @param peopleId The ID of the "people" resource to update
+   * @param updatePeopleDto A DTO object containing the updated data for the "people" resource
+   * @returns A Promise resolving to the updated `People` entity object
    */
   async update(
     peopleId: number,
     updatePeopleDto: UpdatePeopleDto,
   ): Promise<People> {
     const person = await this.findOne(peopleId)
-    // Подготовка объекта с обновленными данными.
+    // Prepare an object with updated data
     for (const key in updatePeopleDto) {
       if (updatePeopleDto.hasOwnProperty(key) && updatePeopleDto[key]) {
         person[key] = updatePeopleDto[key]
       }
     }
-    // Обновление поля 'edited'.
+    // Update 'edited' field with current date
     person.edited = new Date()
-    // Заполнение связанных сущностей в 'people' на основе данных из 'updatePeopleDto'.
+    // Handle updates for related entities (films, starships, planets, species, vehicles)
     await this.fillRelatedEntities(person, updatePeopleDto)
     return this.peopleRepository.save(person)
   }
 
   /**
-   * Удаляет данные о персонаже по его идентификатору.
-   * @param peopleId Идентификатор персонажа.
+   * Deletes a "people" resource by ID
+   *
+   * This method deletes a "people" resource by its ID. It first fetches the resource
+   * and then removes it from the database using the `peopleRepository.remove` method.
+   *
+   * @param peopleId The ID of the "people" resource to delete
+   * @returns A Promise resolving to `void` upon successful deletion
    */
   async remove(peopleId: number): Promise<void> {
     const person = await this.findOne(peopleId)
@@ -126,9 +165,20 @@ export class PeopleService {
   }
 
   /**
-   * Заполняет связанные сущности для персонажа.
-   * @param newPeople Объект персонажа.
-   * @param newPersonDto Данные для создания новой записи о персонаже.
+   * Fills related entities for a "people" resource
+   *
+   * This private helper method handles updates for related entities (films, starships, planets,
+   * species, vehicles) associated with a "people" resource. 
+   * It iterates through the `relatedEntities` array and checks for updates in the 
+   * corresponding fields of the `updatePeopleDto` object. For the "homeworld" entity, 
+   * it constructs a URL based on `localUrl` and searches for the planet by URL. 
+   * For other related entities (films, starships, vehicles), it uses a Promise.all to fetch 
+   * all related entities based on their URLs provided in the `updatePeopleDto`. 
+   * Finally, it updates the corresponding fields in the `newPeople` object.
+   *
+   * @param newPeople The "People" entity object to update related entities for
+   * @param newPersonDto A DTO object containing update data (including related entities)
+   * @returns A Promise resolving to `void`
    */
   private async fillRelatedEntities(
     newPeople: People,
