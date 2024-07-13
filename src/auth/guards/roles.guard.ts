@@ -10,8 +10,12 @@ import { UserRoles } from 'src/shared/utils'
 import { ROLES_KEY } from '../decorators/roles.decorator'
 
 /**
- * This guard implements role-based access control (RBAC) for routes and controllers in the application.
- * It checks if the user associated with the incoming request has the required roles to access the protected resource.
+ * RolesGuard: Guard for Role-Based Authorization
+ *
+ * This guard implements the `CanActivate` interface and is used to enforce role-based
+ * authorization on routes. It checks the required roles defined using the `@Roles()` decorator
+ * on the route handler or controller class and compares them to the user's roles retrieved from
+ * the request.
  */
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -29,7 +33,7 @@ export class RolesGuard implements CanActivate {
     }
     // Extract user object from the request
     const { user } = context.switchToHttp().getRequest()
-    // Throw an error if user is not found
+    // Throw an error if user is not found in the request
     if (!user) {
       throw new HttpException('Forbidden resource', HttpStatus.FORBIDDEN)
     }

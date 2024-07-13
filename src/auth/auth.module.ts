@@ -15,14 +15,15 @@ import { UserService } from 'src/user/user.service'
  * AuthModule: Provides authentication functionalities for the application
  *
  * This module imports and configures necessary services and controllers related to user authentication.
- * It utilizes:
- * - UserModule: For accessing user data and functionalities
- * - AuthService: For handling user login, registration, and token management
- * - PassportModule: For enabling Passport.js integration for authentication strategies
- * - LocalStrategy: Defines the local authentication strategy using username and password
- * - JwtStrategy: Defines the JWT authentication strategy for verifying access tokens
- * - JwtModule: Configures JWT module with secret key and signing options
- * - AuthController: Exposes endpoints for user login, registration, and logout
+ * It utilizes various services and functionalities for authentication:
+ *
+ * - UserModule: Provides access to user data and functionalities for user management.
+ * - AuthService: Handles user login, registration, and token management.
+ * - PassportModule: Enables Passport.js integration for implementing authentication strategies.
+ * - LocalStrategy: Defines the local authentication strategy using username and password.
+ * - JwtStrategy: Defines the JWT authentication strategy for verifying access tokens.
+ * - JwtModule: Configures the JWT module with the secret key and signing options for token generation.
+ * - AuthController: Exposes endpoints for user login, registration, and logout functionalities.
  */
 @Module({
   imports: [

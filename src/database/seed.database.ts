@@ -22,126 +22,149 @@ import { runMigrations } from './migrate'
 import { dbName } from './config'
 
 /**
- * Класс заполнения локальной БД из удаленного источника данных
+ * SeedDatabase Class: Manages Database Seeding from a Remote Source
+ *
+ * This class handles the process of filling the local database with data from a remote
+ * source, such as SWAPI. It utilizes TypeORM and various helper functions to fetch,
+ * process, and save data to the database.
  */
 export class SeedDatabase {
+  // Property to store the QueryRunner instance
   public queryRunner: QueryRunner
+  /**
+   * Constructor: Initializes the QueryRunner and sets the data source
+   *
+   * @param dataSource The injected TypeORM data source
+   */
   constructor(@InjectDataSource() public readonly dataSource: DataSource) {
     this.queryRunner = this.dataSource.createQueryRunner()
   }
 
   /**
-   * Функция синхронизации базы данных
-   * - Подключается к источнику данных
-   * - Создает объект 'queryRunner' для выполнения запросов
-   * - Выполняет операции по заполнению базы данных
+   * synchronizeDatabase: Synchronizes the database and fills it with data
+   *
+   * This method performs the following steps:
+   * 1. Executes database migrations (if needed)
+   * 2. Starts a transaction to encapsulate data filling operations
+   * 3. Fills the database with data for each entity in `entityClassesForFill`
+   * 4. Commits the transaction if successful
+   * 5. Rolls back the transaction if an error occurs
+   * 6. Releases the QueryRunner resource
    */
   synchronizeDatabase = async () => {
     this.queryRunner = this.dataSource.createQueryRunner()
-    // Выполнение миграций БД.
+    // Run database migrations if not already done
     //await runMigrations(this.queryRunner)
     try {
+      // Start a transaction to ensure data consistency
       await this.queryRunner.startTransaction()
       console.log(`Start filling the database...`)
-      // Заполнение БД
+      // Fill the database with data for each entity
       // for (const entityName of Object.keys(entityClassesForFill)) {
       //   await this.addData(entityName)
       // }
-      // Подтверждение транзакции
+      // Commit the transaction to make changes permanent
       await this.queryRunner.commitTransaction()
       console.log('All database additions are completed, ok!...')
     } catch (error) {
-      // Откат транзакции в случае ошибки
+      // Roll back the transaction in case of errors
       await this.queryRunner.rollbackTransaction()
-      console.error('sd:56 - Error during database synchronization: ', error)
+      console.error('sd:72 - Error during database synchronization: ', error)
       throw getResponceOfException(error)
     } finally {
-      // Освобождение ресурса 'queryRunner'
+      // Release the QueryRunner resource to avoid memory leaks
       await this.queryRunner.release()
     }
   }
 
   /**
-   * Получение всех данных с удаленного сервера для определенной сущности и добавление их в БД.
+   * addData: Fills the database with data for a specific entity
    *
-   * @param entityName Имя сущности.
+   * @param entityName The name of the entity to fill data for
    */
   private async addData<T extends BaseEntity>(
     entityName: string,
   ): Promise<void> {
-    // Получение репозитория TypeORM для данной сущности.
+    // Get the TypeORM repository for the given entity
     const entityRepository: Repository<T> =
       await this.getRepository<T>(entityName)
     if (!entityRepository) throw new Error(`Repository not received!!!`)
     try {
-      console.log(`sd:77 - Start fill DB an entity ${entityName}...`)
-      // Формирование URL-адреса для запроса к SWAPI.
+      console.log(`sd:93 - Start fill DB an entity ${entityName}...`)
+      // Construct the URL for fetching data from SWAPI
       let next: string | null = `${swapiUrl}${entityName}/`
-      // Переменная для хранения результатов текущей страницы.
+      //let next: string | null = `<span class="math-inline">\{swapiUrl\}</span>{entityName}/`
+      // Variable to store results from each page
       let results: T[] = []
+      // Loop through paginated data from SWAPI
       do {
-        // Запрос к SWAPI для получения данных.
+        // Fetch data from SWAPI
         const response: Response = await fetch(next)
         if (!response.ok) {
           throw new Error(
-            `sd:87 - Failed to fetch data for '${entityName}', received: '${response.statusText}'`,
+            `sd:105 - Failed to fetch data for '${entityName}', received: '${response.statusText}'`,
           )
         }
+        // Parse the response into an ApiResponse object
         const apiResponse: ApiResponse<T> = await response.json()
-        // Проверка типа ответа и обработка данных.
+        // Check the response type and handle data accordingly
         if ('results' in apiResponse) {
+          // Multiple results found
           results = apiResponse.results
           next = apiResponse.next
         } else {
+          // Single result found
           results = [apiResponse.data]
           next = null
         }
-        // Сохранение полученного массива объектов из ответа сервера в БД.
+        // Process and save the fetched data
         await this.saveDataToDB<T>(results, entityName, entityRepository)
-        // Заполнение связанных данных для сущностей 'people' и 'films'.
+        // Fill related data for 'people' and 'films' entities
         if (entityName === 'people' || entityName === 'films') {
           await this.fillRelatedData(entityName, results)
         }
       } while (next)
-      console.log(
-        `sd:107 - Entity '${entityName}' added ok...`,
-      )
+      console.log(`sd:127 - Entity '${entityName}' added ok...`)
     } catch (error) {
       console.error(
-        `sd:111 - Error when filling database with entity '${entityName}': "${error.message}"!!!`,
+        `sd:130 - Error when filling database with entity '${entityName}': "${error.message}"!!!`,
       )
       throw getResponceOfException(error)
     }
   }
 
   /**
-   * Сохраняет полученный массив данных объектов в базу данных.
+   * saveDataToDB: Saves an array of data objects to the database
    *
-   * @param results Массив данных объектов, полученных из ответа сервера.
-   * @param entityName Имя сущности, к которой пренадлежит массив объектов.
-   * @param entityRepository Репозиторий данной сущности.
+   * @param results The array of data objects to save
+   * @param entityName The name of the entity the data belongs to
+   * @param entityRepository The TypeORM repository for the entity
    */
   private async saveDataToDB<T extends ExtendedBaseEntity>(
     results: T[],
     entityName: string,
     entityRepository: Repository<T>,
   ): Promise<void> {
-    // Проверка на 'null' или 'undefined'
+    // Check for invalid arguments
     if (!results || !entityRepository) {
       throw new Error(
-        `sd:132 - Invalid arguments: 'results' or 'entityRepository' are null or undefined.`,
+        `sd:151 - Invalid arguments: 'results' or 'entityRepository' are null or undefined.`,
       )
     }
-    // Параллельная обработка всех объектов перед их сохранением
+    // Process and modify each object before saving
     const modifiedObjects: T[] = await Promise.all(
       results.map(async (object) => {
+        // Replace URLs with local URLs
         object.url = await replaceUrl(object.url)
+        // Extract ID from URL and assign it to the object's ID property
         object.id = (await extractIdFromUrl(object.url)) as number
+        // Handle specific fields for 'people' and 'species' entities
         if (entityName === 'people' || entityName === 'species') {
           const url = object.homeworld
           const idFromUrl = (await extractIdFromUrl(url)) as number
           object.homeworld = object.homeworldId = idFromUrl
         }
+        // Handle specific fields for 'planets' entities
         if (entityName === 'planets') {
           const url = object.residents
           object.residents = object.residentsId = (await extractIdFromUrl(
@@ -151,42 +174,42 @@ export class SeedDatabase {
         return object
       }),
     )
-    // Сохранение объектов в базу данных
+    // Save the modified objects to the database
     await entityRepository.save(modifiedObjects)
   }
 
   /**
-   * Инициализирует отсутствующие связанные сущности, а затем добавляет их к объекту.
+   * fillRelatedData: Fills related data for 'people' and 'films' entities
    *
-   * @param entityName Имя сущности, для которой добавляются связанные сущности.
-   * @param objects Массив объектов, для которых добавляются связанные сущности.
-   * @returns Обновленный объект с измененными соответствующими полями.
+   * @param entityName The name of the entity to fill related data for
+   * @param objects The array of objects for which to fill related data
    */
   private async fillRelatedData<T extends ExtendedBaseEntity>(
     entityName: string,
     objects: T[],
   ): Promise<void> {
-    // Получение списка связанных сущностей.
+    // Get the related entities for the given entity
     const relatedNames: string[] =
       relatedEntitiesMap[entityName]?.relatedEntities || []
-    // Итерация по каждому объекту в массиве.
+    // Iterate through each object in the array
     for (const object of objects) {
-      // Заполнение всех полей связанных данных объекта
+      // Fill related data for each related entity name
       for (const relationName of relatedNames) {
+        // Get the updated related data URL
         const updatedRelationData: string | string[] =
           await this.changeUrlsObject(
             object,
             object[relationName],
             relationName,
           )
-        // Преобразование значения в нужный тип для использования в 'setObjectField'
+        // Convert the updated data to the correct type
         const typedUpdatedRelationData =
           updatedRelationData as T[typeof relationName]
-        // Установка обновленного значения свойства
+        // Set the updated related data on the object
         setObjectField(object, relationName, typedUpdatedRelationData)
-        // Получение оригинальных данных для связанной сущности из объекта
+        // Get the original related data from the object
         let relationDataForObject: string | string[] = object[relationName]
-        // Данные по связанной сущности отсутствуют => инициализация соответствующего поля
+        // Initialize the related data field if it's missing or for 'images'
         if (relationName === 'images' || !relationDataForObject) {
           setObjectField(
             object,
@@ -195,15 +218,16 @@ export class SeedDatabase {
           )
           continue
         }
-        // Обработка поля связанных данных объекта
+        // Process the related data field of the object
         try {
-          // Получение значения Id обрабатываемого объекта.
+          // Get the ID of the object being processed
           const objectIdToInsert: number | number[] = await extractIdFromUrl(
             object.url,
           )
-          // Получение имени связанной сущности и её связанных данных
+          // Get the name and related data ID of the related entity
           const { nameOfRelationEntity, relationDataIdToInsert } =
             await findNameAndDataOfRelationEntity(relationDataForObject)
+          // Handle special case for 'homeworld'
           if (relationName === 'homeworld') {
             const tableNameForInsert: string = await getNameFromId(object.url)
             await this.queryRunner.query(
@@ -211,41 +235,41 @@ export class SeedDatabase {
               [relationDataIdToInsert],
             )
           }
-          // Получение названия таблицы для вставки связанных данных.
+          // Get the table name for inserting the related data
           const tableNameForInsert: string = `${dbName}.${entityName}_${nameOfRelationEntity}`
           if (tableNameForInsert === `${dbName}.films_people`) {
             continue
           }
-          // Проверка, является ли `relationDataIdToInsert` массивом
+          // Check if `relationDataIdToInsert` is an array
           if (Array.isArray(relationDataIdToInsert)) {
             for (const id of relationDataIdToInsert) {
-              // Вставка каждого элемента массива в базу данных
+              // Insert each element of the array into the database
               await this.queryRunner.query(
                 `INSERT INTO ${tableNameForInsert} (${entityName}Id, ${nameOfRelationEntity}Id) VALUES (?, ?)`,
                 [objectIdToInsert, id],
               )
             }
           } else {
-            // Вставка данных в случае, если `relationDataIdToInsert` не является массивом
+            // Insert the data if `relationDataIdToInsert` is not an array
             await this.queryRunner.query(
               `INSERT INTO ${tableNameForInsert} (${entityName}Id, ${nameOfRelationEntity}Id) VALUES (?, ?)`,
               [objectIdToInsert, relationDataIdToInsert],
             )
           }
         } catch (error) {
-          // несущественная ошибка (не влияет на корректность заполнения БД)
+          // Ignore non-critical errors (don't affect database population)
         }
       }
     }
   }
 
   /**
-   * Заменяет все поля с 'Url-адресами' объекта локальными.
+   * changeUrlsObject: Replaces URLs in an object with local URLs and extracts IDs
    *
-   * @param object Обрабатываемый объект.
-   * @param relationData Данные связанной сущности.
-   * @param relationName  Название связанной сущности.
-   * @returns
+   * @param object The object containing URLs to be replaced
+   * @param relationData The URL(s) to be replaced or the extracted ID(s)
+   * @param relationName The name of the related entity field
+   * @returns The updated URL(s) or extracted ID(s)
    */
   private async changeUrlsObject(
     object: Record<string, any>,
@@ -253,31 +277,33 @@ export class SeedDatabase {
     relationName: string,
   ): Promise<string | string[]> {
     try {
-      // Замена основного Url-а объекта на локальный
+      // Replace the main URL of the object with a local URL
       object.url = await replaceUrl(object.url)
       if (Array.isArray(relationData)) {
-        // Обработка массива URL-ов
+        // Handle an array of URLs
         relationData = await Promise.all(
           relationData.map(async (url: string) => await replaceUrl(url)),
         )
       } else if (typeof relationData === 'string') {
-        // Обработка одного URL-а
+        // Handle a single URL
+        // Extract the ID from the URL and store it in the object's related entity field
         object[relationName] = await extractIdFromUrl(relationData)
       }
     } catch (error) {
       console.error(
-        `sd:269 - Error replacing URL for '${relationName}': ${error.message}. URL missing!`,
+        `sd:294 - Error replacing URL for '${relationName}': ${error.message}. URL missing!`,
       )
-      // В случае ошибки - дефолтные значения.
+      // Set default values in case of errors (URL missing)
       object[relationName] = Array.isArray(relationData) ? [] : null
     }
     return relationData
   }
 
   /**
+   * getRepository: Retrieves the TypeORM repository for a given entity
    *
-   * @param entityName
-   * @returns
+   * @param entityName The name of the entity
+   * @returns The TypeORM repository for the entity
    */
   private async getRepository<T extends BaseEntity>(entityName: string) {
     let entityRepository: Repository<T>
@@ -286,7 +312,7 @@ export class SeedDatabase {
         entityClasses[entityName],
       )
     } catch (error) {
-      throw new Error(`sd:289 - No metadata found for '${entityName}'`)
+      throw new Error(`sd:315 - No metadata found for '${entityName}'`)
     }
     return entityRepository
   }

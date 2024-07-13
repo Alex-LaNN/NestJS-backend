@@ -15,6 +15,13 @@ import { Starship } from '../../starships/entities/starship.entity'
 import { Species } from '../../species/entities/species.entity'
 import { Vehicle } from '../../vehicles/entities/vehicle.entity'
 
+/**
+ * Film Entity: Represents a film in the Star Wars universe
+ *
+ * This class defines the database schema for a film entity. It inherits from
+ * `AbstractEntity` to provide common functionality for entities. 
+ * It uses various TypeORM decorators to define table structure and relationships.
+ */
 @Entity({ name: 'films' })
 export class Film extends AbstractEntity<Film> {
   @Column()

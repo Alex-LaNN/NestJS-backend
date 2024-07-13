@@ -19,11 +19,11 @@ import { UserService } from 'src/user/user.service'
 import { RemoveUserDto } from './dto/remove-user.dto'
 
 /**
- * Authentication controller for user login, registration, and logout functionalities
+ * AuthController: Controller for Authentication Endpoints
  *
- * This controller handles HTTP requests related to user authentication, including login,
- * registration, and logout. It utilizes the `AuthService` to perform user authentication
- * and token management.
+ * This controller handles various authentication-related endpoints, including login, registration,
+ * user removal, and logout. It interacts with the `AuthService` and `UserService` for user
+ * authentication, registration, and management.
  */
 @ApiTags('auth')
 @Controller('/auth')
@@ -34,16 +34,16 @@ export class AuthController {
   ) {}
 
   /**
-   * Login endpoint for user authentication
+   * Login endpoint for user authentication (uses LocalAuthGuard)
    *
    * This method handles POST requests to the `/auth/login` endpoint. It expects a
-   * `LoginRequestDto` object containing the user's credentials (username and password)
+   * `LoginUserDto` object containing the user's credentials (username and password)
    * in the request body. It utilizes the `LocalAuthGuard` to authenticate the user
    * and then calls the `AuthService` to sign the user in and generate an access token.
    *
-   * @param user The LoginRequestDto object containing username and password (from request body)
+   * @param req The HTTP request object containing the user credentials in the body
    * @returns A Promise resolving to an object with the `access_token` property on successful login,
-   *          or throws an error if authentication fails.
+   *          or throws a `HttpException` with appropriate status code for errors.
    */
   @Post('/login')
   @UseGuards(LocalAuthGuard)
@@ -56,12 +56,12 @@ export class AuthController {
    * Registration endpoint for standard user creation
    *
    * This method handles POST requests to the `/auth/register` endpoint. It expects a
-   * `RegistrationRequestDto` object containing user registration details in the request body.
+   * `RegistrationUserDto` object containing user registration details in the request body.
    * It interacts with the `AuthService` to handle user registration and potentially
    * returns a response object upon successful registration.
    *
-   * @param registrationData The RegistrationRequestDto object containing user registration details (from request body)
-   * @returns A Promise resolving to a response object
+   * @param registrationData The RegistrationUserDto object containing user registration details (from request body)
+   * @returns A Promise resolving to a response object (potentially indicating successful registration)
    */
   @Post('/register')
   @ApiBody({ type: RegistrationUserDto })
@@ -74,11 +74,11 @@ export class AuthController {
    *
    * This method handles POST requests to the `/auth/register-admin` endpoint. It requires the
    * user to be authenticated as an admin via the `AdminGuard`. It expects a
-   * `RegistrationRequestDto` object containing user registration details in the request body.
+   * `RegistrationUserDto` object containing user registration details in the request body.
    * It sets the user's role to "Admin" before calling the `AuthService` to create the user.
    *
-   * @param registrationData The RegistrationRequestDto object containing user registration details (from request body)
-   * @returns A Promise resolving to a response object
+   * @param registrationData The RegistrationUserDto object containing user registration details (from request body)
+   * @returns A Promise resolving to a response object (potentially indicating successful registration)
    */
   @Post('/register-admin')
   @UseGuards(AdminGuard)

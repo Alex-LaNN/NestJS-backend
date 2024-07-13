@@ -1,6 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { IsArray, IsISO8601, IsNumber, IsString } from 'class-validator'
 
+/**
+ * CreateFilmDto: Data Transfer Object for creating a new film
+ *
+ * This class defines the structure of the data expected when creating a new film.
+ * It uses decorators from the `class-validator` package to validate the incoming data.
+ * Additionally, it uses decorators from `@nestjs/swagger` to provide API documentation.
+ */
 export class CreateFilmDto {
   @ApiProperty({ description: 'The title of this film.' })
   @IsString()

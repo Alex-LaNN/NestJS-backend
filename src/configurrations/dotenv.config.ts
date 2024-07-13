@@ -1,5 +1,6 @@
 import 'dotenv/config'
 
+// Retrieve configuration values from environment variables
 export default () => ({
   host: process.env.HOST,
   port: Number(process.env.PORT),
