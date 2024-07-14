@@ -12,6 +12,16 @@ import { Starship } from '../../starships/entities/starship.entity'
 import { Vehicle } from '../../vehicles/entities/vehicle.entity'
 import { Species } from '../../species/entities/species.entity'
 
+/**
+ * Image Entity: Represents an image resource in the database
+ *
+ * This entity represents an image stored in the system. It has properties
+ * like `id`, `name`, `description`, and `url` to store information about
+ * the image itself. Additionally, it has relationships with other entities
+ * using `@ManyToOne` decorators from TypeORM. These relationships allow
+ * for associating images with specific People, Films, Planets, Starships,
+ * Vehicles, or Species resources.
+ */
 @Entity({ name: 'images' })
 export class Image {
   @PrimaryGeneratedColumn()

@@ -11,6 +11,29 @@ import { Species } from 'src/species/entities/species.entity'
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
 import { ImagesService } from 'src/images/images.service'
 
+/**
+ * StarshipsModule
+ *
+ * This module provides functionalities related to starships. It imports the
+ * `StarshipsController` which handles API requests for starships, and the
+ * `StarshipsService` which takes care of business logic for starships.
+ * Additionally, it imports the `TypeOrmModule` to establish database connections
+ * for the relevant entities:
+ *   - People
+ *   - Film
+ *   - Starship (primary entity)
+ *   - Image
+ *   - Planet
+ *   - Species
+ *   - Vehicle
+ * (Other entity imports might be required depending on relationships)
+ *
+ * The module also exports `TypeOrmModule` to make it available for other modules
+ * that might need database access to these entities.
+ *
+ * Finally, the module provides the `StarshipsService` and any other services
+ * (like `ImagesService`) used within the module.
+ */
 @Module({
   imports: [
     TypeOrmModule.forFeature([

@@ -15,10 +15,35 @@ import { dataSourceOptions } from './database/config'
 import { ConfigModule } from '@nestjs/config'
 import { SeedDatabase } from './database/seed.database'
 import { DatabaseModule } from './database/database.module'
-import { JwtService } from '@nestjs/jwt'
-import { APP_GUARD } from '@nestjs/core'
-import { AdminGuard } from './auth/guards/admin.guard'
 
+/**
+ * AppModule
+ *
+ * This module serves as the root module of the NestJS application.
+ * It imports all necessary feature modules, database configurations,
+ * and global settings like configuration and database connection.
+ * 
+ * Feature modules:
+ * - AuthModule: Handles authentication and authorization.
+ * - UserModule: Manages user-related operations.
+ * - PeopleModule: Manages people entities related to films and other entities.
+ * - FilmsModule: Manages films and associated entities.
+ * - PlanetsModule: Manages planets and associated entities.
+ * - ImagesModule: Manages images and associated entities.
+ * - StarshipsModule: Manages starships and associated entities.
+ * - VehiclesModule: Manages vehicles and associated entities.
+ * - SpeciesModule: Manages species and associated entities.
+ *
+ * Global settings:
+ * - ConfigModule.forRoot({ isGlobal: true }): Loads global configuration settings.
+ * - TypeOrmModule.forRootAsync({ useFactory: async () => dataSourceOptions }): Establishes database connection using provided options.
+ *
+ * Database utilities:
+ * - DatabaseModule: Provides utilities for database operations such as migrations and seeding.
+ *
+ * Providers:
+ * - SeedDatabase: Service responsible for seeding initial data into the database.
+ */
 @Module({
   imports: [
     // Global configuration

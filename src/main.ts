@@ -8,6 +8,14 @@ import 'dotenv/config'
 import { TransformInterceptor } from './shared/Transform.interceptor'
 import { CustomExceptionFilter } from './shared/app.custom-exception.filter'
 
+/**
+ * Bootstrap function to initialize and start the NestJS application.
+ * - Creates a Nest application instance.
+ * - Configures Swagger documentation.
+ * - Applies global middleware including validation pipes, interceptors, and exception filters.
+ * - Enables CORS (Cross-Origin Resource Sharing).
+ * - Starts listening on the specified port defined in configuration.
+ */
 async function bootstrap() {
   // Create a Nest application instance
   const app = await NestFactory.create(AppModule)

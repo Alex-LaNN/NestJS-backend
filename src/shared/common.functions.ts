@@ -11,7 +11,14 @@ import { User } from 'src/user/entities/user.entity'
 import { ConfigService } from '@nestjs/config'
 
 /**
- * Устанавливает значение для объекта.
+ * Sets a field value for an object extending `ExtendedBaseEntity`
+ *
+ * This function is a generic helper function that sets the value of a specific field (`key`) for an object (`obj`)
+ * that extends the `ExtendedBaseEntity` interface. It takes the object (`obj`), the field key (`key`), and the field value (`value`) as arguments.
+ *
+ * @param obj (T) The object extending `ExtendedBaseEntity` for which to set the field value.
+ * @param key (K) The key of the field to be set.
+ * @param value (T[K]) The value to be set for the specified field.
  */
 export function setObjectField<T extends ExtendedBaseEntity, K extends keyof T>(
   obj: T,
@@ -22,13 +29,15 @@ export function setObjectField<T extends ExtendedBaseEntity, K extends keyof T>(
 }
 
 /**
- * Функция, определяющая тип ошибки и возвращающая объект ошибки с корректным сообщением.
+ * Generates an error response based on the provided exception object
  *
- * @param error Перехваченная ошибка.
- * @returns Объект ошибки.
+ * This function handles various types of exceptions and generates an appropriate error response. It takes an `error` object as an argument.
+ *
+ * @param error (any) The exception object to handle.
+ * @returns Error The generated error object with appropriate status code and message.
  */
 export function getResponceOfException(error: any): Error {
-  // Проверка на HttpException
+  // Check if the error is an HttpException
   if (error instanceof HttpException) {
     return new HttpException(
       {
@@ -38,55 +47,50 @@ export function getResponceOfException(error: any): Error {
       error.getStatus(),
     )
   }
-  // Обработка ошибок по коду состояния
+  // Handle errors based on status code
   if (error.status in errorMap) {
     return errorMap[error.status]
   }
-  // Обработка остальных ошибок
+  // Handle remaining errors as InternalServerErrorException
   return new InternalServerErrorException('Internal server error')
 }
 
-// /**
-//  * Функция для выделения значения расширения файла из его названия.
-//  *
-//  * @param fileName Название файла.
-//  * @returns Расширение файла.
-//  */
-// export function getFileExtension(fileName: string): string {
-//   const fileParts: string[] = fileName.split('.')
-//   return fileParts[fileParts.length - 1]
-// }
-
 /**
- * Функция для хеширования пароля пользователя.
+ * Hashes a password using bcrypt
  *
- * @param enteredPassword {string} Пароль, введенный пользователем.
- * @returns {Promise<string>} Хешированную версию пароля.
+ * This function hashes a provided password (`enteredPassword`) using the bcrypt library. It generates a random salt using `bcrypt.genSaltSync` and then hashes the password using `bcrypt.hashSync`.
+ *
+ * @param enteredPassword (string) The password to be hashed.
+ * @returns Promise<string> The hashed password.
  */
 export async function hashPassword(enteredPassword: string): Promise<string> {
-  // Генерация случайной соли
+  // Generate a random salt
   const salt = bcrypt.genSaltSync(Number(process.env.SALT_ROUNDS))
 
-  // Хеширование пароля пользователя
+  // Hash the user's password
   return bcrypt.hashSync(enteredPassword, salt)
 }
 
 /**
- * Функция для проверки, является ли текущий пользователь администратором.
+ * Checks if a user is an admin
  *
- * @param user {User} Объект пользователя.
- * @returns {Promise<boolean>} 'true' - если пользователь является администратором, 'false' - обычным пользователем.
+ * This function checks if a provided user (`user`) has the `Admin` role. It compares the user's `role` property to `UserRoles.Admin`.
+ *
+ * @param user (User) The user object to check.
+ * @returns Promise<boolean> A boolean indicating whether the user is an admin.
  */
 export async function isUserAdmin(user: User): Promise<boolean> {
-  // Сравнение роли пользователя с ролью администратора
+  // Compare user's role to Admin role
   return user.role === UserRoles.Admin
 }
 
 /**
- * Извлечение ID из URL
+ * Extracts an ID from a URL
  *
- * @param url URL для извлечения ID
- * @returns ID, извлеченный из URL
+ * This function extracts an ID from a provided URL (`url`). It handles both single URLs and arrays of URLs. If the URL is an array, it extracts IDs from each element of the array.
+ *
+ * @param url (any) The URL or array of URLs to extract IDs from.
+ * @returns Promise<number | number[] | null> The extracted ID (or array of IDs) or null if no ID is found.
  */
 export async function extractIdFromUrl(
   url: any,
@@ -96,7 +100,7 @@ export async function extractIdFromUrl(
     const ids = await Promise.all(
       url.map(async (element: any) => {
         const id = await extractIdFromUrl(element)
-        // Проверка, является ли результат числом или массивом чисел
+        // Check if the result is a number or an array of numbers
         if (Array.isArray(id)) {
           throw new Error('Nested arrays not supported')
         }
@@ -116,34 +120,44 @@ export async function extractIdFromUrl(
 }
 
 /**
- * Генерация значения локального URL объекта по его Id
+ * Generates a local URL for an entity based on its ID
  *
- * @param entityName
- * @param objectId
- * @returns
+ * This function generates a local URL for a given entity (`entityName`) and its corresponding ID (`objectId`).
+ * It concatenates the `localUrl` with the entity name, a forward slash, and the ID, resulting in a complete URL.
+ *
+ * @param entityName (string) The name of the entity.
+ * @param objectId (number) The ID of the entity object.
+ * @returns Promise<string> The generated local URL.
  */
 export async function getUrlFromId(
   entityName: string,
   objectId: number,
 ): Promise<string> {
   return `${localUrl}${entityName}/${objectId}/`
+  // return `<span class="math-inline">\{localUrl\}</span>{entityName}/${objectId}/`
 }
 
 /**
- * Замена URL-адресов у объекта на локальные URL-адреса.
+ * Replaces Star Wars API URLs with local URLs in a given string
  *
- * @param url
- * @returns
+ * This function replaces all occurrences of the `swapiUrl` (Star Wars API URL) with the `localUrl` (local API URL) in the provided `url` string.
+ * It utilizes the `replace()` method to perform the replacements.
+ *
+ * @param url (string) The string in which to replace URLs.
+ * @returns Promise<string> The modified string with local URLs.
  */
 export async function replaceUrl(url: string): Promise<string> {
   return url.replace(swapiUrl, localUrl)
 }
 
 /**
- * Функция для определения имени связанной сущности по её URL и извлечения её данных.
+ * Extracts name and data of a related entity from a URL
  *
- * @param url - URL, содержащий имя связанной сущности и его Id.
- * @returns Объект, содержащий основную сущность и найденную группу.
+ * This function extracts the name and data of a related entity from a provided URL (`url`). It handles both single URLs and arrays of URLs.
+ * It utilizes `getNameFromId` and `extractIdFromUrl` to extract the necessary information.
+ *
+ * @param url (string | string[]) The URL or array of URLs to extract data from.
+ * @returns Promise<{ nameOfRelationEntity: string; relationDataIdToInsert: number | number[] }> An object containing the extracted name and data.
  */
 export async function findNameAndDataOfRelationEntity(
   url: string | string[],
@@ -151,9 +165,9 @@ export async function findNameAndDataOfRelationEntity(
   nameOfRelationEntity: string
   relationDataIdToInsert: number | number[]
 }> {
-  // Выделение имени связанной сущности.
+  // Extract the name of the related entity
   const nameOfRelationEntity: string = await getNameFromId(url)
-  // Извлечение данных связанной сущности с преобразованием их в нужный формат.
+  // Extract the data (ID) of the related entity
   const relationDataIdToInsert: number | number[] = await extractIdFromUrl(url)
 
   return {
@@ -163,31 +177,39 @@ export async function findNameAndDataOfRelationEntity(
 }
 
 /**
- * Функция извлечения имени объекта из URL типа 'http://localhost:3000/films/5/'.
+ * Extracts the name of an object from its ID in a URL
  *
- * @param url URL-адрес для обработки.
- * @returns Возвращает извлеченное имя объекта
+ * This function extracts the name of an object from its ID in a provided URL (`url`). It handles both single URLs and arrays of URLs.
+ * It splits the URL into parts, filters out empty strings, and extracts the name from the third part of the URL.
+ *
+ * @param url (string | string[]) The URL or array of URLs to extract the name from.
+ * @returns Promise<string> The extracted name of the object.
  */
 export async function getNameFromId(url: string | string[]): Promise<string> {
-  // Преобразование URL к первой строке, если он представлен массивом.
+  // Convert the URL to the first string if it's an array
   const actualUrl: string = Array.isArray(url) ? url[0] : url
-  // Разделение URL на части и фильтрация пустых строк.
+  // Split the URL into parts and filter out empty strings
   const urlParts: string[] = actualUrl.split('/').filter(Boolean)
-  // Проверка длины URL-частей (минимум 4, применительно к вышеуказанному типу URL).
+  // Check if the URL parts have at least 4 elements (minimum for the expected URL format)
   if (urlParts.length < 4) {
     throw new Error(`cf:125 - Неверный формат URL: ${actualUrl}`)
   }
-  // Извлечение имени объекта из 3-й части URL.
+  // Extract the object name from the third part of the URL
   const name: string = urlParts[2]
-  // Возврат извлеченного имени.
+  // Return the extracted name
   return name
 }
 
 /**
- * 
- * @param fileName 
- * @param configService 
- * @returns 
+ * Generates a URL for an image stored in AWS S3
+ *
+ * This function generates a URL for an image stored in AWS S3 using the provided `fileName` and `configService`.
+ * It retrieves the bucket name and AWS S3 region from the environment variables using `configService.getOrThrow<string>('VARIABLE_NAME')`.
+ * Finally, it constructs the URL by combining these values with the filename and returns the complete URL.
+ *
+ * @param fileName (string) The name of the image file stored in AWS S3.
+ * @param configService (ConfigService) The configuration service to access environment variables.
+ * @returns string The generated URL for the image in AWS S3.
  */
 export function getImageStorageURL(fileName: string, configService: ConfigService): string {
   const bucketName: string = configService.getOrThrow<string>('BUCKET_NAME')

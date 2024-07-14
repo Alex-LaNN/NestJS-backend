@@ -9,6 +9,12 @@ import {
 import { Request, Response } from 'express'
 import { ErrorResponse } from './utils'
 
+/**
+ * Custom Exception Filter for handling application exceptions
+ *
+ * This class implements the `ExceptionFilter` interface and acts as a central handler for application exceptions.
+ * It's decorated with `@Catch()` to catch all exceptions (`Catch()`) thrown throughout the application.
+ */
 @Catch()
 export class CustomExceptionFilter implements ExceptionFilter {
   private readonly logger: Logger
@@ -18,13 +24,13 @@ export class CustomExceptionFilter implements ExceptionFilter {
   }
 
   /**
-   * Global exception handler to intercept unhandled exceptions.
+   * Catches and handles exceptions thrown during an HTTP request
    *
-   * This method is called whenever an exception is thrown anywhere in the application.
-   * It handles both HTTP exceptions (those thrown by Express and NestJS) and generic JavaScript errors.
+   * This method implements the `catch` method of the `ExceptionFilter` interface. It takes an `exception` object
+   * and an `ArgumentsHost` object as arguments. The `ArgumentsHost` provides access to the current HTTP context.
    *
-   * @param exception The error object that was thrown.
-   * @param host The argument object that provides information about the request context.
+   * @param exception (Error) The exception object thrown during request processing.
+   * @param host (ArgumentsHost) The arguments host object providing access to the HTTP context.
    */
   catch(exception: Error, host: ArgumentsHost) {
     // Get the HTTP request context

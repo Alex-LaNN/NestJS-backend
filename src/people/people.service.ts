@@ -15,7 +15,6 @@ import { Starship } from 'src/starships/entities/starship.entity'
 import { Planet } from 'src/planets/entities/planet.entity'
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
 import { localUrl, relatedEntitiesMap } from 'src/shared/utils'
-import { Image } from 'src/images/entities/image.entity'
 
 /**
  * PeopleService: Provides CRUD operations for "people" resources
@@ -43,7 +42,6 @@ export class PeopleService {
       homeworld: Repository<Planet>
       species: Repository<Species>
       vehicles: Repository<Vehicle>
-      images: Repository<Image>
     },
   ) {
     this.relatedEntities = relatedEntitiesMap.people.relatedEntities
