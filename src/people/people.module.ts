@@ -40,6 +40,7 @@ import { ImagesService } from 'src/images/images.service'
       Species,
       Starship,
       Vehicle,
+      Image
     ]),
   ],
   controllers: [PeopleController],

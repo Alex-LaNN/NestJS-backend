@@ -36,10 +36,10 @@ $ npm install
 
 ```bash
 # development
-$ npm run start
+$ npm run s
 
 # watch mode
-$ npm run start:dev
+$ npm run s:dev
 
 # production mode
 $ npm run start:prod

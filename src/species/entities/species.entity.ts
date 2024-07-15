@@ -206,6 +206,5 @@ export class Species extends AbstractEntity<Species> {
   @ApiProperty({
     description: 'An array of image resource URLs for this species.',
   })
-  @JoinTable({ name: 'species_images' })
   images?: Image[]
 }

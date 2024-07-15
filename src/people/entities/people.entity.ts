@@ -240,6 +240,5 @@ export class People extends AbstractEntity<People> {
     description: 'An array of image resource IDs owned by this person.',
   })
   @OneToMany(() => Image, (images) => images.people)
-  @JoinTable({ name: 'people_images' })
   images?: Image[]
 }

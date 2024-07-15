@@ -54,15 +54,15 @@ export class SeedDatabase {
   synchronizeDatabase = async () => {
     this.queryRunner = this.dataSource.createQueryRunner()
     // Run database migrations if not already done
-    //await runMigrations(this.queryRunner)
+    await runMigrations(this.queryRunner)
     try {
       // Start a transaction to ensure data consistency
       await this.queryRunner.startTransaction()
       console.log(`Start filling the database...`)
       // Fill the database with data for each entity
-      // for (const entityName of Object.keys(entityClassesForFill)) {
-      //   await this.addData(entityName)
-      // }
+      for (const entityName of Object.keys(entityClassesForFill)) {
+        await this.addData(entityName)
+      }
       // Commit the transaction to make changes permanent
       await this.queryRunner.commitTransaction()
       console.log('All database additions are completed, ok!...')

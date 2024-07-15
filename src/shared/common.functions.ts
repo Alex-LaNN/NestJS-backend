@@ -51,6 +51,7 @@ export function getResponceOfException(error: any): Error {
   if (error.status in errorMap) {
     return errorMap[error.status]
   }
+  console.error(`comfun:54 - Exception encountered:`, error)
   // Handle remaining errors as InternalServerErrorException
   return new InternalServerErrorException('Internal server error')
 }
@@ -215,4 +216,23 @@ export function getImageStorageURL(fileName: string, configService: ConfigServic
   const bucketName: string = configService.getOrThrow<string>('BUCKET_NAME')
   const awsS3Region: string = configService.getOrThrow('AWS_S3_REGION')
   return `https://${bucketName}.s3.${awsS3Region}.amazonaws.com/${fileName}`
+}
+
+/**
+ * Extracts the filename for deletion from AWS S3 storage
+ *
+ * This function parses the provided `fileName` to extract the actual filename
+ * expected by AWS S3 for deletion. It assumes the filename format to be `<prefix>_<actual_filename>`.
+ * If the format is invalid (less than 2 parts separated by an underscore), it throws an error.
+ *
+ * @param fileName The filename string received (potentially containing a prefix).
+ * @returns The actual filename expected by AWS S3 for deletion.
+ * @throws Error if the filename format is invalid.
+ */
+export function getFileNameForDeleteFromAWS(fileName: string): string {
+  const parts = fileName.split('_')
+  if (parts.length < 2) {
+    throw new Error('Invalid image name format: ' + fileName)
+  }
+  return parts[1]
 }

@@ -215,6 +215,5 @@ export class Vehicle extends AbstractEntity<Vehicle> {
   @ApiProperty({
     description: 'An array of image resource URLs for this vehicles.',
   })
-  @JoinTable({ name: 'vahicle_images' })
   images?: Image[]
 }

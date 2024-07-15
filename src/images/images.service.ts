@@ -1,7 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Image } from 'src/images/entities/image.entity'
@@ -13,10 +10,16 @@ import { Species } from 'src/species/entities/species.entity'
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
 import { People } from 'src/people/entities/people.entity'
 import {
+  getFileNameForDeleteFromAWS as getFileNameForDeleteImageFromAWS,
   getImageStorageURL,
   getResponceOfException,
 } from 'src/shared/common.functions'
-import { DeleteObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
+import {
+  DeleteObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from '@aws-sdk/client-s3'
+import { Entity } from 'src/shared/utils'
 
 /**
  * ImagesService: Manages image storage and retrieval
@@ -32,26 +35,41 @@ export class ImagesService {
     region: this.configService.getOrThrow('AWS_S3_REGION'),
   })
 
+  private readonly repositories: {
+    people: Repository<People>
+    films: Repository<Film>
+    starships: Repository<Starship>
+    planets: Repository<Planet>
+    species: Repository<Species>
+    vehicles: Repository<Vehicle>
+  }
+
   constructor(
     private readonly configService: ConfigService,
     @InjectRepository(Image)
     private readonly imageRepository: Repository<Image>,
-    // Injections for related entity repositories
     @InjectRepository(People)
+    private readonly peopleRepository: Repository<People>,
     @InjectRepository(Film)
+    private readonly filmRepository: Repository<Film>,
     @InjectRepository(Starship)
+    private readonly starshipRepository: Repository<Starship>,
     @InjectRepository(Planet)
+    private readonly planetRepository: Repository<Planet>,
     @InjectRepository(Species)
+    private readonly speciesRepository: Repository<Species>,
     @InjectRepository(Vehicle)
-    private readonly repositories: {
-      people: Repository<People>
-      films: Repository<Film>
-      starships: Repository<Starship>
-      planets: Repository<Planet>
-      species: Repository<Species>
-      vehicles: Repository<Vehicle>
-    },
-  ) {}
+    private readonly vehicleRepository: Repository<Vehicle>,
+  ) {
+    this.repositories = {
+      people: this.peopleRepository,
+      films: this.filmRepository,
+      starships: this.starshipRepository,
+      planets: this.planetRepository,
+      species: this.speciesRepository,
+      vehicles: this.vehicleRepository,
+    }
+  }
 
   /**
    * Uploads an image associated with a specific entity
@@ -82,27 +100,41 @@ export class ImagesService {
         fileName,
         this.configService,
       )
-
+      // Eliminate the appearance of default values ​​for an empty field
       description = description !== '{description}' ? description : ''
+
+      // Get the repository for a related entity
+      const repository = this.repositories[`${entityName}`]
+      if (!repository) {
+        throw new Error(
+          `Repository for entity ${entityName} for uploading new image not found`,
+        )
+      }
+      // Find the associated entity
+      const entityOnImage: Entity = await repository.findOne({
+        where: { id: entityId },
+      })
+      if (!entityOnImage) {
+        throw new Error(
+          `Object ${entityName} with ID ${entityId} for uploading new image was not found.`,
+        )
+      }
       // Create new Image entity object
       const newImage: Image = this.imageRepository.create({
         name: newImageName,
         description: description,
         url: imageStorageUrl,
+        [`${entityName}`]: entityOnImage.id,
       })
 
-      // Set the dynamic field for entity ID
-      newImage[`${entityName}Id`] = entityId
-
-
       // Upload image to AWS S3
-      // await this.s3Client.send(
-      //   new PutObjectCommand({
-      //     Bucket: this.configService.getOrThrow<string>('BUCKET_NAME'),
-      //     Key: fileName,
-      //     Body: file,
-      //   }),
-      // )
+      await this.s3Client.send(
+        new PutObjectCommand({
+          Bucket: this.configService.getOrThrow<string>('BUCKET_NAME'),
+          Key: fileName,
+          Body: file,
+        }),
+      )
 
       // Save new Image entity to database
       return await this.imageRepository.save(newImage)
@@ -134,14 +166,15 @@ export class ImagesService {
       if (!image) {
         throw new NotFoundException(`Image with name '${imageName}' not found.`)
       }
+      const fileNameForDelete: string = getFileNameForDeleteImageFromAWS(image.name)
 
       // Delete the image from AWS S3
-      // await this.s3Client.send(
-      //   new DeleteObjectCommand({
-      //     Bucket: this.configService.getOrThrow<string>('BUCKET_NAME'),
-      //     Key: imageName,
-      //   }),
-      // )
+      await this.s3Client.send(
+        new DeleteObjectCommand({
+          Bucket: this.configService.getOrThrow<string>('BUCKET_NAME'),
+          Key: fileNameForDelete,
+        }),
+      )
 
       // Remove the Image entity from the database
       await this.imageRepository.remove(image)
@@ -184,14 +217,18 @@ export class ImagesService {
         )
 
       // Delete the images from AWS S3 (using their names)
-      // for (const image of imagesToDelete) {
-      //   await this.s3Client.send(
-      //     new DeleteObjectCommand({
-      //       Bucket: this.configService.getOrThrow<string>('BUCKET_NAME'),
-      //       Key: image.name,
-      //     }),
-      //   )
-      // }
+      for (const image of imagesToDelete) {
+        const fileNameForDelete: string = getFileNameForDeleteImageFromAWS(
+          image.name,
+        )
+
+        await this.s3Client.send(
+          new DeleteObjectCommand({
+            Bucket: this.configService.getOrThrow<string>('BUCKET_NAME'),
+            Key: fileNameForDelete,
+          }),
+        )
+      }
 
       // Remove the Image entities from the database
       await this.imageRepository.remove(imagesToDelete)

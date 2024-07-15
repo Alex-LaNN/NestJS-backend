@@ -199,6 +199,5 @@ export class Planet extends AbstractEntity<Planet> {
     description: 'An array of images resource URLs that are in this person.',
   })
   @OneToMany(() => Image, (image) => image.planets)
-  @JoinTable({ name: 'planets_images' })
   images?: Image[]
 }
