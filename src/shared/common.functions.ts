@@ -51,7 +51,7 @@ export function getResponceOfException(error: any): Error {
   if (error.status in errorMap) {
     return errorMap[error.status]
   }
-  console.error(`comfun:54 - Exception encountered:`, error)
+  console.error(`comfun:54 - Exception caught:`, error)
   // Handle remaining errors as InternalServerErrorException
   return new InternalServerErrorException('Internal server error')
 }
@@ -116,7 +116,7 @@ export async function extractIdFromUrl(
   if (match && match[1]) {
     return parseInt(match[1], 10)
   } else {
-    throw new Error(`cf:114 - Number not found. Invalid URL: ${url}`)
+    throw new Error(`cf:119 - Number not found. Invalid URL: ${url}`)
   }
 }
 
@@ -130,7 +130,7 @@ export async function extractIdFromUrl(
  * @param objectId (number) The ID of the entity object.
  * @returns Promise<string> The generated local URL.
  */
-export async function getUrlFromId(
+export async function getBaseUrlOfEntityFromId(
   entityName: string,
   objectId: number,
 ): Promise<string> {
@@ -167,7 +167,7 @@ export async function findNameAndDataOfRelationEntity(
   relationDataIdToInsert: number | number[]
 }> {
   // Extract the name of the related entity
-  const nameOfRelationEntity: string = await getNameFromId(url)
+  const nameOfRelationEntity: string = await getObjectNameFromUrl(url)
   // Extract the data (ID) of the related entity
   const relationDataIdToInsert: number | number[] = await extractIdFromUrl(url)
 
@@ -178,22 +178,24 @@ export async function findNameAndDataOfRelationEntity(
 }
 
 /**
- * Extracts the name of an object from its ID in a URL
+ * Extracts the name of an object from its URL
  *
- * This function extracts the name of an object from its ID in a provided URL (`url`). It handles both single URLs and arrays of URLs.
+ * This function extracts the name of an object from its provided URL (`url`). It handles both single URLs and arrays of URLs.
  * It splits the URL into parts, filters out empty strings, and extracts the name from the third part of the URL.
  *
  * @param url (string | string[]) The URL or array of URLs to extract the name from.
  * @returns Promise<string> The extracted name of the object.
  */
-export async function getNameFromId(url: string | string[]): Promise<string> {
+export async function getObjectNameFromUrl(
+  url: string | string[],
+): Promise<string> {
   // Convert the URL to the first string if it's an array
   const actualUrl: string = Array.isArray(url) ? url[0] : url
   // Split the URL into parts and filter out empty strings
   const urlParts: string[] = actualUrl.split('/').filter(Boolean)
   // Check if the URL parts have at least 4 elements (minimum for the expected URL format)
   if (urlParts.length < 4) {
-    throw new Error(`cf:125 - Неверный формат URL: ${actualUrl}`)
+    throw new Error(`cf:198 - The wrong URL format: ${actualUrl}`)
   }
   // Extract the object name from the third part of the URL
   const name: string = urlParts[2]
@@ -212,7 +214,10 @@ export async function getNameFromId(url: string | string[]): Promise<string> {
  * @param configService (ConfigService) The configuration service to access environment variables.
  * @returns string The generated URL for the image in AWS S3.
  */
-export function getImageStorageURL(fileName: string, configService: ConfigService): string {
+export function getImageStorageURL(
+  fileName: string,
+  configService: ConfigService,
+): string {
   const bucketName: string = configService.getOrThrow<string>('BUCKET_NAME')
   const awsS3Region: string = configService.getOrThrow('AWS_S3_REGION')
   return `https://${bucketName}.s3.${awsS3Region}.amazonaws.com/${fileName}`

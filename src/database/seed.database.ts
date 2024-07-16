@@ -12,7 +12,7 @@ import fetch from 'cross-fetch'
 import {
   extractIdFromUrl,
   findNameAndDataOfRelationEntity,
-  getNameFromId,
+  getObjectNameFromUrl,
   getResponceOfException,
   replaceUrl,
   setObjectField,
@@ -229,7 +229,9 @@ export class SeedDatabase {
             await findNameAndDataOfRelationEntity(relationDataForObject)
           // Handle special case for 'homeworld'
           if (relationName === 'homeworld') {
-            const tableNameForInsert: string = await getNameFromId(object.url)
+            const tableNameForInsert: string = await getObjectNameFromUrl(
+              object.url,
+            )
             await this.queryRunner.query(
               `INSERT INTO ${dbName}.${tableNameForInsert} (${relationName}Id) VALUES (?)`,
               [relationDataIdToInsert],
