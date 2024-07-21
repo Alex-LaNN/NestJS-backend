@@ -157,9 +157,9 @@ export class PeopleService {
    * @param peopleId The ID of the "people" resource to delete
    * @returns A Promise resolving to `void` upon successful deletion
    */
-  async remove(peopleId: number): Promise<void> {
+  async remove(peopleId: number): Promise<People> {
     const person = await this.findOne(peopleId)
-    await this.peopleRepository.remove(person)
+    return await this.peopleRepository.remove(person)
   }
 
   /**
