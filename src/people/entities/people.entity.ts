@@ -1,4 +1,4 @@
-import { AbstractEntity } from 'src/shared/abstract.entity'
+import { AbstractEntity } from '../../shared/abstract.entity'
 import {
   Column,
   Entity,
@@ -40,9 +40,9 @@ export class People extends AbstractEntity<People> {
    * This property stores the hypermedia URL for this person resource. It is
    * decorated with `@Column` and `@ApiProperty` for mapping and documentation.
    */
-  @Column()
-  @ApiProperty({ description: 'the hypermedia URL of this resource.' })
-  url: string
+  @Column({ nullable: true })
+  @ApiProperty({ description: 'the hypermedia URL of this resource.'})
+  url?: string
 
   /**
    * height: The height of the person in centimeters (string)

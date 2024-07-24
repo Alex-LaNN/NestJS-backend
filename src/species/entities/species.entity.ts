@@ -11,7 +11,7 @@ import { AbstractEntity } from '../../shared/abstract.entity'
 import { ApiProperty } from '@nestjs/swagger'
 import { People } from '../../people/entities/people.entity'
 import { Film } from '../../films/entities/film.entity'
-import { Image } from 'src/images/entities/image.entity'
+import { Image } from '../../images/entities/image.entity'
 import { Planet } from '../../planets/entities/planet.entity'
 import { IsOptional } from 'class-validator'
 
@@ -35,14 +35,17 @@ export class Species extends AbstractEntity<Species> {
   name: string
 
   /**
-   * URL of the species resource
+   * URL of the species resource (optional)
    *
-   * @Column - TypeORM decorator to map this property to a database column.
+   * @Column({ nullable: true }) - TypeORM decorator to map this property to a database column.
+   * The `nullable: true` option allows storing null values for this column.
+   *
    * @ApiProperty - Decorator from `@nestjs/swagger` to provide API documentation for the property.
+   * This decorator specifies a description for the property in the Swagger documentation.
    */
-  @Column()
+  @Column({ nullable: true })
   @ApiProperty({ description: 'the hypermedia URL of this resource.' })
-  url: string
+  url?: string
 
   /**
    * Classification of the species (e.g., mammal, reptile)

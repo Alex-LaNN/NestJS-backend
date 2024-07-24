@@ -43,6 +43,7 @@ describe('PeopleService', () => {
             findOne: jest.fn(),
             save: jest.fn(),
             remove: jest.fn(),
+            query: jest.fn().mockResolvedValue([{ maxId: 0 }]),
           },
         },
         {

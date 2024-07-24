@@ -1,5 +1,6 @@
-import { ApiProperty } from '@nestjs/swagger'
-import { IsArray, IsString } from 'class-validator'
+import { ApiHideProperty, ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { Exclude } from 'class-transformer'
+import { IsArray, IsOptional, IsString } from 'class-validator'
 
 /**
  * CreatePlanetDto: DTO for creating a new Planet entity
@@ -20,6 +21,21 @@ export class CreatePlanetDto {
   @ApiProperty({ description: 'The name of this planet.' })
   @IsString()
   name: string
+
+  /**
+   * url (optional): The URL of the planet resource (string)
+   *
+   * This property represents the URL of the planet resource (if available). It is decorated with:
+   *  - `@Exclude` to exclude the property from the class response by default.
+   *  - `@ApiHideProperty` to hide it from Swagger documentation.
+   *  - `@IsOptional` to indicate it's an optional property.
+   *  - `@IsString` to validate that the value is a string if provided.
+   */
+  @Exclude()
+  @ApiHideProperty()
+  @IsOptional()
+  @IsString()
+  url?: string
 
   /**
    * diameter: The diameter of this planet in kilometers (string)

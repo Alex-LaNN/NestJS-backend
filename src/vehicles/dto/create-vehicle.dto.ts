@@ -1,5 +1,6 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsString } from "class-validator";
+import { ApiHideProperty, ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Exclude } from "class-transformer";
+import { IsArray, IsOptional, IsString } from "class-validator";
 
 /**
  * CreateVehicleDto
@@ -22,6 +23,21 @@ export class CreateVehicleDto {
   })
   @IsString()
   name: string
+
+  /**
+   * url (optional)
+   *
+   * This property represents the URL of the vehicle resource (if available).
+   * It is decorated with `@Exclude` to exclude it from the class response by default,
+   * `@ApiHideProperty` to hide it from Swagger documentation,
+   * `@IsOptional` to indicate it's an optional property,
+   * and `@IsString` to validate that the value is a string if provided.
+   */
+  @Exclude()
+  @ApiHideProperty()
+  @IsOptional()
+  @IsString()
+  url?: string
 
   /**
    * model

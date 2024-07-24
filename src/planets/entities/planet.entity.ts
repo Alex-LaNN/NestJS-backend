@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { AbstractEntity } from 'src/shared/abstract.entity'
+import { AbstractEntity } from '../../shared/abstract.entity'
 import {
   Column,
   Entity,
@@ -38,9 +38,9 @@ export class Planet extends AbstractEntity<Planet> {
    * This property represents the planet's hypermedia URL. It is decorated with
    * `@Column` for database mapping and `@ApiProperty` for Swagger documentation.
    */
-  @Column()
+  @Column({ nullable: true })
   @ApiProperty({ description: 'the hypermedia URL of this resource.' })
-  url: string
+  url?: string
 
   /**
    * climate: The climate of this planet (string)

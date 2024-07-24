@@ -1,5 +1,6 @@
 import { IsArray, IsOptional, IsString } from 'class-validator'
-import { ApiProperty } from '@nestjs/swagger'
+import { ApiHideProperty, ApiProperty } from '@nestjs/swagger'
+import { Exclude } from 'class-transformer'
 
 /**
  * CreatePeopleDto: Data Transfer Object for creating a new person
@@ -19,6 +20,22 @@ export class CreatePeopleDto {
   @ApiProperty({ description: 'The name of this person.' })
   @IsString()
   name: string
+
+  /**
+   * URL of the person resource
+   *
+   * This property represents the hypermedia URL of the person resource.
+   * It is decorated with:
+   *  - `@Exclude` to exclude it from serialization.
+   *  - `@ApiHideProperty` to hide it from the Swagger documentation.
+   *  - `@IsOptional` to make it optional during validation.
+   *  - `@IsString` to validate that the property value is a string.
+   */
+  @Exclude()
+  @ApiHideProperty()
+  @IsOptional()
+  @IsString()
+  url?: string
 
   /**
    * birth_year: The birth year of the person (string)

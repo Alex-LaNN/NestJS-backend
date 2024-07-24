@@ -73,6 +73,11 @@ export class PeopleService {
 
     // Create a new People entity
     let newPeople = new People()
+    // Get the last inserted ID
+    const lastIdResult = await this.peopleRepository.query(
+      'SELECT MAX(id) as maxId FROM people',
+    )
+    newPeople.url = `${localUrl}people/${lastIdResult[0].maxId + 1}/`
     // Populate People entity fields from DTO (excluding "homeworld")
     for (const key in createPeopleDto) {
       if (key === 'homeworld') continue
@@ -166,12 +171,12 @@ export class PeopleService {
    * Fills related entities for a "people" resource
    *
    * This private helper method handles updates for related entities (films, starships, planets,
-   * species, vehicles) associated with a "people" resource. 
-   * It iterates through the `relatedEntities` array and checks for updates in the 
-   * corresponding fields of the `updatePeopleDto` object. For the "homeworld" entity, 
-   * it constructs a URL based on `localUrl` and searches for the planet by URL. 
-   * For other related entities (films, starships, vehicles), it uses a Promise.all to fetch 
-   * all related entities based on their URLs provided in the `updatePeopleDto`. 
+   * species, vehicles) associated with a "people" resource.
+   * It iterates through the `relatedEntities` array and checks for updates in the
+   * corresponding fields of the `updatePeopleDto` object. For the "homeworld" entity,
+   * it constructs a URL based on `localUrl` and searches for the planet by URL.
+   * For other related entities (films, starships, vehicles), it uses a Promise.all to fetch
+   * all related entities based on their URLs provided in the `updatePeopleDto`.
    * Finally, it updates the corresponding fields in the `newPeople` object.
    *
    * @param newPeople The "People" entity object to update related entities for

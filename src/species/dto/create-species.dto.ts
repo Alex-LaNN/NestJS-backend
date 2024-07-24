@@ -1,4 +1,5 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiHideProperty, ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Exclude } from "class-transformer";
 import { IsArray, IsOptional, IsString } from "class-validator";
 
 /**
@@ -18,6 +19,27 @@ export class CreateSpeciesDto {
   @ApiProperty({ description: 'The name of this species.' })
   @IsString()
   name: string
+
+  /**
+   * URL of the species resource (optional)
+   *
+   * @Exclude - Decorator from `@nestjs/swagger` to exclude the property from the class response by default.
+   * This can be useful for properties that are not intended for public consumption.
+   *
+   * @ApiHideProperty - Decorator from `@nestjs/swagger` to hide the property from Swagger documentation.
+   * This helps maintain a clean and focused API documentation.
+   *
+   * @IsOptional - Decorator (likely custom) to indicate that the property is optional.
+   * This provides flexibility in data representation and avoids unnecessary validation errors.
+   *
+   * @IsString - Decorator from `class-validator` to validate that the property value is a string if provided.
+   * This ensures data consistency even for optional properties.
+   */
+  @Exclude()
+  @ApiHideProperty()
+  @IsOptional()
+  @IsString()
+  url?: string
 
   /**
    * Classification of the species (e.g., mammal, reptile)

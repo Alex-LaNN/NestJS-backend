@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "allowJs": true,
     "module": "commonjs",
     "target": "ES2021",
     "moduleResolution": "node",
@@ -13,7 +14,8 @@
     "paths": {
       "src/*": ["src/*"],
       "@db/*": ["src/db/*"],
-      "@entities/*": ["src/entities/*"]
+      "@entities/*": ["src/entities/*"],
+      "@shared/*": ["src/shared/*"]
     },
     "incremental": true,
     "skipLibCheck": true,
@@ -23,5 +25,7 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "resolveJsonModule": true
-  }
+  },
+  "exclude": ["node_modules", "dist", "test", "package.json", "README.md"],
+  "include": ["src/**/*.ts", "test/**/*.ts"]
 }

@@ -20,7 +20,7 @@ export class Starship extends AbstractEntity<Starship> {
    * name: The common name of the starship (string)
    *
    * This property represents the common name of the starship, such as "Death Star".
-   * It is decorated with @Column for database mapping and @ApiProperty for 
+   * It is decorated with @Column for database mapping and @ApiProperty for
    * Swagger documentation.
    */
   @Column()
@@ -36,15 +36,15 @@ export class Starship extends AbstractEntity<Starship> {
    * This property represents the hypermedia URL of the starship. It is decorated with
    * @Column for database mapping and @ApiProperty for Swagger documentation.
    */
-  @Column()
+  @Column({ nullable: true })
   @ApiProperty({ description: 'The hypermedia URL of this resource.' })
-  url: string
+  url?: string
 
   /**
    * model: The model or official name of the starship (string)
    *
-   * This property represents the model or official name of the starship, 
-   * such as "T-65 X-wing" or "DS-1 Orbital Battle Station". 
+   * This property represents the model or official name of the starship,
+   * such as "T-65 X-wing" or "DS-1 Orbital Battle Station".
    * It is decorated with @Column for database mapping and @ApiProperty for
    *  Swagger documentation.
    */
@@ -58,7 +58,7 @@ export class Starship extends AbstractEntity<Starship> {
   /**
    * starship_class: The class of the starship (string)
    *
-   * This property represents the class of the starship, such as "Starfighter" or 
+   * This property represents the class of the starship, such as "Starfighter" or
    * "Deep Space Mobile Battlestation".
    * It is decorated with @Column for database mapping and @ApiProperty for Swagger documentation.
    */
@@ -72,8 +72,8 @@ export class Starship extends AbstractEntity<Starship> {
   /**
    * manufacturer: The manufacturer of the starship (string)
    *
-   * This property represents the manufacturer of the starship. If there is 
-   * more than one manufacturer, the names are comma-separated. 
+   * This property represents the manufacturer of the starship. If there is
+   * more than one manufacturer, the names are comma-separated.
    * It is decorated with @Column for database mapping and @ApiProperty
    * for Swagger documentation.
    */
@@ -87,8 +87,8 @@ export class Starship extends AbstractEntity<Starship> {
   /**
    * cost_in_credits: The cost of the starship in galactic credits (string)
    *
-   * This property represents the cost of the starship when new, in galactic credits. 
-   * It is decorated with @Column for database mapping and @ApiProperty for 
+   * This property represents the cost of the starship when new, in galactic credits.
+   * It is decorated with @Column for database mapping and @ApiProperty for
    * Swagger documentation.
    */
   @Column()
@@ -100,7 +100,7 @@ export class Starship extends AbstractEntity<Starship> {
   /**
    * length: The length of the starship in meters (string)
    *
-   * This property represents the length of the starship in meters. It is decorated with 
+   * This property represents the length of the starship in meters. It is decorated with
    * @Column for database mapping and @ApiProperty for Swagger documentation.
    */
   @Column()
@@ -110,7 +110,7 @@ export class Starship extends AbstractEntity<Starship> {
   /**
    * crew: The number of personnel needed to run or pilot the starship (string)
    *
-   * This property represents the number of personnel needed to run or pilot the starship. 
+   * This property represents the number of personnel needed to run or pilot the starship.
    * It is decorated with @Column for database mapping and @ApiProperty for Swagger documentation.
    */
   @Column()
@@ -136,8 +136,8 @@ export class Starship extends AbstractEntity<Starship> {
   /**
    * max_atmosphering_speed: The maximum speed of the starship in the atmosphere (string)
    *
-   * This property represents the maximum speed of the starship in the atmosphere. 
-   * It is "N/A" if the starship is incapable of atmospheric flight. It is decorated with 
+   * This property represents the maximum speed of the starship in the atmosphere.
+   * It is "N/A" if the starship is incapable of atmospheric flight. It is decorated with
    * @Column for database mapping and @ApiProperty for Swagger documentation.
    */
   @Column()
@@ -150,7 +150,7 @@ export class Starship extends AbstractEntity<Starship> {
   /**
    * hyperdrive_rating: The class of the starship's hyperdrive (string)
    *
-   * This property represents the class of the starship's hyperdrive. It is decorated with 
+   * This property represents the class of the starship's hyperdrive. It is decorated with
    * @Column for database mapping and @ApiProperty for Swagger documentation.
    */
   @Column()
@@ -163,7 +163,7 @@ export class Starship extends AbstractEntity<Starship> {
    * MGLT: The maximum number of Megalights the starship can travel in a standard hour (string)
    *
    * This property represents the maximum number of Megalights the starship can travel in a standard hour.
-   * A "Megalight" is a standard unit of distance used in the Star Wars universe. It is decorated with 
+   * A "Megalight" is a standard unit of distance used in the Star Wars universe. It is decorated with
    * @Column for database mapping and @ApiProperty for Swagger documentation.
    */
   @Column()

@@ -6,8 +6,9 @@ export class LastMigration1718564931891 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`starships\` (
             \`id\` int NOT NULL AUTO_INCREMENT,
-            \`created\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-            \`edited\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6), \`name\` varchar(255) NOT NULL,
+            \`created\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            \`edited\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  
+            \`name\` varchar(255) NOT NULL,
             \`url\` varchar(255) NOT NULL,
             \`model\` varchar(255) NOT NULL,
             \`starship_class\` varchar(255) NOT NULL,
@@ -24,8 +25,9 @@ export class LastMigration1718564931891 implements MigrationInterface {
             PRIMARY KEY (\`id\`)) ENGINE=InnoDB`)
         await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`species\` (
             \`id\` int NOT NULL AUTO_INCREMENT,
-            \`created\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-            \`edited\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6), \`name\` varchar(255) NOT NULL,
+            \`created\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            \`edited\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, 
+            \`name\` varchar(255) NOT NULL,
             \`url\` varchar(255) NOT NULL,
             \`classification\` varchar(255) NOT NULL,
             \`designation\` varchar(255) NOT NULL,
@@ -52,8 +54,9 @@ export class LastMigration1718564931891 implements MigrationInterface {
             PRIMARY KEY (\`id\`)) ENGINE=InnoDB`)
         await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`planets\` (
             \`id\` int NOT NULL AUTO_INCREMENT,
-            \`created\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-            \`edited\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6), \`name\` varchar(255) NOT NULL,
+            \`created\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            \`edited\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  
+            \`name\` varchar(255) NOT NULL,
             \`url\` varchar(255) NOT NULL,
             \`climate\` varchar(255) NOT NULL,
             \`diameter\` varchar(255) NOT NULL,
@@ -66,8 +69,9 @@ export class LastMigration1718564931891 implements MigrationInterface {
             PRIMARY KEY (\`id\`)) ENGINE=InnoDB`)
         await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`people\` (
             \`id\` int NOT NULL AUTO_INCREMENT,
-            \`created\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-            \`edited\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6), \`name\` varchar(255) NOT NULL,
+            \`created\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            \`edited\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  
+            \`name\` varchar(255) NOT NULL,
             \`url\` varchar(255) NOT NULL,
             \`height\` varchar(255) NOT NULL,
             \`mass\` varchar(255) NOT NULL,
@@ -80,8 +84,9 @@ export class LastMigration1718564931891 implements MigrationInterface {
             PRIMARY KEY (\`id\`)) ENGINE=InnoDB`)
         await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`films\` (
             \`id\` int NOT NULL AUTO_INCREMENT,
-            \`created\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-            \`edited\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6), \`title\` varchar(255) NOT NULL,
+            \`created\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            \`edited\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, 
+            \`title\` varchar(255) NOT NULL,
             \`url\` varchar(255) NOT NULL,
             \`episode_id\` int NOT NULL,
             \`opening_crawl\` text NOT NULL,
@@ -92,8 +97,9 @@ export class LastMigration1718564931891 implements MigrationInterface {
             PRIMARY KEY (\`id\`)) ENGINE=InnoDB`)
         await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`vehicles\` (
             \`id\` int NOT NULL AUTO_INCREMENT,
-            \`created\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-            \`edited\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6), \`name\` varchar(255) NOT NULL,
+            \`created\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            \`edited\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, 
+            \`name\` varchar(255) NOT NULL,
             \`url\` varchar(255) NOT NULL,
             \`model\` varchar(255) NOT NULL,
             \`vehicle_class\` varchar(255) NOT NULL,

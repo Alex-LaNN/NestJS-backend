@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { AbstractEntity } from 'src/shared/abstract.entity'
+import { AbstractEntity } from '../../shared/abstract.entity'
 import {
   Column,
   Entity,
@@ -44,10 +44,10 @@ export class Film extends AbstractEntity<Film> {
    * @Column and @Index for database mapping and indexing, and @ApiProperty
    * for Swagger documentation.
    */
-  @Column()
+  @Column({ nullable: true })
   @Index()
   @ApiProperty({ description: 'the hypermedia URL of this resource.' })
-  url: string
+  url?: string
 
   /**
    * episode_id: The episode number of the film (number)

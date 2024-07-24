@@ -53,6 +53,13 @@ export class SeedDatabase {
    */
   synchronizeDatabase = async () => {
     this.queryRunner = this.dataSource.createQueryRunner()
+
+    // Check if the database already contains data
+    const isDatabaseEmpty = await this.isDatabaseEmpty()
+    if (!isDatabaseEmpty) {
+      console.log('Database is already filled, skipping seeding...')
+      return
+    }
     // Run database migrations if not already done
     await runMigrations(this.queryRunner)
     try {
@@ -154,6 +161,10 @@ export class SeedDatabase {
     // Process and modify each object before saving
     const modifiedObjects: T[] = await Promise.all(
       results.map(async (object) => {
+        // Check if the object has a 'url' property
+        if (!object.url) {
+          throw new Error(`Object does not have a 'url' property`)
+        }
         // Replace URLs with local URLs
         object.url = await replaceUrl(object.url)
         // Extract ID from URL and assign it to the object's ID property
@@ -317,5 +328,28 @@ export class SeedDatabase {
       throw new Error(`sd:315 - No metadata found for '${entityName}'`)
     }
     return entityRepository
+  }
+
+  /**
+   * isDatabaseEmpty: Checks if the database contains any data
+   *
+   * This method checks if any of the tables in `entityClassesForFill` contains data.
+   *
+   * @returns True if the database is empty, false otherwise
+   */
+  private async isDatabaseEmpty(): Promise<boolean> {
+    try {
+      for (const entityName of Object.keys(entityClassesForFill)) {
+        const repository = await this.getRepository(entityName)
+        const count = await repository.count()
+        if (count > 0) {
+          return false
+        }
+      }
+      return true
+    } catch (error) {
+      console.error('Error checking database contents: ', error)
+      throw getResponceOfException(error)
+    }
   }
 }

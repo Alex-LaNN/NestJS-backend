@@ -34,9 +34,9 @@ export class Vehicle extends AbstractEntity<Vehicle> {
    * This property represents the hypermedia URL of this resource. It is mapped to a
    * database column and decorated with `ApiProperty` for Swagger documentation.
    */
-  @Column()
+  @Column({ nullable: true })
   @ApiProperty({ description: 'The hypermedia URL of this resource.' })
-  url: string
+  url?: string
 
   /**
    * 'model' property

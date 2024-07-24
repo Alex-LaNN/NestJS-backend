@@ -1,5 +1,6 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsString } from "class-validator";
+import { ApiHideProperty, ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Exclude } from "class-transformer";
+import { IsArray, IsOptional, IsString } from "class-validator";
 
 /**
  * CreateStarshipDto class
@@ -22,6 +23,22 @@ export class CreateStarshipDto {
   })
   @IsString()
   name: string
+
+  /**
+   * URL of the starship resource
+   *
+   * This property represents the hypermedia URL of the starship resource.
+   * It is decorated with:
+   *  - `@Exclude` to exclude it from serialization.
+   *  - `@ApiHideProperty` to hide it from the Swagger documentation.
+   *  - `@IsOptional` to make it optional during validation.
+   *  - `@IsString` to validate that the property value is a string.
+   */
+  @Exclude()
+  @ApiHideProperty()
+  @IsOptional()
+  @IsString()
+  url?: string
 
   /**
    * Model or official name of the starship (e.g., "T-65 X-wing")

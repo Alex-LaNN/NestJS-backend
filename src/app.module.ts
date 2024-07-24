@@ -15,6 +15,13 @@ import { dataSourceOptions } from './database/config'
 import { ConfigModule } from '@nestjs/config'
 import { SeedDatabase } from './database/seed.database'
 import { DatabaseModule } from './database/database.module'
+import { Starship } from './starships/entities/starship.entity'
+import { Vehicle } from './vehicles/entities/vehicle.entity'
+import { Species } from './species/entities/species.entity'
+import { Planet } from './planets/entities/planet.entity'
+import { People } from './people/entities/people.entity'
+import { Film } from './films/entities/film.entity'
+import { Image } from './images/entities/image.entity'
 
 /**
  * AppModule
@@ -22,7 +29,7 @@ import { DatabaseModule } from './database/database.module'
  * This module serves as the root module of the NestJS application.
  * It imports all necessary feature modules, database configurations,
  * and global settings like configuration and database connection.
- * 
+ *
  * Feature modules:
  * - AuthModule: Handles authentication and authorization.
  * - UserModule: Manages user-related operations.
@@ -54,6 +61,16 @@ import { DatabaseModule } from './database/database.module'
         return dataSourceOptions
       },
     }),
+    // Register repositories for specific entities to make them available for dependency injection
+    TypeOrmModule.forFeature([
+      Starship,
+      Vehicle,
+      Species,
+      Planet,
+      People,
+      Film,
+      Image,
+    ]),
     // Database utilities
     DatabaseModule,
     // Feature modules
