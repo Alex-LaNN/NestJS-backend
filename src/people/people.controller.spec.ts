@@ -143,7 +143,7 @@ describe('PeopleController', () => {
         .spyOn(service, 'create')
         .mockRejectedValue(new Error('Service error'))
 
-      await expect(controller.create(createPeopleDto)).rejects.toThrowError(
+      await expect(controller.create(createPeopleDto)).rejects.toThrow(
         new Error('Service error'),
       )
     })
@@ -199,7 +199,7 @@ describe('PeopleController', () => {
         .spyOn(service, 'findOne')
         .mockRejectedValue(new Error('Service error'))
 
-      await expect(controller.findOne(1)).rejects.toThrowError(
+      await expect(controller.findOne(1)).rejects.toThrow(
         new Error('Service error'),
       )
     })
@@ -246,7 +246,7 @@ describe('PeopleController', () => {
         .spyOn(service, 'update')
         .mockRejectedValue(new Error('Service error'))
 
-      await expect(controller.update(1, updatePeopleDto)).rejects.toThrowError(
+      await expect(controller.update(1, updatePeopleDto)).rejects.toThrow(
         new Error('Service error'),
       )
     })
@@ -288,7 +288,7 @@ describe('PeopleController', () => {
         .spyOn(service, 'remove')
         .mockRejectedValue(new Error('Service error'))
 
-      await expect(controller.remove(1)).rejects.toThrowError(
+      await expect(controller.remove(1)).rejects.toThrow(
         new Error('Service error'),
       )
     })

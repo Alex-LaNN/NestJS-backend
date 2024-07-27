@@ -14,7 +14,7 @@ import { People } from 'src/people/entities/people.entity'
 import { Starship } from 'src/starships/entities/starship.entity'
 import { Species } from 'src/species/entities/species.entity'
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
-import { relatedEntitiesMap } from 'src/shared/utils'
+import { localUrl, relatedEntitiesMap } from 'src/shared/utils'
 import { getResponceOfException } from 'src/shared/common.functions'
 
 /**
@@ -70,10 +70,18 @@ export class FilmsService {
         where: { title: createFilmDto.title },
       })
       // Return null if duplicate title found
-      if (existingFilm) return null
+      if (existingFilm) {
+        console.error(`Сущность ${createFilmDto.title} уже существует!`)
+        return null
+      }
 
       // Create a new Film object
       const newFilm: Film = new Film()
+      // Get the last inserted ID
+      const lastIdResult = await this.filmsRepository.query(
+        'SELECT MAX(id) as maxId FROM films',
+      )
+      newFilm.url = `${localUrl}films/${lastIdResult[0].maxId + 1}/`
       // Populate film properties from DTO
       for (const key in createFilmDto) {
         newFilm[key] = this.relatedEntities.includes(key)
@@ -82,6 +90,7 @@ export class FilmsService {
       }
       // Fill in related entities
       await this.fillRelatedEntities(newFilm, createFilmDto)
+      console.log(`fs93: newFilm - `, newFilm)
       // Save the new film to the database
       return this.filmsRepository.save(newFilm)
     } catch (error) {
@@ -178,16 +187,9 @@ export class FilmsService {
    * @returns No return value, void on success
    * @throws HttpException on error
    */
-  async remove(filmId: number): Promise<void> {
-    try {
-      const film: Film = await this.findOne(filmId)
-      // Do nothing if not found
-      if (!film) return
-      // Delete the film
-      await this.filmsRepository.remove(film)
-    } catch (error) {
-      throw getResponceOfException(error)
-    }
+  async remove(filmId: number): Promise<Film> {
+    const film: Film = await this.findOne(filmId)
+    return await this.filmsRepository.remove(film)
   }
 
   /**
@@ -216,9 +218,10 @@ export class FilmsService {
           if (newFilmDto[key]) {
             newFilm[key] = await Promise.all(
               newFilmDto[key].map(async (elem: string) => {
-                return await this.repositories[key].findOne({
+                const entity = await this.repositories[key].findOne({
                   where: { url: elem },
                 })
+                return entity
               }),
             )
           }

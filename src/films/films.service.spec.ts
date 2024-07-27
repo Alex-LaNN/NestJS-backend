@@ -1,18 +1,351 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { FilmsService } from './films.service';
+import { Test, TestingModule } from '@nestjs/testing'
+import { FilmsService } from './films.service'
+import { Repository } from 'typeorm'
+import { Film } from './entities/film.entity'
+import { People } from 'src/people/entities/people.entity'
+import { Planet } from 'src/planets/entities/planet.entity'
+import { Species } from 'src/species/entities/species.entity'
+import { Starship } from 'src/starships/entities/starship.entity'
+import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
+import { getRepositoryToken } from '@nestjs/typeorm'
+import { CreateFilmDto } from './dto/create-film.dto'
+import {
+  IPaginationOptions,
+  paginate,
+  Pagination,
+} from 'nestjs-typeorm-paginate'
+import { UpdateFilmDto } from './dto/update-film.dto'
 
+jest.mock('nestjs-typeorm-paginate')
+
+/**
+ * Unit test suite for FilmsService.
+ * This test suite covers various scenarios for creating, finding, updating, deleting film records,
+ * and managing related entities in the FilmsService.
+ */
 describe('FilmsService', () => {
-  let service: FilmsService;
+  let service: FilmsService
+  let filmRepository: Repository<Film>
+  let peopleRepository: Repository<People>
+  let planetRepository: Repository<Planet>
+  let speciesRepository: Repository<Species>
+  let starshipRepository: Repository<Starship>
+  let vehicleRepository: Repository<Vehicle>
 
+  /**
+   * Setup for each test in the suite.
+   * This block is executed before each test and is used to set up the testing module and inject dependencies.
+   */
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [FilmsService],
-    }).compile();
+      providers: [
+        FilmsService,
+        {
+          provide: getRepositoryToken(Film),
+          useValue: {
+            findAndCount: jest.fn().mockResolvedValue([[], 0]),
+            findOne: jest.fn(),
+            save: jest.fn(),
+            remove: jest.fn(),
+            query: jest.fn().mockResolvedValue([{ maxId: 0 }]),
+          },
+        },
+        {
+          provide: getRepositoryToken(People),
+          useValue: {
+            findOne: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(Planet),
+          useValue: {
+            findOne: jest.fn().mockResolvedValue({ url: 'planet1' } as Planet),
+          },
+        },
+        {
+          provide: getRepositoryToken(Species),
+          useValue: {
+            findOne: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(Starship),
+          useValue: {
+            findOne: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(Vehicle),
+          useValue: {
+            findOne: jest.fn(),
+          },
+        },
+      ],
+    }).compile()
 
-    service = module.get<FilmsService>(FilmsService);
-  });
+    service = module.get<FilmsService>(FilmsService)
+    filmRepository = module.get<Repository<Film>>(getRepositoryToken(Film))
+    peopleRepository = module.get<Repository<People>>(
+      getRepositoryToken(People),
+    )
+    planetRepository = module.get<Repository<Planet>>(
+      getRepositoryToken(Planet),
+    )
+    speciesRepository = module.get<Repository<Species>>(
+      getRepositoryToken(Species),
+    )
+    starshipRepository = module.get<Repository<Starship>>(
+      getRepositoryToken(Starship),
+    )
+    vehicleRepository = module.get<Repository<Vehicle>>(
+      getRepositoryToken(Vehicle),
+    )
 
+    // Mock implementation for paginate function
+    jest
+      .spyOn(filmRepository, 'findAndCount')
+      .mockImplementation(async () => [[], 0]),
+      // Define the repositories property in the service
+      ((service as any).repositories = {
+        characters: peopleRepository,
+        planets: planetRepository,
+        starships: starshipRepository,
+        species: speciesRepository,
+        vehicles: vehicleRepository,
+      })
+  })
+
+  /**
+   * Test to ensure the FilmsService is defined.
+   */
   it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
+    expect(service).toBeDefined()
+  })
+
+  const film = { id: 1, title: 'A New Hope' } as Film
+  const createFilmDto: CreateFilmDto = {
+    title: 'New Film for test',
+    characters: ['people1'],
+    episode_id: 1,
+    opening_crawl: 'Text for test...',
+    director: 'Text for test...',
+    producer: 'Text for test...',
+    release_date: undefined,
+    species: ['species1'],
+    starships: ['starship1'],
+    vehicles: ['vehicle1'],
+    planets: ['planet1'],
+  }
+  const updateFilmDto: UpdateFilmDto = {
+    title: 'A New Hope Updated',
+  }
+  const updatedFilm = { id: 1, ...updateFilmDto } as unknown as Film
+
+  /**
+   * Test suite for the `create` method of FilmsService.
+   */
+  describe('create', () => {
+    /**
+     * Test to verify that a new film can be created successfully.
+     */
+    it('should create a new person', async () => {
+      const result = {
+        id: 1,
+        created: '2014-12-09T13:50:51.644Z',
+        edited: '2014-12-20T21:17:56.891Z',
+        ...createFilmDto,
+      } as unknown as Film
+
+      jest.spyOn(filmRepository, 'findOne').mockResolvedValue(null)
+      jest.spyOn(filmRepository, 'save').mockResolvedValue(result)
+
+      expect(await service.create(createFilmDto)).toEqual(result)
+    })
+
+    /**
+     * Test to verify that creating a film with an existing name returns null.
+     */
+    it('should return null if a film with the same name already exists', async () => {
+      const existingFilm = { id: 1, ...createFilmDto } as unknown as Film
+
+      jest.spyOn(filmRepository, 'findOne').mockResolvedValue(existingFilm)
+
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {})
+
+      expect(await service.create(createFilmDto)).toBeNull()
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        `Сущность ${createFilmDto.title} уже существует!`,
+      )
+
+      consoleErrorSpy.mockRestore()
+    })
+
+    /**
+     * Test to verify that errors in the repository's `save` method are handled properly.
+     */
+    it('should handle repository errors on create', async () => {
+      jest.spyOn(filmRepository, 'findOne').mockResolvedValue(null)
+      jest
+        .spyOn(filmRepository, 'save')
+        .mockRejectedValue(new Error('Repository error'))
+
+      await expect(service.create(createFilmDto)).rejects.toThrow(
+        'Repository error',
+      )
+    })
+  })
+
+  /**
+   * Test suite for the `findAll` method of PeopleService.
+   */
+  describe('findAll', () => {
+    const paginationOptions: IPaginationOptions = { page: 1, limit: 10 }
+    const paginatedResult: Pagination<Film> = {
+      items: [],
+      meta: {
+        itemCount: 0,
+        totalItems: 0,
+        itemsPerPage: 10,
+        totalPages: 1,
+        currentPage: 1,
+      },
+    }
+
+    /**
+     * Test to verify that the `findAll` method returns paginated films.
+     */
+    it('should return paginated films', async () => {
+      jest.mocked(paginate).mockResolvedValue(paginatedResult)
+
+      expect(await service.findAll(paginationOptions)).toEqual(paginatedResult)
+    })
+  })
+
+  /**
+   * Test suite for the `findOne` method of FilmsService.
+   */
+  describe('findOne', () => {
+    /**
+     * Test to verify that the `findOne` method returns a single film by ID.
+     */
+    it('should return a single film by ID', async () => {
+      jest.spyOn(filmRepository, 'findOne').mockResolvedValue(film)
+
+      expect(await service.findOne(1)).toEqual(film)
+    })
+
+    /**
+     * Test to verify that errors in the repository's `findOne` method are handled properly.
+     */
+    it('should handle repository errors on findOne', async () => {
+      jest
+        .spyOn(filmRepository, 'findOne')
+        .mockRejectedValue(new Error('Repository error'))
+
+      await expect(service.findOne(1)).rejects.toThrow('Repository error')
+    })
+  })
+
+  /**
+   * Test suite for the `update` method of FilmsService.
+   */
+  describe('update', () => {
+    /**
+     * Test to verify that a film can be updated successfully.
+     */
+    it('should update a film', async () => {
+      jest.spyOn(service, 'findOne').mockResolvedValue(film)
+      jest.spyOn(filmRepository, 'save').mockResolvedValue(updatedFilm)
+
+      expect(await service.update(1, updateFilmDto)).toEqual(updatedFilm)
+    })
+
+    /**
+     * Test to verify that errors in the repository's `save` method are handled properly.
+     */
+    it('should handle repository errors on update', async () => {
+      jest.spyOn(service, 'findOne').mockResolvedValue(film)
+      jest
+        .spyOn(filmRepository, 'save')
+        .mockRejectedValue(new Error('Repository error'))
+
+      await expect(service.update(1, updateFilmDto)).rejects.toThrow(
+        'Repository error',
+      )
+    })
+  })
+
+  /**
+   * Test suite for the `remove` method of FilmsService.
+   */
+  describe('remove', () => {
+    /**
+     * Test to verify that a film can be removed successfully.
+     */
+    it('should remove a film', async () => {
+      jest.spyOn(service, 'findOne').mockResolvedValue(film)
+      jest.spyOn(filmRepository, 'remove').mockResolvedValue(film)
+
+      expect(await service.remove(1)).toEqual(film)
+    })
+
+    /**
+     * Test to verify that errors in the repository's `remove` method are handled properly.
+     */
+    it('should handle repository errors on remove', async () => {
+      jest.spyOn(service, 'findOne').mockResolvedValue(film)
+      jest
+        .spyOn(filmRepository, 'remove')
+        .mockRejectedValue(new Error('Internal server error'))
+
+      await expect(service.remove(1)).rejects.toThrow('Internal server error')
+    })
+  })
+
+  /**
+   * Test suite for the `fillRelatedEntities` method of FilmsService.
+   */
+  describe('fillRelatedEntities', () => {
+    const newFilm: Film = new Film()
+
+    /**
+     * Test to verify that related entities are filled correctly.
+     */
+    it('should fill related entities', async () => {
+      const people = { url: 'people1' } as People
+      const planet = { url: 'planet1' } as Planet
+      const species = { url: 'species1' } as Species
+      const starship = { url: 'starship1' } as Starship
+      const vehicle = { url: 'vehicle1' } as Vehicle
+
+      jest.spyOn(peopleRepository, 'findOne').mockResolvedValue(people)
+      jest.spyOn(planetRepository, 'findOne').mockResolvedValue(planet)
+      jest.spyOn(speciesRepository, 'findOne').mockResolvedValue(species)
+      jest.spyOn(starshipRepository, 'findOne').mockResolvedValue(starship)
+      jest.spyOn(vehicleRepository, 'findOne').mockResolvedValue(vehicle)
+
+      await service['fillRelatedEntities'](newFilm, createFilmDto)
+
+      expect(newFilm.characters).toContain(people)
+      expect(newFilm.planets).toContain(planet)
+      expect(newFilm.species).toContain(species)
+      expect(newFilm.starships).toContain(starship)
+      expect(newFilm.vehicles).toContain(vehicle)
+    })
+
+    /**
+     * Test to verify that errors in related entity lookups are handled properly.
+     */
+    it('should handle errors in related entity lookups', async () => {
+      jest
+        .spyOn(planetRepository, 'findOne')
+        .mockRejectedValue(new Error('Repository error'))
+
+      await expect(
+        service['fillRelatedEntities'](newFilm, createFilmDto),
+      ).rejects.toThrow('Repository error')
+    })
+  })
+})

@@ -1,20 +1,293 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { FilmsController } from './films.controller';
-import { FilmsService } from './films.service';
+import { Test, TestingModule } from '@nestjs/testing'
+import { FilmsController } from './films.controller'
+import { FilmsService } from './films.service'
+import { CreateFilmDto } from './dto/create-film.dto'
+import { UpdateFilmDto } from './dto/update-film.dto'
+import { Film } from './entities/film.entity'
+import { ForbiddenException, HttpException, HttpStatus } from '@nestjs/common'
+import { getRepositoryToken } from '@nestjs/typeorm'
+import { JwtService } from '@nestjs/jwt'
+import { People } from 'src/people/entities/people.entity'
+import { Repository } from 'typeorm'
+import { Planet } from 'src/planets/entities/planet.entity'
+import { Species } from 'src/species/entities/species.entity'
+import { Starship } from 'src/starships/entities/starship.entity'
+import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
+import { Reflector } from '@nestjs/core'
+import { Pagination } from 'nestjs-typeorm-paginate'
 
+/**
+ * Unit test suite for FylmsController.
+ * This test suite covers various scenarios for creating, finding, updating, deleting film records,
+ * and authorization checks in the FylmsController.
+ */
 describe('FilmsController', () => {
-  let controller: FilmsController;
+  let controller: FilmsController
+  let service: FilmsService
 
+  /**
+   * Setup for each test in the suite.
+   * This block is executed before each test and is used to set up the testing module and inject dependencies.
+   */
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [FilmsController],
-      providers: [FilmsService],
-    }).compile();
+      providers: [
+        FilmsService,
+        {
+          provide: getRepositoryToken(Film),
+          useClass: Repository,
+        },
+        {
+          provide: getRepositoryToken(People),
+          useClass: Repository,
+        },
+        {
+          provide: getRepositoryToken(Planet),
+          useClass: Repository,
+        },
+        {
+          provide: getRepositoryToken(Species),
+          useClass: Repository,
+        },
+        {
+          provide: getRepositoryToken(Starship),
+          useClass: Repository,
+        },
+        {
+          provide: getRepositoryToken(Vehicle),
+          useClass: Repository,
+        },
+        {
+          provide: Reflector,
+          useValue: {
+            get: jest.fn().mockReturnValue(true),
+          },
+        },
+        {
+          provide: JwtService,
+          useValue: {
+            sign: jest.fn(),
+            verify: jest.fn(),
+          },
+        },
+      ],
+    }).compile()
 
-    controller = module.get<FilmsController>(FilmsController);
-  });
+    controller = module.get<FilmsController>(FilmsController)
+    service = module.get<FilmsService>(FilmsService)
+  })
 
+  /**
+   * Test to ensure the FilmsController is defined.
+   */
   it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
-});
+    expect(controller).toBeDefined()
+  })
+
+  /**
+   * Test suite for the `create` method of FilmsController.
+   */
+  describe('create', () => {
+    const createFilmDto: CreateFilmDto = {
+      title: 'New Film for test',
+      characters: [],
+      episode_id: 1,
+      opening_crawl: 'Text for test...',
+      director: 'Text for test...',
+      producer: 'Text for test...',
+      release_date: undefined,
+      species: [],
+      starships: [],
+      vehicles: [],
+      planets: [],
+    }
+
+    /**
+     * Test to verify that a 403 error is thrown when creating a film without admin rights.
+     */
+    it('should throw 403 error when creating a film without admin rights', async () => {
+      jest.spyOn(service, 'create').mockImplementation(() => {
+        throw new ForbiddenException('Access denied')
+      })
+
+      await expect(controller.create(createFilmDto)).rejects.toThrow(
+        new ForbiddenException('Access denied'),
+      )
+    })
+
+    /**
+     * Test to verify that a new film can be created successfully.
+     */
+    it('should create a new film', async () => {
+      const result = {
+        id: 1,
+        created: '2014-12-09T13:50:51.644Z',
+        edited: '2014-12-20T21:17:56.891Z',
+        ...createFilmDto,
+      } as unknown as Film
+
+      jest.spyOn(service, 'create').mockResolvedValue(result)
+      expect(await controller.create(createFilmDto)).toEqual(result)
+    })
+
+    /**
+     * Test to verify that errors in the service's `create` method are handled properly.
+     */
+    it('should handle service errors on create', async () => {
+      jest
+        .spyOn(service, 'create')
+        .mockRejectedValueOnce(new Error('Service error'))
+      await expect(controller.create(createFilmDto)).rejects.toThrow(
+        new Error('Service error'),
+      )
+    })
+  })
+
+  /**
+   * Test suite for the `findAll` method of FilmsController.
+   */
+  describe('findAll', () => {
+    /**
+     * Test to verify that the findAll method returns paginated films.
+     */
+    it('should return a list of films', async () => {
+      const paginatedResult: Pagination<Film> = {
+        items: [],
+        meta: {
+          itemCount: 0,
+          totalItems: 0,
+          itemsPerPage: 10,
+          totalPages: 1,
+          currentPage: 1,
+        },
+      }
+
+      // Mock the service's `findAll` method
+      jest.spyOn(service, 'findAll').mockResolvedValue(paginatedResult)
+
+      expect(await controller.findAll(1, 10)).toEqual(paginatedResult)
+    })
+  })
+
+  /**
+   * Test suite for the `findOne` method of FilmsController.
+   */
+  describe('findOne', () => {
+    /**
+     * Test to verify that the `findOne` method returns a single film by ID.
+     */
+    it('should return a single film by ID', async () => {
+      const film = { id: 1, title: 'A New Hope' } as Film
+
+      // Mock the service's `findOne` method
+      jest.spyOn(service, 'findOne').mockResolvedValue(film)
+      expect(await controller.findOne(1)).toEqual(film)
+      expect(service.findOne).toHaveBeenCalledWith(1)
+    })
+
+    /**
+     * Test to verify that errors in the service's `findOne` method are handled properly.
+     */
+    it('should handle service errors on findOne', async () => {
+      jest
+        .spyOn(service, 'findOne')
+        .mockRejectedValue(new Error('Service error'))
+
+      await expect(controller.findOne(1)).rejects.toThrow(
+        new Error('Service error'),
+      )
+    })
+  })
+
+  /**
+   * Test suite for the `update` method of FilmsController.
+   */
+  describe('update', () => {
+    const updatedFilmDto: UpdateFilmDto = {
+      title: 'A New Hope Updated',
+    }
+
+    /**
+     * Test to verify that a 403 error is thrown when updating a film without admin rights.
+     */
+    it('should throw 403 error when updating a film without admin rights', async () => {
+      jest.spyOn(service, 'update').mockImplementation(() => {
+        throw new ForbiddenException('Access denied')
+      })
+
+      await expect(controller.update(1, updatedFilmDto)).rejects.toThrow(
+        new ForbiddenException('Access denied'),
+      )
+    })
+
+    /**
+     * Test to verify that a film can be updated successfully.
+     */
+    it('should update a film', async () => {
+      const result = { id: 1, title: 'Updated Film' } as Film
+      // Mock the service's update method
+      jest.spyOn(service, 'update').mockResolvedValue(result)
+
+      expect(await controller.update(1, updatedFilmDto)).toEqual(result)
+    })
+
+    /**
+     * Test to verify that errors in the service's `update` method are handled properly.
+     */
+    it('should handle service errors on update', async () => {
+      jest
+        .spyOn(service, 'update')
+        .mockRejectedValueOnce(
+          new HttpException('Error', HttpStatus.INTERNAL_SERVER_ERROR),
+        )
+
+      await expect(controller.update(1, updatedFilmDto)).rejects.toThrow(
+        HttpException,
+      )
+    })
+  })
+
+  /**
+   * Test suite for the `remove` method of FilmsController.
+   */
+  describe('remove', () => {
+    /**
+     * Test to verify that a 403 error is thrown when removing a film without admin rights.
+     */
+    it('should throw 403 error when removing a film without admin rights', async () => {
+      jest.spyOn(service, 'remove').mockImplementation(() => {
+        throw new ForbiddenException('Access denied')
+      })
+
+      await expect(controller.remove(1)).rejects.toThrow(
+        new ForbiddenException('Access denied'),
+      )
+    })
+
+    /**
+     * Test to verify that a film can be removed successfully.
+     */
+    it('should remove a film', async () => {
+      jest.spyOn(service, 'remove').mockResolvedValue(null)
+
+      await controller.remove(1)
+
+      expect(service.remove).toHaveBeenCalledWith(1)
+    })
+
+    /**
+     * Test to verify that errors in the service's `remove` method are handled properly.
+     */
+    it('should throw an error when removal fails', async () => {
+      jest
+        .spyOn(service, 'remove')
+        .mockRejectedValueOnce(
+          new HttpException('Error', HttpStatus.INTERNAL_SERVER_ERROR),
+        )
+      await expect(controller.remove(1)).rejects.toThrow(HttpException)
+    })
+  })
+})
+
+// npm run test -- films.controller.spec.ts

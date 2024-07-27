@@ -3,15 +3,31 @@ import { getRepositoryToken } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { PeopleService } from './people.service'
 import { People } from './entities/people.entity'
-import { CreatePeopleDto } from './dto/create-people.dto'
-import { UpdatePeopleDto } from './dto/update-people.dto'
 import { Film } from 'src/films/entities/film.entity'
 import { Planet } from 'src/planets/entities/planet.entity'
 import { Species } from 'src/species/entities/species.entity'
 import { Starship } from 'src/starships/entities/starship.entity'
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
-import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate'
+import { paginate } from 'nestjs-typeorm-paginate'
+import {
+  createPeopleDto,
+  paginatedResult,
+  paginationOptions,
+  person,
+  updatedPerson,
+  updatePeopleDto,
+} from './test-constants'
 
+/**
+ * Mocking the `nestjs-typeorm-paginate` module
+ *
+ * This line uses Jest to mock the `nestjs-typeorm-paginate` module. 
+ * By mocking this module, we can control its behavior during tests, 
+ * allowing us to isolate the functionality being tested and avoid 
+ * dependencies on the actual implementation of the module. 
+ * This is useful for unit testing, where we want to focus on testing 
+ * the logic of our code without being affected by external modules or services.
+ */
 jest.mock('nestjs-typeorm-paginate')
 
 /**
@@ -100,7 +116,6 @@ describe('PeopleService', () => {
     jest
       .spyOn(peopleRepository, 'findAndCount')
       .mockImplementation(async () => [[], 0]),
-
       // Define the repositories property in the service
       ((service as any).repositories = {
         homeworld: planetRepository,
@@ -122,22 +137,6 @@ describe('PeopleService', () => {
    * Test suite for the `create` method of PeopleService.
    */
   describe('create', () => {
-    const createPeopleDto: CreatePeopleDto = {
-      name: 'Luke Skywalker',
-      height: '172',
-      mass: '77',
-      hair_color: 'blond',
-      skin_color: 'fair',
-      eye_color: 'blue',
-      birth_year: '19BBY',
-      gender: 'male',
-      homeworld: 1,
-      films: [],
-      species: [],
-      vehicles: [],
-      starships: [],
-    }
-
     /**
      * Test to verify that a new person can be created successfully.
      */
@@ -194,18 +193,6 @@ describe('PeopleService', () => {
    * Test suite for the `findAll` method of PeopleService.
    */
   describe('findAll', () => {
-    const paginationOptions: IPaginationOptions = { page: 1, limit: 10 }
-    const paginatedResult: Pagination<People> = {
-      items: [],
-      meta: {
-        itemCount: 0,
-        totalItems: 0,
-        itemsPerPage: 10,
-        totalPages: 1,
-        currentPage: 1,
-      },
-    }
-
     /**
      * Test to verify that the `findAll` method returns paginated people.
      */
@@ -224,8 +211,6 @@ describe('PeopleService', () => {
      * Test to verify that the `findOne` method returns a single person by ID.
      */
     it('should return a single person by ID', async () => {
-      const person = { id: 1, name: 'Luke Skywalker' } as People
-
       jest.spyOn(peopleRepository, 'findOne').mockResolvedValue(person)
 
       expect(await service.findOne(1)).toEqual(person)
@@ -247,17 +232,10 @@ describe('PeopleService', () => {
    * Test suite for the `update` method of PeopleService.
    */
   describe('update', () => {
-    const updatePeopleDto: UpdatePeopleDto = {
-      name: 'Luke Skywalker Updated',
-    }
-
     /**
      * Test to verify that a person can be updated successfully.
      */
     it('should update a person', async () => {
-      const person = { id: 1, name: 'Luke Skywalker' } as People
-      const updatedPerson = { id: 1, ...updatePeopleDto } as unknown as People
-
       jest.spyOn(service, 'findOne').mockResolvedValue(person)
       jest.spyOn(peopleRepository, 'save').mockResolvedValue(updatedPerson)
 
@@ -268,8 +246,6 @@ describe('PeopleService', () => {
      * Test to verify that errors in the repository's `save` method are handled properly.
      */
     it('should handle repository errors on update', async () => {
-      const person = { id: 1, name: 'Luke Skywalker' } as People
-
       jest.spyOn(service, 'findOne').mockResolvedValue(person)
       jest
         .spyOn(peopleRepository, 'save')
@@ -285,12 +261,10 @@ describe('PeopleService', () => {
    * Test suite for the `remove` method of PeopleService.
    */
   describe('remove', () => {
-    const person = { id: 1, name: 'Luke Skywalker' } as People
     /**
      * Test to verify that a person can be removed successfully.
      */
     it('should remove a person', async () => {
-
       jest.spyOn(service, 'findOne').mockResolvedValue(person)
       jest.spyOn(peopleRepository, 'remove').mockResolvedValue(person)
 
@@ -301,7 +275,6 @@ describe('PeopleService', () => {
      * Test to verify that errors in the repository's `remove` method are handled properly.
      */
     it('should handle repository errors on remove', async () => {
-
       jest.spyOn(service, 'findOne').mockResolvedValue(person)
       jest
         .spyOn(peopleRepository, 'remove')
@@ -315,22 +288,6 @@ describe('PeopleService', () => {
    * Test suite for the `fillRelatedEntities` method of PeopleService.
    */
   describe('fillRelatedEntities', () => {
-    const createPeopleDto: CreatePeopleDto = {
-      name: 'Luke Skywalker',
-      height: '172',
-      mass: '77',
-      hair_color: 'blond',
-      skin_color: 'fair',
-      eye_color: 'blue',
-      birth_year: '19BBY',
-      gender: 'male',
-      homeworld: 1,
-      films: ['film1'],
-      species: ['species1'],
-      vehicles: ['vehicle1'],
-      starships: ['starship1'],
-    }
-
     const newPeople: People = new People()
 
     /**

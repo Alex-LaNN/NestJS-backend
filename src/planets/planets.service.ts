@@ -203,9 +203,10 @@ export class PlanetsService {
           if (newPlanetDto[key]) {
             newPlanet[key] = await Promise.all(
               newPlanetDto[key].map(async (elem: string) => {
-                return await this.repositories[key].findOne({
+                const entity = await this.repositories[key].findOne({
                   where: { url: elem },
                 })
+                return entity
               }),
             )
           }

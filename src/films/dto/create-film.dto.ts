@@ -10,6 +10,13 @@ import { IsArray, IsISO8601, IsNumber, IsOptional, IsString } from 'class-valida
  * Additionally, it uses decorators from `@nestjs/swagger` to provide API documentation.
  */
 export class CreateFilmDto {
+  /**
+   * title: The title of the film (string)
+   *
+   * This property represents the title of the film. It is decorated with:
+   *  - `@ApiProperty` to provide a description in Swagger documentation.
+   *  - `@IsString` to validate that the property value is a string.
+   */
   @ApiProperty({ description: 'The title of this film.' })
   @IsString()
   title: string

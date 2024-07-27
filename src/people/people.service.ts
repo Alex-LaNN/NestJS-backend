@@ -30,19 +30,16 @@ export class PeopleService {
   constructor(
     @InjectRepository(People)
     private readonly peopleRepository: Repository<People>,
-    // Injections for related entity repositories
     @InjectRepository(Film)
+    private readonly filmsRepository: Repository<Film>,
     @InjectRepository(Starship)
+    private readonly starshipsRepository: Repository<Starship>,
     @InjectRepository(Planet)
+    private readonly homeworldRepository: Repository<Planet>,
     @InjectRepository(Species)
+    private readonly speciesRepository: Repository<Species>,
     @InjectRepository(Vehicle)
-    private readonly repositories: {
-      films: Repository<Film>
-      starships: Repository<Starship>
-      homeworld: Repository<Planet>
-      species: Repository<Species>
-      vehicles: Repository<Vehicle>
-    },
+    private readonly vehiclesRepository: Repository<Vehicle>,
   ) {
     this.relatedEntities = relatedEntitiesMap.people.relatedEntities
   }
@@ -191,14 +188,15 @@ export class PeopleService {
       this.relatedEntities.map(async (key) => {
         if (key === 'homeworld' && newPersonDto.homeworld) {
           const urlToSearch: string = `${localUrl}planets/${newPersonDto.homeworld}/`
-          const planet: Planet = await this.repositories.homeworld.findOne({
+          const planet: Planet = await this.homeworldRepository.findOne({
             where: { url: urlToSearch },
           })
           newPeople.homeworld = planet
         } else if (newPersonDto[key]) {
           newPeople[key] = await Promise.all(
             newPersonDto[key].map(async (elem: string) => {
-              const entity = await this.repositories[key].findOne({
+              const repository = this.getRepositoryForKey(key)
+              const entity = await repository.findOne({
                 where: { url: elem },
               })
               return entity
@@ -207,5 +205,34 @@ export class PeopleService {
         }
       }),
     )
+  }
+
+  /**
+   * Retrieves the appropriate repository based on the given key.
+   *
+   * This private helper method returns the correct TypeORM repository
+   * based on the provided key. The key is expected to be one of the
+   * related entity types (e.g., 'films', 'starships', 'species', 'vehicles',
+   * 'homeworld'). If the key does not match any of these, an error is thrown.
+   *
+   * @param key The key representing the type of related entity
+   * @returns The corresponding TypeORM repository for the given key
+   * @throws Error if no repository is found for the given key
+   */
+  private getRepositoryForKey(key: string): Repository<any> {
+    switch (key) {
+      case 'films':
+        return this.filmsRepository
+      case 'starships':
+        return this.starshipsRepository
+      case 'species':
+        return this.speciesRepository
+      case 'vehicles':
+        return this.vehiclesRepository
+      case 'homeworld':
+        return this.homeworldRepository
+      default:
+        throw new Error(`No repository found for key: ${key}`)
+    }
   }
 }

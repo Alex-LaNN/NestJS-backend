@@ -208,9 +208,10 @@ export class VehiclesService {
             // Fetch related entities and assign them to the 'entity' object
             entity[key] = await Promise.all(
               newVehicleDto[key].map(async (elem: string) => {
-                return await this.repositories[key].findOne({
+                const entity = await this.repositories[key].findOne({
                   where: { url: elem },
                 })
+                return entity
               }),
             )
           }

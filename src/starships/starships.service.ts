@@ -213,9 +213,10 @@ export class StarshipsService {
           if (newStarshipDto[key]) {
             starship[key] = await Promise.all(
               newStarshipDto[key].map(async (elem: string) => {
-                return await this.repositories[key].findOne({
+                const entity = await this.repositories[key].findOne({
                   where: { url: elem },
                 })
+                return entity
               }),
             )
           }

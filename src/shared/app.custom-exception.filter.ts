@@ -79,9 +79,10 @@ export class CustomExceptionFilter implements ExceptionFilter {
       this.logger.error(
         `HttpException: ${exception.getResponse()}`,
         exception.stack,
+        errorResponse,
       )
     } else {
-      this.logger.error(`Exception: ${exception.message}`, exception.stack)
+      this.logger.error(`Exception: ${exception.message}`, exception.stack, errorResponse)
     }
 
     // Send the error response to the client
