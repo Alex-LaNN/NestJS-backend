@@ -8,13 +8,14 @@ import { ForbiddenException, HttpException, HttpStatus } from '@nestjs/common'
 import { getRepositoryToken } from '@nestjs/typeorm'
 import { JwtService } from '@nestjs/jwt'
 import { People } from 'src/people/entities/people.entity'
-import { Repository } from 'typeorm'
+import { DataSource, Repository } from 'typeorm'
 import { Planet } from 'src/planets/entities/planet.entity'
 import { Species } from 'src/species/entities/species.entity'
 import { Starship } from 'src/starships/entities/starship.entity'
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
 import { Reflector } from '@nestjs/core'
 import { Pagination } from 'nestjs-typeorm-paginate'
+import { createFilmDto, film, paginatedResult, updatedFilm, updatedFilmDto } from './test-constants'
 
 /**
  * Unit test suite for FylmsController.
@@ -24,6 +25,7 @@ import { Pagination } from 'nestjs-typeorm-paginate'
 describe('FilmsController', () => {
   let controller: FilmsController
   let service: FilmsService
+  let dataSource: DataSource
 
   /**
    * Setup for each test in the suite.
@@ -65,6 +67,12 @@ describe('FilmsController', () => {
           },
         },
         {
+          provide: DataSource,
+          useValue: {
+            createEntityManager: jest.fn(),
+          },
+        },
+        {
           provide: JwtService,
           useValue: {
             sign: jest.fn(),
@@ -76,6 +84,7 @@ describe('FilmsController', () => {
 
     controller = module.get<FilmsController>(FilmsController)
     service = module.get<FilmsService>(FilmsService)
+    dataSource = module.get<DataSource>(DataSource)
   })
 
   /**
@@ -89,20 +98,6 @@ describe('FilmsController', () => {
    * Test suite for the `create` method of FilmsController.
    */
   describe('create', () => {
-    const createFilmDto: CreateFilmDto = {
-      title: 'New Film for test',
-      characters: [],
-      episode_id: 1,
-      opening_crawl: 'Text for test...',
-      director: 'Text for test...',
-      producer: 'Text for test...',
-      release_date: undefined,
-      species: [],
-      starships: [],
-      vehicles: [],
-      planets: [],
-    }
-
     /**
      * Test to verify that a 403 error is thrown when creating a film without admin rights.
      */
@@ -152,17 +147,6 @@ describe('FilmsController', () => {
      * Test to verify that the findAll method returns paginated films.
      */
     it('should return a list of films', async () => {
-      const paginatedResult: Pagination<Film> = {
-        items: [],
-        meta: {
-          itemCount: 0,
-          totalItems: 0,
-          itemsPerPage: 10,
-          totalPages: 1,
-          currentPage: 1,
-        },
-      }
-
       // Mock the service's `findAll` method
       jest.spyOn(service, 'findAll').mockResolvedValue(paginatedResult)
 
@@ -178,8 +162,6 @@ describe('FilmsController', () => {
      * Test to verify that the `findOne` method returns a single film by ID.
      */
     it('should return a single film by ID', async () => {
-      const film = { id: 1, title: 'A New Hope' } as Film
-
       // Mock the service's `findOne` method
       jest.spyOn(service, 'findOne').mockResolvedValue(film)
       expect(await controller.findOne(1)).toEqual(film)
@@ -204,10 +186,6 @@ describe('FilmsController', () => {
    * Test suite for the `update` method of FilmsController.
    */
   describe('update', () => {
-    const updatedFilmDto: UpdateFilmDto = {
-      title: 'A New Hope Updated',
-    }
-
     /**
      * Test to verify that a 403 error is thrown when updating a film without admin rights.
      */
@@ -225,11 +203,10 @@ describe('FilmsController', () => {
      * Test to verify that a film can be updated successfully.
      */
     it('should update a film', async () => {
-      const result = { id: 1, title: 'Updated Film' } as Film
       // Mock the service's update method
-      jest.spyOn(service, 'update').mockResolvedValue(result)
+      jest.spyOn(service, 'update').mockResolvedValue(updatedFilm)
 
-      expect(await controller.update(1, updatedFilmDto)).toEqual(result)
+      expect(await controller.update(1, updatedFilmDto)).toEqual(updatedFilm)
     })
 
     /**

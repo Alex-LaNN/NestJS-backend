@@ -9,7 +9,16 @@ import { Starship } from 'src/starships/entities/starship.entity'
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
 import { getRepositoryToken } from '@nestjs/typeorm'
 import { paginate } from 'nestjs-typeorm-paginate'
-import { createFilmDto, existingFilm, film, newFilm, paginatedResult, paginationOptions, updatedFilm, updateFilmDto } from './test-constants'
+import {
+  createFilmDto,
+  existingFilm,
+  film,
+  newFilm,
+  paginatedResult,
+  paginationOptions,
+  updatedFilm,
+  updatedFilmDto,
+} from './test-constants'
 
 jest.mock('nestjs-typeorm-paginate')
 
@@ -222,7 +231,7 @@ describe('FilmsService', () => {
       jest.spyOn(service, 'findOne').mockResolvedValue(film)
       jest.spyOn(filmRepository, 'save').mockResolvedValue(updatedFilm)
 
-      expect(await service.update(1, updateFilmDto)).toEqual(updatedFilm)
+      expect(await service.update(1, updatedFilmDto)).toEqual(updatedFilm)
     })
 
     /**
@@ -234,7 +243,7 @@ describe('FilmsService', () => {
         .spyOn(filmRepository, 'save')
         .mockRejectedValue(new Error('Repository error'))
 
-      await expect(service.update(1, updateFilmDto)).rejects.toThrow(
+      await expect(service.update(1, updatedFilmDto)).rejects.toThrow(
         'Repository error',
       )
     })
