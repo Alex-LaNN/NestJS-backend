@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { FilmsService } from './films.service'
-import { Repository } from 'typeorm'
+import { DataSource, Repository } from 'typeorm'
 import { Film } from './entities/film.entity'
 import { People } from 'src/people/entities/people.entity'
 import { Planet } from 'src/planets/entities/planet.entity'
@@ -8,13 +8,8 @@ import { Species } from 'src/species/entities/species.entity'
 import { Starship } from 'src/starships/entities/starship.entity'
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
 import { getRepositoryToken } from '@nestjs/typeorm'
-import { CreateFilmDto } from './dto/create-film.dto'
-import {
-  IPaginationOptions,
-  paginate,
-  Pagination,
-} from 'nestjs-typeorm-paginate'
-import { UpdateFilmDto } from './dto/update-film.dto'
+import { paginate } from 'nestjs-typeorm-paginate'
+import { createFilmDto, existingFilm, film, newFilm, paginatedResult, paginationOptions, updatedFilm, updateFilmDto } from './test-constants'
 
 jest.mock('nestjs-typeorm-paginate')
 
@@ -31,6 +26,7 @@ describe('FilmsService', () => {
   let speciesRepository: Repository<Species>
   let starshipRepository: Repository<Starship>
   let vehicleRepository: Repository<Vehicle>
+  let dataSource: DataSource
 
   /**
    * Setup for each test in the suite.
@@ -80,6 +76,12 @@ describe('FilmsService', () => {
             findOne: jest.fn(),
           },
         },
+        {
+          provide: DataSource,
+          useValue: {
+            createEntityManager: jest.fn(),
+          },
+        },
       ],
     }).compile()
 
@@ -100,6 +102,7 @@ describe('FilmsService', () => {
     vehicleRepository = module.get<Repository<Vehicle>>(
       getRepositoryToken(Vehicle),
     )
+    dataSource = module.get<DataSource>(DataSource)
 
     // Mock implementation for paginate function
     jest
@@ -122,25 +125,6 @@ describe('FilmsService', () => {
     expect(service).toBeDefined()
   })
 
-  const film = { id: 1, title: 'A New Hope' } as Film
-  const createFilmDto: CreateFilmDto = {
-    title: 'New Film for test',
-    characters: ['people1'],
-    episode_id: 1,
-    opening_crawl: 'Text for test...',
-    director: 'Text for test...',
-    producer: 'Text for test...',
-    release_date: undefined,
-    species: ['species1'],
-    starships: ['starship1'],
-    vehicles: ['vehicle1'],
-    planets: ['planet1'],
-  }
-  const updateFilmDto: UpdateFilmDto = {
-    title: 'A New Hope Updated',
-  }
-  const updatedFilm = { id: 1, ...updateFilmDto } as unknown as Film
-
   /**
    * Test suite for the `create` method of FilmsService.
    */
@@ -149,25 +133,16 @@ describe('FilmsService', () => {
      * Test to verify that a new film can be created successfully.
      */
     it('should create a new person', async () => {
-      const result = {
-        id: 1,
-        created: '2014-12-09T13:50:51.644Z',
-        edited: '2014-12-20T21:17:56.891Z',
-        ...createFilmDto,
-      } as unknown as Film
-
       jest.spyOn(filmRepository, 'findOne').mockResolvedValue(null)
-      jest.spyOn(filmRepository, 'save').mockResolvedValue(result)
+      jest.spyOn(filmRepository, 'save').mockResolvedValue(newFilm)
 
-      expect(await service.create(createFilmDto)).toEqual(result)
+      expect(await service.create(createFilmDto)).toEqual(newFilm)
     })
 
     /**
      * Test to verify that creating a film with an existing name returns null.
      */
     it('should return null if a film with the same name already exists', async () => {
-      const existingFilm = { id: 1, ...createFilmDto } as unknown as Film
-
       jest.spyOn(filmRepository, 'findOne').mockResolvedValue(existingFilm)
 
       const consoleErrorSpy = jest
@@ -201,18 +176,6 @@ describe('FilmsService', () => {
    * Test suite for the `findAll` method of PeopleService.
    */
   describe('findAll', () => {
-    const paginationOptions: IPaginationOptions = { page: 1, limit: 10 }
-    const paginatedResult: Pagination<Film> = {
-      items: [],
-      meta: {
-        itemCount: 0,
-        totalItems: 0,
-        itemsPerPage: 10,
-        totalPages: 1,
-        currentPage: 1,
-      },
-    }
-
     /**
      * Test to verify that the `findAll` method returns paginated films.
      */
@@ -341,11 +304,13 @@ describe('FilmsService', () => {
     it('should handle errors in related entity lookups', async () => {
       jest
         .spyOn(planetRepository, 'findOne')
-        .mockRejectedValue(new Error('Repository error'))
+        .mockRejectedValue(new Error('Internal server error'))
 
       await expect(
         service['fillRelatedEntities'](newFilm, createFilmDto),
-      ).rejects.toThrow('Repository error')
+      ).rejects.toThrow('Internal server error')
     })
   })
 })
+
+// npm run test -- films.service.spec.ts

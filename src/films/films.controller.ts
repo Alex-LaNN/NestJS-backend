@@ -43,7 +43,7 @@ export class FilmsController {
    * @param createFilmDto (CreateFilmDto) - Data for creating a new film
    * @returns Promise<Film> - Promise resolving to the created film object
    */
-  @UseGuards(AdminGuard)
+  //@UseGuards(AdminGuard)
   @Post('create')
   @ApiBearerAuth()
   @ApiBody({ type: CreateFilmDto })

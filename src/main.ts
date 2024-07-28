@@ -39,7 +39,7 @@ async function bootstrap() {
   // Apply global middleware
   app.useGlobalPipes(new ValidationPipe())
   app.useGlobalInterceptors(new TransformInterceptor())
-  app.useGlobalFilters(new CustomExceptionFilter())
+  //app.useGlobalFilters(new CustomExceptionFilter())
 
   // Enable CORS (Cross-Origin Resource Sharing)
   app.enableCors()

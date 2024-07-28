@@ -329,3 +329,5 @@ describe('PeopleService', () => {
     })
   })
 })
+
+// npm run test -- people.service.spec.ts

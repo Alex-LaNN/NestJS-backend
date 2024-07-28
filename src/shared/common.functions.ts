@@ -51,9 +51,8 @@ export function getResponceOfException(error: any): Error {
   if (error.status in errorMap) {
     return errorMap[error.status]
   }
-  console.error(`comfun:54 - Exception caught:`, error)
   // Handle remaining errors as InternalServerErrorException
-  return new InternalServerErrorException('Internal server error')
+  return new InternalServerErrorException('Internal server error', error)
 }
 
 /**
@@ -116,7 +115,7 @@ export async function extractIdFromUrl(
   if (match && match[1]) {
     return parseInt(match[1], 10)
   } else {
-    throw new Error(`cf:119 - Number not found. Invalid URL: ${url}`)
+    throw new Error(`comfun:127 - Number not found. Invalid URL: ${url}`)
   }
 }
 
@@ -195,7 +194,7 @@ export async function getObjectNameFromUrl(
   const urlParts: string[] = actualUrl.split('/').filter(Boolean)
   // Check if the URL parts have at least 4 elements (minimum for the expected URL format)
   if (urlParts.length < 4) {
-    throw new Error(`cf:198 - The wrong URL format: ${actualUrl}`)
+    throw new Error(`comfun:206 - The wrong URL format: ${actualUrl}`)
   }
   // Extract the object name from the third part of the URL
   const name: string = urlParts[2]

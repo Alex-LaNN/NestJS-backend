@@ -4,7 +4,7 @@ import { UpdateFilmDto } from './dto/update-film.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Film } from 'src/films/entities/film.entity'
 import { Planet } from 'src/planets/entities/planet.entity'
-import { Repository } from 'typeorm'
+import { DataSource, Repository } from 'typeorm'
 import {
   IPaginationOptions,
   Pagination,
@@ -14,8 +14,11 @@ import { People } from 'src/people/entities/people.entity'
 import { Starship } from 'src/starships/entities/starship.entity'
 import { Species } from 'src/species/entities/species.entity'
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
-import { localUrl, relatedEntitiesMap } from 'src/shared/utils'
-import { getResponceOfException } from 'src/shared/common.functions'
+import { dbName, localUrl, relatedEntitiesMap } from 'src/shared/utils'
+import {
+  extractIdFromUrl,
+  getResponceOfException,
+} from 'src/shared/common.functions'
 
 /**
  * FilmsService: Service for managing film resources
@@ -32,19 +35,17 @@ export class FilmsService {
   constructor(
     @InjectRepository(Film)
     private readonly filmsRepository: Repository<Film>,
-    // Инъекции репозиториев для связанных сущностей.
     @InjectRepository(People)
+    private readonly peopleRepository: Repository<People>,
     @InjectRepository(Starship)
+    private readonly starshipsRepository: Repository<Starship>,
     @InjectRepository(Planet)
+    private readonly planetsRepository: Repository<Planet>,
     @InjectRepository(Species)
+    private readonly speciesRepository: Repository<Species>,
     @InjectRepository(Vehicle)
-    private readonly repositories: {
-      characters: Repository<People>
-      starships: Repository<Starship>
-      planets: Repository<Planet>
-      species: Repository<Species>
-      vehicles: Repository<Vehicle>
-    },
+    private readonly vehiclesRepository: Repository<Vehicle>,
+    private readonly dataSource: DataSource,
   ) {
     this.relatedEntities = relatedEntitiesMap.films.relatedEntities
   }
@@ -81,7 +82,9 @@ export class FilmsService {
       const lastIdResult = await this.filmsRepository.query(
         'SELECT MAX(id) as maxId FROM films',
       )
+      console.log(`maxId:`, lastIdResult[0].maxId)
       newFilm.url = `${localUrl}films/${lastIdResult[0].maxId + 1}/`
+      console.log(`url:`, newFilm.url)
       // Populate film properties from DTO
       for (const key in createFilmDto) {
         newFilm[key] = this.relatedEntities.includes(key)
@@ -218,7 +221,8 @@ export class FilmsService {
           if (newFilmDto[key]) {
             newFilm[key] = await Promise.all(
               newFilmDto[key].map(async (elem: string) => {
-                const entity = await this.repositories[key].findOne({
+                const repository = this.getRepositoryByKey(key)
+                const entity = await repository.findOne({
                   where: { url: elem },
                 })
                 return entity
@@ -229,6 +233,35 @@ export class FilmsService {
       )
     } catch (error) {
       throw getResponceOfException(error)
+    }
+  }
+
+  /**
+   * Retrieves the appropriate repository based on the given key.
+   *
+   * This private helper method returns the correct TypeORM repository
+   * based on the provided key. The key is expected to be one of the
+   * related entity types (e.g., 'films', 'starships', 'species', 'vehicles',
+   * 'homeworld'). If the key does not match any of these, an error is thrown.
+   *
+   * @param key The key representing the type of related entity
+   * @returns The corresponding TypeORM repository for the given key
+   * @throws Error if no repository is found for the given key
+   */
+  private getRepositoryByKey(key: string): Repository<any> {
+    switch (key) {
+      case 'characters':
+        return this.peopleRepository
+      case 'planets':
+        return this.planetsRepository
+      case 'starships':
+        return this.starshipsRepository
+      case 'vehicles':
+        return this.vehiclesRepository
+      case 'species':
+        return this.speciesRepository
+      default:
+        throw new Error(`No repository found for key: ${key}`)
     }
   }
 }

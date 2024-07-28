@@ -331,16 +331,28 @@ export class SeedDatabase {
   }
 
   /**
-   * isDatabaseEmpty: Checks if the database contains any data
+   * isDatabaseEmpty: Checks if the database is empty
    *
-   * This method checks if any of the tables in `entityClassesForFill` contains data.
+   * This method iterates over all entity classes and checks if there are any records in their corresponding tables.
+   * If any table is missing, it considers the database empty.
    *
-   * @returns True if the database is empty, false otherwise
+   * @returns A promise that resolves to true if the database is empty, false otherwise
    */
   private async isDatabaseEmpty(): Promise<boolean> {
     try {
       for (const entityName of Object.keys(entityClassesForFill)) {
         const repository = await this.getRepository(entityName)
+
+        // Check if table exists
+        const tableName = repository.metadata.tableName
+        const tableExistsQuery = `SHOW TABLES LIKE '${tableName}'`
+        const tableExistsResult = await this.queryRunner.query(tableExistsQuery)
+        if (tableExistsResult.length === 0) {
+          // If table doesn't exist, consider the database empty
+          return true
+        }
+
+        // Count the number of records in the table
         const count = await repository.count()
         if (count > 0) {
           return false
