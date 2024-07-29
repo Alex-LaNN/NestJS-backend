@@ -14,11 +14,10 @@ import { Species } from 'src/species/entities/species.entity'
 import { Starship } from 'src/starships/entities/starship.entity'
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
 import { Reflector } from '@nestjs/core'
-import { Pagination } from 'nestjs-typeorm-paginate'
 import { createFilmDto, film, paginatedResult, updatedFilm, updatedFilmDto } from './test-constants'
 
 /**
- * Unit test suite for FylmsController.
+ * Unit test suite for FilmsController.
  * This test suite covers various scenarios for creating, finding, updating, deleting film records,
  * and authorization checks in the FylmsController.
  */

@@ -11,7 +11,7 @@ import {
   Pagination,
   paginate,
 } from 'nestjs-typeorm-paginate'
-import { relatedEntitiesMap } from 'src/shared/utils'
+import { localUrl, relatedEntitiesMap } from 'src/shared/utils'
 import { getResponceOfException } from 'src/shared/common.functions'
 
 /**
@@ -30,11 +30,9 @@ export class PlanetsService {
     private readonly planetsRepository: Repository<Planet>,
     // Injections for related entity repositories
     @InjectRepository(People)
+    private readonly peopleRepository: Repository<People>,
     @InjectRepository(Film)
-    private readonly repositories: {
-      residents: Repository<People>
-      films: Repository<Film>
-    },
+    private readonly filmsRepository: Repository<Film>,
   ) {
     this.relatedEntities = relatedEntitiesMap.planets.relatedEntities
   }
@@ -60,11 +58,17 @@ export class PlanetsService {
         where: { name: createPlanetDto.name },
       })
       if (existsPlanet) {
-        throw new HttpException('Film already exists!', HttpStatus.FORBIDDEN)
+        console.error(`Сущность ${createPlanetDto.name} уже существует!`)
+        return null
       }
 
       // Create a new Planet object
       const newPlanet: Planet = new Planet()
+      // Get the last inserted ID
+      const lastIdResult = await this.planetsRepository.query(
+        'SELECT MAX(id) as maxId FROM planets',
+      )
+      newPlanet.url = `${localUrl}planets/${lastIdResult[0].maxId + 1}/`
       // Iterate through the properties of the CreatePlanetDto and assign them to the new Planet object
       for (const key in createPlanetDto) {
         newPlanet[key] = this.relatedEntities.includes(key)
@@ -73,6 +77,7 @@ export class PlanetsService {
       }
       // Populate the related entities (residents and films)
       await this.fillRelatedEntities(newPlanet, createPlanetDto)
+      console.log(`pla.serv82: newPlanet - `, newPlanet) /////////////////////////
       // Save the new planet to the database
       return this.planetsRepository.save(newPlanet)
     } catch (error) {
@@ -141,6 +146,8 @@ export class PlanetsService {
   ): Promise<Planet> {
     try {
       const planet: Planet = await this.findOne(planetId)
+      // Return null if not found
+      if (!planet) return null
       // Update planet properties based on UpdatePlanetDto
       for (const key in updatePlanetDto) {
         if (updatePlanetDto.hasOwnProperty(key) && updatePlanetDto[key]) {
@@ -168,13 +175,9 @@ export class PlanetsService {
    * @param planetId (number) The ID of the planet to remove.
    * @throws HttpException Throws an exception if the planet is not found or an error occurs during removal.
    */
-  async remove(planetId: number): Promise<void> {
-    try {
-      const planet: Planet = await this.findOne(planetId)
-      await this.planetsRepository.remove(planet)
-    } catch (error) {
-      throw getResponceOfException(error)
-    }
+  async remove(planetId: number): Promise<Planet> {
+    const planet: Planet = await this.findOne(planetId)
+    return await this.planetsRepository.remove(planet)
   }
 
   /**
@@ -203,7 +206,8 @@ export class PlanetsService {
           if (newPlanetDto[key]) {
             newPlanet[key] = await Promise.all(
               newPlanetDto[key].map(async (elem: string) => {
-                const entity = await this.repositories[key].findOne({
+                const repository = this.getRepositoryByKey(key)
+                const entity = await repository.findOne({
                   where: { url: elem },
                 })
                 return entity
@@ -214,6 +218,29 @@ export class PlanetsService {
       )
     } catch (error) {
       throw getResponceOfException(error)
+    }
+  }
+
+  /**
+   * Retrieves the appropriate repository based on the given key.
+   *
+   * This private helper method returns the correct TypeORM repository
+   * based on the provided key. The key is expected to be one of the
+   * related entity types (e.g., 'films', 'starships', 'species', 'vehicles',
+   * 'homeworld'). If the key does not match any of these, an error is thrown.
+   *
+   * @param key The key representing the type of related entity
+   * @returns The corresponding TypeORM repository for the given key
+   * @throws Error if no repository is found for the given key
+   */
+  private getRepositoryByKey(key: string): Repository<any> {
+    switch (key) {
+      case 'residents':
+        return this.peopleRepository
+      case 'films':
+        return this.filmsRepository
+      default:
+        throw new Error(`No repository found for key: ${key}`)
     }
   }
 }

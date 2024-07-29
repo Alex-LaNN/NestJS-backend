@@ -64,10 +64,14 @@ export function getResponceOfException(error: any): Error {
  * @returns Promise<string> The hashed password.
  */
 export async function hashPassword(enteredPassword: string): Promise<string> {
-  // Generate a random salt
+  /**
+   * Generate a random salt
+   */
   const salt = bcrypt.genSaltSync(Number(process.env.SALT_ROUNDS))
 
-  // Hash the user's password
+  /**
+   * Hash the user's password
+   */
   return bcrypt.hashSync(enteredPassword, salt)
 }
 
@@ -129,7 +133,7 @@ export async function extractIdFromUrl(
  * @param objectId (number) The ID of the entity object.
  * @returns Promise<string> The generated local URL.
  */
-export async function getBaseUrlOfEntityFromId(
+export async function getBaseUrlOfEntityFromItsId(
   entityName: string,
   objectId: number,
 ): Promise<string> {
@@ -146,7 +150,7 @@ export async function getBaseUrlOfEntityFromId(
  * @param url (string) The string in which to replace URLs.
  * @returns Promise<string> The modified string with local URLs.
  */
-export async function replaceUrl(url: string): Promise<string> {
+export async function replaceUrlWithLocal(url: string): Promise<string> {
   return url.replace(swapiUrl, localUrl)
 }
 

@@ -176,7 +176,7 @@ export class CreatePlanetDto {
     description: 'An array of People URL Resources that live on this planet.',
   })
   @IsArray()
-  residents: number[]
+  residents: string[]
 
   /**
    * films: Film URLs the planet appeared in (string[])

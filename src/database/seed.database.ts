@@ -14,7 +14,7 @@ import {
   findNameAndDataOfRelationEntity,
   getObjectNameFromUrl,
   getResponceOfException,
-  replaceUrl,
+  replaceUrlWithLocal,
   setObjectField,
 } from 'src/shared/common.functions'
 import { InjectDataSource } from '@nestjs/typeorm'
@@ -166,7 +166,7 @@ export class SeedDatabase {
           throw new Error(`Object does not have a 'url' property`)
         }
         // Replace URLs with local URLs
-        object.url = await replaceUrl(object.url)
+        object.url = await replaceUrlWithLocal(object.url)
         // Extract ID from URL and assign it to the object's ID property
         object.id = (await extractIdFromUrl(object.url)) as number
         // Handle specific fields for 'people' and 'species' entities
@@ -291,11 +291,13 @@ export class SeedDatabase {
   ): Promise<string | string[]> {
     try {
       // Replace the main URL of the object with a local URL
-      object.url = await replaceUrl(object.url)
+      object.url = await replaceUrlWithLocal(object.url)
       if (Array.isArray(relationData)) {
         // Handle an array of URLs
         relationData = await Promise.all(
-          relationData.map(async (url: string) => await replaceUrl(url)),
+          relationData.map(
+            async (url: string) => await replaceUrlWithLocal(url),
+          ),
         )
       } else if (typeof relationData === 'string') {
         // Handle a single URL

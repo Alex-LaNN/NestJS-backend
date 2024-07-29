@@ -58,7 +58,7 @@ describe('FilmsService', () => {
         {
           provide: getRepositoryToken(People),
           useValue: {
-            findOne: jest.fn(),
+            findOne: jest.fn().mockResolvedValue({ url: 'people1' } as People),
           },
         },
         {
@@ -70,19 +70,23 @@ describe('FilmsService', () => {
         {
           provide: getRepositoryToken(Species),
           useValue: {
-            findOne: jest.fn(),
+            findOne: jest
+              .fn()
+              .mockResolvedValue({ url: 'species1' } as Species),
           },
         },
         {
           provide: getRepositoryToken(Starship),
           useValue: {
-            findOne: jest.fn(),
+            findOne: jest
+              .fn()
+              .mockResolvedValue({ url: 'starship1' } as Starship),
           },
         },
         {
           provide: getRepositoryToken(Vehicle),
           useValue: {
-            findOne: jest.fn(),
+            findOne: jest.fn().mockResolvedValue({ url: 'vehicle1' } as Vehicle),
           },
         },
         {
@@ -141,7 +145,7 @@ describe('FilmsService', () => {
     /**
      * Test to verify that a new film can be created successfully.
      */
-    it('should create a new person', async () => {
+    it('should create a new film', async () => {
       jest.spyOn(filmRepository, 'findOne').mockResolvedValue(null)
       jest.spyOn(filmRepository, 'save').mockResolvedValue(newFilm)
 
@@ -182,7 +186,7 @@ describe('FilmsService', () => {
   })
 
   /**
-   * Test suite for the `findAll` method of PeopleService.
+   * Test suite for the `findAll` method of FilmsService.
    */
   describe('findAll', () => {
     /**

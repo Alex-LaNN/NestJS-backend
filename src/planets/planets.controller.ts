@@ -78,6 +78,7 @@ export class PlanetsController {
     @Query('page', new DefaultValuePipe(1)) page: number,
     @Query('limit', new DefaultValuePipe(limitCount)) limit: number,
   ): Promise<Pagination<Planet>> {
+    if (limit > limitCount) limit = limitCount
     return this.planetsService.findAll({ page, limit })
   }
 
@@ -96,7 +97,7 @@ export class PlanetsController {
   @Get(':id')
   @ApiOperation({ summary: 'Get resource "planet" by its "id"' })
   async findOne(@Param('id') id: number): Promise<Planet> {
-    return this.planetsService.findOne(id)
+    return await this.planetsService.findOne(id)
   }
 
   /**
@@ -122,7 +123,7 @@ export class PlanetsController {
     @Param('id') id: number,
     @Body() updatePlanetDto: UpdatePlanetDto,
   ): Promise<Planet> {
-    return this.planetsService.update(id, updatePlanetDto)
+    return await this.planetsService.update(id, updatePlanetDto)
   }
 
   /**
@@ -141,6 +142,6 @@ export class PlanetsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete resource "planet" by its "id"' })
   async remove(@Param('id') id: number): Promise<void> {
-    return this.planetsService.remove(id)
+    await this.planetsService.remove(id)
   }
 }

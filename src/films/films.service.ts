@@ -4,7 +4,7 @@ import { UpdateFilmDto } from './dto/update-film.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Film } from 'src/films/entities/film.entity'
 import { Planet } from 'src/planets/entities/planet.entity'
-import { DataSource, Repository } from 'typeorm'
+import { Repository } from 'typeorm'
 import {
   IPaginationOptions,
   Pagination,
@@ -14,9 +14,8 @@ import { People } from 'src/people/entities/people.entity'
 import { Starship } from 'src/starships/entities/starship.entity'
 import { Species } from 'src/species/entities/species.entity'
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
-import { dbName, localUrl, relatedEntitiesMap } from 'src/shared/utils'
+import { localUrl, relatedEntitiesMap } from 'src/shared/utils'
 import {
-  extractIdFromUrl,
   getResponceOfException,
 } from 'src/shared/common.functions'
 
@@ -45,7 +44,6 @@ export class FilmsService {
     private readonly speciesRepository: Repository<Species>,
     @InjectRepository(Vehicle)
     private readonly vehiclesRepository: Repository<Vehicle>,
-    private readonly dataSource: DataSource,
   ) {
     this.relatedEntities = relatedEntitiesMap.films.relatedEntities
   }
@@ -82,9 +80,7 @@ export class FilmsService {
       const lastIdResult = await this.filmsRepository.query(
         'SELECT MAX(id) as maxId FROM films',
       )
-      console.log(`maxId:`, lastIdResult[0].maxId)
       newFilm.url = `${localUrl}films/${lastIdResult[0].maxId + 1}/`
-      console.log(`url:`, newFilm.url)
       // Populate film properties from DTO
       for (const key in createFilmDto) {
         newFilm[key] = this.relatedEntities.includes(key)
@@ -93,7 +89,7 @@ export class FilmsService {
       }
       // Fill in related entities
       await this.fillRelatedEntities(newFilm, createFilmDto)
-      console.log(`fs93: newFilm - `, newFilm)
+      console.log(`film.serv93: newFilm - `, newFilm)/////////////////////////
       // Save the new film to the database
       return this.filmsRepository.save(newFilm)
     } catch (error) {

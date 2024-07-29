@@ -65,7 +65,7 @@ describe('PeopleService', () => {
         {
           provide: getRepositoryToken(Film),
           useValue: {
-            findOne: jest.fn(),
+            findOne: jest.fn().mockResolvedValue({ url: 'film1' } as Film),
           },
         },
         {
@@ -77,19 +77,23 @@ describe('PeopleService', () => {
         {
           provide: getRepositoryToken(Species),
           useValue: {
-            findOne: jest.fn(),
+            findOne: jest
+              .fn()
+              .mockResolvedValue({ url: 'species1' } as Species),
           },
         },
         {
           provide: getRepositoryToken(Starship),
           useValue: {
-            findOne: jest.fn(),
+            findOne: jest
+              .fn()
+              .mockResolvedValue({ url: 'starship1' } as Starship),
           },
         },
         {
           provide: getRepositoryToken(Vehicle),
           useValue: {
-            findOne: jest.fn(),
+            findOne: jest.fn().mockResolvedValue({ url: 'vehicle1' } as Vehicle),
           },
         },
       ],

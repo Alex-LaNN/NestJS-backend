@@ -84,6 +84,7 @@ export class PeopleService {
     }
     // Fill related entities (films, starships, planets, species, vehicles)
     await this.fillRelatedEntities(newPeople, createPeopleDto)
+    console.log(`pe.serv.87: newPeople - `, newPeople) /////////////////////////
     //Save a new People entity to the database.
     return this.peopleRepository.save(newPeople)
   }
