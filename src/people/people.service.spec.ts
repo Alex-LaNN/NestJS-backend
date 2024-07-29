@@ -11,12 +11,14 @@ import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
 import { paginate } from 'nestjs-typeorm-paginate'
 import {
   createPeopleDto,
+  existingPerson,
+  newPeople,
   paginatedResult,
-  paginationOptions,
   person,
   updatedPerson,
   updatePeopleDto,
 } from './test-constants'
+import { paginationOptions } from 'src/shared/utils'
 
 /**
  * Mocking the `nestjs-typeorm-paginate` module
@@ -141,29 +143,22 @@ describe('PeopleService', () => {
    * Test suite for the `create` method of PeopleService.
    */
   describe('create', () => {
+    beforeEach(() => {
+      jest.spyOn(peopleRepository, 'findOne').mockResolvedValue(null)
+    })
     /**
      * Test to verify that a new person can be created successfully.
      */
     it('should create a new person', async () => {
-      const result = {
-        id: 1,
-        created: '2014-12-09T13:50:51.644Z',
-        edited: '2014-12-20T21:17:56.891Z',
-        ...createPeopleDto,
-      } as unknown as People
+      jest.spyOn(peopleRepository, 'save').mockResolvedValue(newPeople)
 
-      jest.spyOn(peopleRepository, 'findOne').mockResolvedValue(null)
-      jest.spyOn(peopleRepository, 'save').mockResolvedValue(result)
-
-      expect(await service.create(createPeopleDto)).toEqual(result)
+      expect(await service.create(createPeopleDto)).toEqual(newPeople)
     })
 
     /**
      * Test to verify that creating a person with an existing name returns null.
      */
     it('should return null if a person with the same name already exists', async () => {
-      const existingPerson = { id: 1, ...createPeopleDto } as unknown as People
-
       jest.spyOn(peopleRepository, 'findOne').mockResolvedValue(existingPerson)
 
       const consoleErrorSpy = jest
@@ -182,7 +177,6 @@ describe('PeopleService', () => {
      * Test to verify that errors in the repository's `save` method are handled properly.
      */
     it('should handle repository errors on create', async () => {
-      jest.spyOn(peopleRepository, 'findOne').mockResolvedValue(null)
       jest
         .spyOn(peopleRepository, 'save')
         .mockRejectedValue(new Error('Repository error'))
@@ -236,11 +230,13 @@ describe('PeopleService', () => {
    * Test suite for the `update` method of PeopleService.
    */
   describe('update', () => {
+    beforeEach(() => {
+      jest.spyOn(peopleRepository, 'findOne').mockResolvedValue(person)
+    })
     /**
      * Test to verify that a person can be updated successfully.
      */
     it('should update a person', async () => {
-      jest.spyOn(service, 'findOne').mockResolvedValue(person)
       jest.spyOn(peopleRepository, 'save').mockResolvedValue(updatedPerson)
 
       expect(await service.update(1, updatePeopleDto)).toEqual(updatedPerson)
@@ -250,7 +246,6 @@ describe('PeopleService', () => {
      * Test to verify that errors in the repository's `save` method are handled properly.
      */
     it('should handle repository errors on update', async () => {
-      jest.spyOn(service, 'findOne').mockResolvedValue(person)
       jest
         .spyOn(peopleRepository, 'save')
         .mockRejectedValue(new Error('Repository error'))
@@ -265,11 +260,13 @@ describe('PeopleService', () => {
    * Test suite for the `remove` method of PeopleService.
    */
   describe('remove', () => {
+    beforeEach(() => {
+      jest.spyOn(peopleRepository, 'findOne').mockResolvedValue(person)
+    })
     /**
      * Test to verify that a person can be removed successfully.
      */
     it('should remove a person', async () => {
-      jest.spyOn(service, 'findOne').mockResolvedValue(person)
       jest.spyOn(peopleRepository, 'remove').mockResolvedValue(person)
 
       expect(await service.remove(1)).toEqual(person)
@@ -279,7 +276,6 @@ describe('PeopleService', () => {
      * Test to verify that errors in the repository's `remove` method are handled properly.
      */
     it('should handle repository errors on remove', async () => {
-      jest.spyOn(service, 'findOne').mockResolvedValue(person)
       jest
         .spyOn(peopleRepository, 'remove')
         .mockRejectedValue(new Error('Repository error'))

@@ -138,7 +138,7 @@ export class SpeciesController {
   @UseGuards(AdminGuard)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete resource "species" by its "id"' })
-  async remove(@Param('id') id: number): Promise<void> {
+  async remove(@Param('id') id: number): Promise<Species> {
     return this.speciesService.remove(id)
   }
 }

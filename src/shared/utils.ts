@@ -14,6 +14,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import { User } from 'src/user/entities/user.entity'
+import { IPaginationOptions } from 'nestjs-typeorm-paginate'
 
 /**
  * Retrieves configuration from the environment variables file (.env)
@@ -24,6 +25,14 @@ import { User } from 'src/user/entities/user.entity'
  */
 const config = getConfig()
 export const { host, port, limitCount, dbName } = config
+
+/**
+ * Pagination options for querying entities
+ *
+ * This object represents pagination options such as the current page and the limit
+ * of items per page, which are used when querying entities with pagination.
+ */
+export const paginationOptions: IPaginationOptions = { page: 1, limit: 10 }
 
 /**
  * Enum for HTTP status codes

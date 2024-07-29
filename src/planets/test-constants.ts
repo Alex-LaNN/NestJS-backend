@@ -68,14 +68,6 @@ export const existingPlanet = { id: 1, ...createPlanetDto } as unknown as Planet
 export const updatedPlanet = { id: 1, ...updatedPlanetDto } as unknown as Planet
 
 /**
- * Pagination options for querying planet entities
- *
- * This object represents pagination options such as the current page and the limit
- * of items per page, which are used when querying planet entities with pagination.
- */
-export const paginationOptions: IPaginationOptions = { page: 1, limit: 10 }
-
-/**
  * Mock paginated result for planet entities
  *
  * This mock object represents a paginated result for planet entities. It contains

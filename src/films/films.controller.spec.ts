@@ -14,7 +14,7 @@ import { Species } from 'src/species/entities/species.entity'
 import { Starship } from 'src/starships/entities/starship.entity'
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
 import { Reflector } from '@nestjs/core'
-import { createFilmDto, film, paginatedResult, updatedFilm, updatedFilmDto } from './test-constants'
+import { createFilmDto, film, newFilm, paginatedResult, updatedFilm, updatedFilmDto } from './test-constants'
 
 /**
  * Unit test suite for FilmsController.
@@ -114,15 +114,8 @@ describe('FilmsController', () => {
      * Test to verify that a new film can be created successfully.
      */
     it('should create a new film', async () => {
-      const result = {
-        id: 1,
-        created: '2014-12-09T13:50:51.644Z',
-        edited: '2014-12-20T21:17:56.891Z',
-        ...createFilmDto,
-      } as unknown as Film
-
-      jest.spyOn(service, 'create').mockResolvedValue(result)
-      expect(await controller.create(createFilmDto)).toEqual(result)
+      jest.spyOn(service, 'create').mockResolvedValue(newFilm)
+      expect(await controller.create(createFilmDto)).toEqual(newFilm)
     })
 
     /**

@@ -9,12 +9,11 @@ import { PlanetsService } from './planets.service'
 import { Film } from 'src/films/entities/film.entity'
 import { Planet } from './entities/planet.entity'
 import { Reflector } from '@nestjs/core'
-import { CreatePlanetDto } from './dto/create-planet.dto'
 import { createPlanetDto, paginatedResult, planet, updatedPlanet, updatedPlanetDto } from './test-constants'
 
 /**
  * Unit test suite for PlanetsController.
- * This test suite covers various scenarios for creating, finding, updating, deleting film records,
+ * This test suite covers various scenarios for creating, finding, updating, deleting planet records,
  * and authorization checks in the PlanetsController.
  */
 describe('PlanetsController', () => {

@@ -10,15 +10,20 @@ import {
   existingPlanet,
   newPlanet,
   paginatedResult,
-  paginationOptions,
   planet,
   updatedPlanet,
   updatedPlanetDto,
 } from './test-constants'
 import { paginate } from 'nestjs-typeorm-paginate'
+import { paginationOptions } from 'src/shared/utils'
 
 jest.mock('nestjs-typeorm-paginate')
 
+/**
+ * Unit test suite for PlanetsService.
+ * This test suite covers various scenarios for creating, finding, updating, deleting planet records,
+ * and managing related entities in the PlanetsService.
+ */
 describe('PlanetsService', () => {
   let service: PlanetsService
   let planetRepository: Repository<Planet>
@@ -26,6 +31,10 @@ describe('PlanetsService', () => {
   let filmRepository: Repository<Film>
   let dataSource: DataSource
 
+  /**
+   * Setup for each test in the suite.
+   * This block is executed before each test and is used to set up the testing module and inject dependencies.
+   */
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -82,6 +91,9 @@ describe('PlanetsService', () => {
       })
   })
 
+  /**
+   * Test to ensure the PlanetsService is defined.
+   */
   it('should be defined', () => {
     expect(service).toBeDefined()
   })
@@ -90,11 +102,13 @@ describe('PlanetsService', () => {
    * Test suite for the `create` method of PlanetsService.
    */
   describe('create', () => {
+    beforeEach(() => {
+      jest.spyOn(planetRepository, 'findOne').mockResolvedValue(null)
+    })
     /**
      * Test to verify that a new planet can be created successfully.
      */
     it('should create a new planet', async () => {
-      jest.spyOn(planetRepository, 'findOne').mockResolvedValue(null)
       jest.spyOn(planetRepository, 'save').mockResolvedValue(newPlanet)
 
       expect(await service.create(createPlanetDto)).toEqual(newPlanet)
@@ -122,7 +136,6 @@ describe('PlanetsService', () => {
      * Test to verify that errors in the repository's `save` method are handled properly.
      */
     it('should handle repository errors on create', async () => {
-      jest.spyOn(planetRepository, 'findOne').mockResolvedValue(null)
       jest
         .spyOn(planetRepository, 'save')
         .mockRejectedValue(new Error('Internal server error'))
@@ -176,11 +189,13 @@ describe('PlanetsService', () => {
    * Test suite for the `update` method of PlanetsService.
    */
   describe('update', () => {
+    beforeEach(() => {
+      jest.spyOn(planetRepository, 'findOne').mockResolvedValue(planet)
+    })
     /**
      * Test to verify that a planet can be updated successfully.
      */
     it('should update a planet', async () => {
-      jest.spyOn(service, 'findOne').mockResolvedValue(planet)
       jest.spyOn(planetRepository, 'save').mockResolvedValue(updatedPlanet)
 
       expect(await service.update(1, updatedPlanetDto)).toEqual(updatedPlanet)
@@ -190,7 +205,6 @@ describe('PlanetsService', () => {
      * Test to verify that errors in the repository's `save` method are handled properly.
      */
     it('should handle repository errors on update', async () => {
-      jest.spyOn(service, 'findOne').mockResolvedValue(planet)
       jest
         .spyOn(planetRepository, 'save')
         .mockRejectedValue(new Error('Repository error'))
@@ -205,11 +219,13 @@ describe('PlanetsService', () => {
    * Test suite for the `remove` method of PlanetsService.
    */
   describe('remove', () => {
+    beforeEach(() => {
+      jest.spyOn(planetRepository, 'findOne').mockResolvedValue(planet)
+    })
     /**
      * Test to verify that a planet can be removed successfully.
      */
     it('should remove a planet', async () => {
-      jest.spyOn(service, 'findOne').mockResolvedValue(planet)
       jest.spyOn(planetRepository, 'remove').mockResolvedValue(planet)
 
       expect(await service.remove(1)).toEqual(planet)
@@ -219,7 +235,6 @@ describe('PlanetsService', () => {
      * Test to verify that errors in the repository's `remove` method are handled properly.
      */
     it('should handle repository errors on remove', async () => {
-      jest.spyOn(service, 'findOne').mockResolvedValue(planet)
       jest
         .spyOn(planetRepository, 'remove')
         .mockRejectedValue(new Error('Internal server error'))
@@ -264,3 +279,5 @@ describe('PlanetsService', () => {
     })
   })
 })
+
+// npm run test -- planets.service.spec.ts

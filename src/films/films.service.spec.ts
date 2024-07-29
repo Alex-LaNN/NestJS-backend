@@ -15,10 +15,10 @@ import {
   film,
   newFilm,
   paginatedResult,
-  paginationOptions,
   updatedFilm,
   updatedFilmDto,
 } from './test-constants'
+import { paginationOptions } from 'src/shared/utils'
 
 jest.mock('nestjs-typeorm-paginate')
 
@@ -86,7 +86,9 @@ describe('FilmsService', () => {
         {
           provide: getRepositoryToken(Vehicle),
           useValue: {
-            findOne: jest.fn().mockResolvedValue({ url: 'vehicle1' } as Vehicle),
+            findOne: jest
+              .fn()
+              .mockResolvedValue({ url: 'vehicle1' } as Vehicle),
           },
         },
         {
@@ -142,11 +144,13 @@ describe('FilmsService', () => {
    * Test suite for the `create` method of FilmsService.
    */
   describe('create', () => {
+    beforeEach(() => {
+      jest.spyOn(filmRepository, 'findOne').mockResolvedValue(null)
+    })
     /**
      * Test to verify that a new film can be created successfully.
      */
     it('should create a new film', async () => {
-      jest.spyOn(filmRepository, 'findOne').mockResolvedValue(null)
       jest.spyOn(filmRepository, 'save').mockResolvedValue(newFilm)
 
       expect(await service.create(createFilmDto)).toEqual(newFilm)
@@ -174,7 +178,6 @@ describe('FilmsService', () => {
      * Test to verify that errors in the repository's `save` method are handled properly.
      */
     it('should handle repository errors on create', async () => {
-      jest.spyOn(filmRepository, 'findOne').mockResolvedValue(null)
       jest
         .spyOn(filmRepository, 'save')
         .mockRejectedValue(new Error('Repository error'))
@@ -228,11 +231,13 @@ describe('FilmsService', () => {
    * Test suite for the `update` method of FilmsService.
    */
   describe('update', () => {
+    beforeEach(() => {
+      jest.spyOn(filmRepository, 'findOne').mockResolvedValue(film)
+    })
     /**
      * Test to verify that a film can be updated successfully.
      */
     it('should update a film', async () => {
-      jest.spyOn(service, 'findOne').mockResolvedValue(film)
       jest.spyOn(filmRepository, 'save').mockResolvedValue(updatedFilm)
 
       expect(await service.update(1, updatedFilmDto)).toEqual(updatedFilm)
@@ -242,7 +247,6 @@ describe('FilmsService', () => {
      * Test to verify that errors in the repository's `save` method are handled properly.
      */
     it('should handle repository errors on update', async () => {
-      jest.spyOn(service, 'findOne').mockResolvedValue(film)
       jest
         .spyOn(filmRepository, 'save')
         .mockRejectedValue(new Error('Repository error'))
@@ -257,11 +261,13 @@ describe('FilmsService', () => {
    * Test suite for the `remove` method of FilmsService.
    */
   describe('remove', () => {
+    beforeEach(() => {
+      jest.spyOn(filmRepository, 'findOne').mockResolvedValue(film)
+    })
     /**
      * Test to verify that a film can be removed successfully.
      */
     it('should remove a film', async () => {
-      jest.spyOn(service, 'findOne').mockResolvedValue(film)
       jest.spyOn(filmRepository, 'remove').mockResolvedValue(film)
 
       expect(await service.remove(1)).toEqual(film)
@@ -271,7 +277,6 @@ describe('FilmsService', () => {
      * Test to verify that errors in the repository's `remove` method are handled properly.
      */
     it('should handle repository errors on remove', async () => {
-      jest.spyOn(service, 'findOne').mockResolvedValue(film)
       jest
         .spyOn(filmRepository, 'remove')
         .mockRejectedValue(new Error('Internal server error'))

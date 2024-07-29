@@ -45,14 +45,12 @@ export class SpeciesService {
     @InjectRepository(Species)
     private readonly speciesRepository: Repository<Species>,
     // Injections of repositories for related entities.
-    @InjectRepository(People)
     @InjectRepository(Film)
+    private readonly filmsRepository: Repository<Film>,
+    @InjectRepository(People)
+    private readonly peopleRepository: Repository<People>,
     @InjectRepository(Planet)
-    private readonly repositories: {
-      residents: Repository<People>
-      films: Repository<Film>
-      homeworld: Repository<Planet>
-    },
+    private readonly planetsRepository: Repository<Planet>,
   ) {
     this.relatedEntities = relatedEntitiesMap.species.relatedEntities
   }
@@ -76,11 +74,17 @@ export class SpeciesService {
         where: { name: createSpeciesDto.name },
       })
       if (existsSpecies) {
-        throw new HttpException('Species already exists!', HttpStatus.FORBIDDEN)
+        console.error(`Сущность ${createSpeciesDto.name} уже существует!`)
+        return null
       }
 
       // Create a new Species object
       const newSpecies: Species = new Species()
+      // Get the last inserted ID
+      const lastIdResult = await this.speciesRepository.query(
+        'SELECT MAX(id) as maxId FROM species',
+      )
+      newSpecies.url = `${localUrl}species/${lastIdResult[0].maxId + 1}/`
       // Populate Species properties from createSpeciesDto
       for (const key in createSpeciesDto) {
         newSpecies[key] = this.relatedEntities.includes(key)
@@ -89,6 +93,7 @@ export class SpeciesService {
       }
       // Populate related entities
       await this.fillRelatedEntities(newSpecies, createSpeciesDto)
+      console.log(`spe.serv95: newSpecies - `, newSpecies) /////////////////////////
       // Save the new Species entity to the database
       return this.speciesRepository.save(newSpecies)
     } catch (error) {
@@ -194,13 +199,9 @@ export class SpeciesService {
    * @returns Promise<void> - Promise resolving to `void` if deletion is successful
    * @throws HttpException - Error with code HttpStatus.NOT_FOUND if the record is not found
    */
-  async remove(speciesId: number) {
-    try {
-      const species: Species = await this.findOne(speciesId)
-      await this.speciesRepository.remove(species)
-    } catch (error) {
-      throw getResponceOfException(error)
-    }
+  async remove(speciesId: number): Promise<Species> {
+    const species: Species = await this.findOne(speciesId)
+    return await this.speciesRepository.remove(species)
   }
 
   /**
@@ -231,14 +232,15 @@ export class SpeciesService {
       this.relatedEntities.map(async (key) => {
         if (key === 'homeworld' && newSpeciesDto.homeworld) {
           const urlToSearch: string = `${localUrl}planets/${newSpeciesDto.homeworld}/`
-          const planet: Planet = await this.repositories.homeworld.findOne({
+          const planet: Planet = await this.planetsRepository.findOne({
             where: { url: urlToSearch },
           })
           species.homeworld = planet
         } else if (newSpeciesDto[key]) {
           species[key] = await Promise.all(
             newSpeciesDto[key].map(async (elem: string) => {
-              const entity = await this.repositories[key].findOne({
+              const repository = this.getRepositoryByKey(key)
+              const entity = await repository.findOne({
                 where: { url: elem },
               })
               return entity
@@ -247,5 +249,28 @@ export class SpeciesService {
         }
       }),
     )
+  }
+
+  /**
+   * Retrieves the appropriate repository based on the given key.
+   *
+   * This private helper method returns the correct TypeORM repository
+   * based on the provided key. The key is expected to be one of the
+   * related entity types (e.g., 'films', 'starships', 'species', 'vehicles',
+   * 'homeworld'). If the key does not match any of these, an error is thrown.
+   *
+   * @param key The key representing the type of related entity
+   * @returns The corresponding TypeORM repository for the given key
+   * @throws Error if no repository is found for the given key
+   */
+  private getRepositoryByKey(key: string): Repository<any> {
+    switch (key) {
+      case 'people':
+        return this.peopleRepository
+      case 'films':
+        return this.filmsRepository
+      default:
+        throw new Error(`No repository found for key: ${key}`)
+    }
   }
 }

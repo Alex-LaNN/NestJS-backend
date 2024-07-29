@@ -1,4 +1,4 @@
-import { IPaginationOptions, Pagination } from 'nestjs-typeorm-paginate'
+import { Pagination } from 'nestjs-typeorm-paginate'
 import { CreateFilmDto } from './dto/create-film.dto'
 import { UpdateFilmDto } from './dto/update-film.dto'
 import { Film } from './entities/film.entity'
@@ -66,14 +66,6 @@ export const existingFilm = { id: 1, ...createFilmDto } as unknown as Film
  * This mock object represents a film entity with the updated fields.
  */
 export const updatedFilm = { id: 1, ...updatedFilmDto } as unknown as Film
-
-/**
- * Pagination options for querying film entities
- *
- * This object represents pagination options such as the current page and the limit
- * of items per page, which are used when querying film entities with pagination.
- */
-export const paginationOptions: IPaginationOptions = { page: 1, limit: 10 }
 
 /**
  * Mock paginated result for film entities

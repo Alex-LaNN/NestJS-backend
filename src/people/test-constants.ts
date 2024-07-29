@@ -1,4 +1,4 @@
-import { IPaginationOptions, Pagination } from "nestjs-typeorm-paginate"
+import { Pagination } from "nestjs-typeorm-paginate"
 import { CreatePeopleDto } from "./dto/create-people.dto"
 import { UpdatePeopleDto } from "./dto/update-people.dto"
 import { People } from "./entities/people.entity"
@@ -10,6 +10,7 @@ import { People } from "./entities/people.entity"
  * an ID and a name. It can be used for testing or mocking purposes.
  */
 export const person = { id: 1, name: 'Luke Skywalker' } as People
+
 /**
  * Data Transfer Object (DTO) for creating a new person
  *
@@ -32,6 +33,20 @@ export const createPeopleDto: CreatePeopleDto = {
   vehicles: ['vehicle1'],
   starships: ['starship1'],
 }
+
+/**
+ * A mock new person object representing a "People" entity after creation
+ *
+ * This mock object represents a person entity with additional fields like
+ * created and edited timestamps, along with the fields from createPeopleDto.
+ */
+export const newPeople = {
+  id: 1,
+  created: '2014-12-09T13:50:51.644Z',
+  edited: '2014-12-20T21:17:56.891Z',
+  ...createPeopleDto,
+} as unknown as People
+
 /**
  * Data Transfer Object (DTO) for updating an existing person
  *
@@ -41,6 +56,14 @@ export const createPeopleDto: CreatePeopleDto = {
 export const updatePeopleDto: UpdatePeopleDto = {
   name: 'Luke Skywalker Updated',
 }
+
+/**
+ * A mock existing person object representing a film entity before update
+ *
+ * This mock object represents a person entity with the fields from createPeopleDto.
+ */
+export const existingPerson = { id: 1, ...createPeopleDto } as unknown as People
+
 /**
  * Updated person object
  *
@@ -49,13 +72,7 @@ export const updatePeopleDto: UpdatePeopleDto = {
  * mocking purposes.
  */
 export const updatedPerson = { id: 1, ...updatePeopleDto } as unknown as People
-/**
- * Pagination options for retrieving a list of people
- *
- * This constant defines the pagination options, specifying the page number and the
- * number of items per page. It is used to paginate the list of "People" entities.
- */
-export const paginationOptions: IPaginationOptions = { page: 1, limit: 10 }
+
 /**
  * Paginated result for people
  *
