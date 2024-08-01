@@ -13,7 +13,7 @@ import {
   paginate,
 } from 'nestjs-typeorm-paginate'
 import { getResponceOfException } from 'src/shared/common.functions'
-import { localUrl, relatedEntitiesMap } from 'src/shared/utils'
+import { localUrl, relatedEntitiesMap } from 'src/shared/constants'
 
 /**
  * SpeciesService class
@@ -74,7 +74,7 @@ export class SpeciesService {
         where: { name: createSpeciesDto.name },
       })
       if (existsSpecies) {
-        console.error(`Сущность ${createSpeciesDto.name} уже существует!`)
+        console.error(`Species '${createSpeciesDto.name}' already exists!`)
         return null
       }
 
@@ -93,9 +93,8 @@ export class SpeciesService {
       }
       // Populate related entities
       await this.fillRelatedEntities(newSpecies, createSpeciesDto)
-      console.log(`spe.serv95: newSpecies - `, newSpecies) /////////////////////////
       // Save the new Species entity to the database
-      return this.speciesRepository.save(newSpecies)
+      return await this.speciesRepository.save(newSpecies)
     } catch (error) {
       throw getResponceOfException(error)
     }

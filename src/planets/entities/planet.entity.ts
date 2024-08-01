@@ -1,12 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { AbstractEntity } from '../../shared/abstract.entity'
-import {
-  Column,
-  Entity,
-  JoinTable,
-  ManyToMany,
-  OneToMany,
-} from 'typeorm'
+import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm'
 import { People } from '../../people/entities/people.entity'
 import { Film } from '../../films/entities/film.entity'
 import { Image } from '../../images/entities/image.entity'

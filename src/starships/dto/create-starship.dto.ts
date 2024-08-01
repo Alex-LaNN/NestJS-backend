@@ -1,6 +1,6 @@
-import { ApiHideProperty, ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Exclude } from "class-transformer";
-import { IsArray, IsOptional, IsString } from "class-validator";
+import { ApiHideProperty, ApiProperty } from '@nestjs/swagger'
+import { Exclude } from 'class-transformer'
+import { IsArray, IsOptional, IsString } from 'class-validator'
 
 /**
  * CreateStarshipDto class

@@ -63,9 +63,9 @@ export class EmailValidationService {
    * @returns boolean True if the domain seems valid based on this basic check, false otherwise.
    */
   private isValidDomain(email: string): boolean {
-    // Простая проверка существования домена.
+    // Simple check for domain existence.
     const domain = email.split('@')[1]
-    // Простая проверка на недопустимый домен.
+    // Simple check for invalid domain.
     return domain && domain !== 'example.com'
   }
 }

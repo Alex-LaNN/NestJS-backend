@@ -8,7 +8,7 @@ import {
 } from 'class-validator'
 import { EmailValidationService } from 'src/shared/email-validation'
 import { MatchValidator } from 'src/shared/password-validation'
-import { UserRoles } from 'src/shared/utils'
+import { UserRoles } from 'src/shared/constants'
 
 /**
  * RegistrationUserDto: Registration DTO for user creation

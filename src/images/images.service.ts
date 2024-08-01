@@ -19,7 +19,7 @@ import {
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3'
-import { Entity } from 'src/shared/utils'
+import { Entity } from 'src/shared/constants'
 
 /**
  * ImagesService: Manages image storage and retrieval
@@ -166,13 +166,15 @@ export class ImagesService {
       if (!image) {
         throw new NotFoundException(`Image with name '${imageName}' not found.`)
       }
-      const fileNameForDelete: string = getFileNameForDeleteImageFromAWS(image.name)
+      const fileNameForDeleteFromAWS: string = getFileNameForDeleteImageFromAWS(
+        image.name,
+      )
 
       // Delete the image from AWS S3
       await this.s3Client.send(
         new DeleteObjectCommand({
           Bucket: this.configService.getOrThrow<string>('BUCKET_NAME'),
-          Key: fileNameForDelete,
+          Key: fileNameForDeleteFromAWS,
         }),
       )
 
@@ -218,14 +220,13 @@ export class ImagesService {
 
       // Delete the images from AWS S3 (using their names)
       for (const image of imagesToDelete) {
-        const fileNameForDelete: string = getFileNameForDeleteImageFromAWS(
-          image.name,
-        )
+        const fileNameForDeleteFromAWS: string =
+          getFileNameForDeleteImageFromAWS(image.name)
 
         await this.s3Client.send(
           new DeleteObjectCommand({
             Bucket: this.configService.getOrThrow<string>('BUCKET_NAME'),
-            Key: fileNameForDelete,
+            Key: fileNameForDeleteFromAWS,
           }),
         )
       }

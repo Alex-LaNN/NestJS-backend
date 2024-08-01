@@ -34,7 +34,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     // If user is not found (validation fails), throw an UnauthorizedException
     if (!user) {
       throw new UnauthorizedException(
-        `lostr:41 - User ${userName} was not validated!...`,
+        `loc.str:37 - User ${userName} was not validated!...`,
       )
     }
     return user

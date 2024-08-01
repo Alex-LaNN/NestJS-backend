@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { Expose } from 'class-transformer'
 import { IsEmail } from 'class-validator'
-import { UserRoles } from 'src/shared/utils'
+import { UserRoles } from 'src/shared/constants'
 import { Column, Entity, Index, PrimaryGeneratedColumn, Unique } from 'typeorm'
 
 /**

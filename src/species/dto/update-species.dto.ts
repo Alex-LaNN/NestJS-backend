@@ -1,5 +1,5 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateSpeciesDto } from './create-species.dto';
+import { PartialType } from '@nestjs/swagger'
+import { CreateSpeciesDto } from './create-species.dto'
 
 /**
  * DTO (Data Transfer Object) for updating a Species entity

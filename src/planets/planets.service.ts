@@ -11,7 +11,7 @@ import {
   Pagination,
   paginate,
 } from 'nestjs-typeorm-paginate'
-import { localUrl, relatedEntitiesMap } from 'src/shared/utils'
+import { localUrl, relatedEntitiesMap } from 'src/shared/constants'
 import { getResponceOfException } from 'src/shared/common.functions'
 
 /**
@@ -58,7 +58,7 @@ export class PlanetsService {
         where: { name: createPlanetDto.name },
       })
       if (existsPlanet) {
-        console.error(`Сущность ${createPlanetDto.name} уже существует!`)
+        console.error(`Planet '${createPlanetDto.name}' already exists!`)
         return null
       }
 
@@ -77,9 +77,8 @@ export class PlanetsService {
       }
       // Populate the related entities (residents and films)
       await this.fillRelatedEntities(newPlanet, createPlanetDto)
-      console.log(`pla.serv82: newPlanet - `, newPlanet) /////////////////////////
       // Save the new planet to the database
-      return this.planetsRepository.save(newPlanet)
+      return await this.planetsRepository.save(newPlanet)
     } catch (error) {
       throw getResponceOfException(error)
     }

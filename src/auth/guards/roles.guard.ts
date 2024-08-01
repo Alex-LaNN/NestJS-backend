@@ -6,7 +6,7 @@ import {
   Injectable,
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import { UserRoles } from 'src/shared/utils'
+import { UserRoles } from 'src/shared/constants'
 import { ROLES_KEY } from '../decorators/roles.decorator'
 
 /**

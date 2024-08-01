@@ -4,9 +4,8 @@ import {
   ExecutionContext,
   UnauthorizedException,
 } from '@nestjs/common'
-import { Reflector } from '@nestjs/core'
 import { JwtService } from '@nestjs/jwt'
-import { UserRoles } from 'src/shared/utils'
+import { UserRoles } from 'src/shared/constants'
 
 /**
  * AdminGuard: Ensures user is an admin for protected routes
@@ -18,10 +17,7 @@ import { UserRoles } from 'src/shared/utils'
  */
 @Injectable()
 export class AdminGuard implements CanActivate {
-  constructor(
-    private readonly jwtService: JwtService,
-    private readonly reflector: Reflector,
-  ) {}
+  constructor(private readonly jwtService: JwtService) {}
 
   /**
    * canActivate: Verifies user role for admin access

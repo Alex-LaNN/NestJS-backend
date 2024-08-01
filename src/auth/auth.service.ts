@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt'
 import { User } from 'src/user/entities/user.entity'
 import { UserService } from 'src/user/user.service'
-import { ErrorResponce } from 'src/shared/utils'
+import { ErrorResponce } from 'src/shared/constants'
 import { RegistrationUserDto } from './dto/registration-user.dto'
 
 /**
@@ -73,7 +73,7 @@ export class AuthService {
     } else {
       // Handle user creation error
       throw new Error(
-        `aus:81 - Error creating new user: ${JSON.stringify(user)}`,
+        `auth.ser:76 - Error creating new user: ${JSON.stringify(user)}`,
       )
     }
   }

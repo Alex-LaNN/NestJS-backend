@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { IsEmail, IsString, IsUUID } from 'class-validator'
 import { LoginUserDto } from 'src/auth/dto/login-user.dto'
-import { UserRoles } from 'src/shared/utils'
+import { UserRoles } from 'src/shared/constants'
 
 /**
  * Data transfer object (DTO) for user response

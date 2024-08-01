@@ -1,7 +1,9 @@
-import { IPaginationOptions, Pagination } from 'nestjs-typeorm-paginate'
+import { Pagination } from 'nestjs-typeorm-paginate'
 import { CreatePlanetDto } from './dto/create-planet.dto'
 import { UpdatePlanetDto } from './dto/update-planet.dto'
 import { Planet } from './entities/planet.entity'
+import { People } from 'src/people/entities/people.entity'
+import { Film } from 'src/films/entities/film.entity'
 
 /**
  * A mock planet object representing a planet entity
@@ -84,3 +86,17 @@ export const paginatedResult: Pagination<Planet> = {
     currentPage: 1,
   },
 }
+
+/**
+ * A mock people object representing a people entity
+ *
+ * This mock object represents a people entity with a specific URL.
+ */
+export const people = { url: 'people1' } as People
+
+/**
+ * A mock film object representing a film entity
+ *
+ * This mock object represents a film entity with a specific URL.
+ */
+export const film = { url: 'film1' } as Film

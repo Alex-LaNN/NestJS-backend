@@ -8,7 +8,7 @@ import {
   Validate,
 } from 'class-validator'
 import { EmailValidationService } from 'src/shared/email-validation'
-import { UserRoles } from 'src/shared/utils'
+import { UserRoles } from 'src/shared/constants'
 
 /**
  * Data transfer object (DTO) for creating a new user

@@ -15,11 +15,26 @@ import {
   film,
   newFilm,
   paginatedResult,
+  people,
+  planet,
+  species,
+  starship,
   updatedFilm,
   updatedFilmDto,
+  vehicle,
 } from './test-constants'
-import { paginationOptions } from 'src/shared/utils'
+import { paginationOptions } from 'src/shared/constants'
 
+/**
+ * Mocking the `nestjs-typeorm-paginate` module
+ *
+ * This line uses Jest to mock the `nestjs-typeorm-paginate` module.
+ * By mocking this module, we can control its behavior during tests,
+ * allowing us to isolate the functionality being tested and avoid
+ * dependencies on the actual implementation of the module.
+ * This is useful for unit testing, where we want to focus on testing
+ * the logic of our code without being affected by external modules or services.
+ */
 jest.mock('nestjs-typeorm-paginate')
 
 /**
@@ -168,7 +183,7 @@ describe('FilmsService', () => {
 
       expect(await service.create(createFilmDto)).toBeNull()
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        `Сущность ${createFilmDto.title} уже существует!`,
+        `Film '${createFilmDto.title}' already exists!`,
       )
 
       consoleErrorSpy.mockRestore()
@@ -180,10 +195,10 @@ describe('FilmsService', () => {
     it('should handle repository errors on create', async () => {
       jest
         .spyOn(filmRepository, 'save')
-        .mockRejectedValue(new Error('Repository error'))
+        .mockRejectedValue(new Error('Internal server error'))
 
       await expect(service.create(createFilmDto)).rejects.toThrow(
-        'Repository error',
+        'Internal server error',
       )
     })
   })
@@ -249,10 +264,10 @@ describe('FilmsService', () => {
     it('should handle repository errors on update', async () => {
       jest
         .spyOn(filmRepository, 'save')
-        .mockRejectedValue(new Error('Repository error'))
+        .mockRejectedValue(new Error('Internal server error'))
 
       await expect(service.update(1, updatedFilmDto)).rejects.toThrow(
-        'Repository error',
+        'Internal server error',
       )
     })
   })
@@ -295,12 +310,6 @@ describe('FilmsService', () => {
      * Test to verify that related entities are filled correctly.
      */
     it('should fill related entities', async () => {
-      const people = { url: 'people1' } as People
-      const planet = { url: 'planet1' } as Planet
-      const species = { url: 'species1' } as Species
-      const starship = { url: 'starship1' } as Starship
-      const vehicle = { url: 'vehicle1' } as Vehicle
-
       jest.spyOn(peopleRepository, 'findOne').mockResolvedValue(people)
       jest.spyOn(planetRepository, 'findOne').mockResolvedValue(planet)
       jest.spyOn(speciesRepository, 'findOne').mockResolvedValue(species)

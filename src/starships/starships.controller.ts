@@ -13,10 +13,16 @@ import {
 import { StarshipsService } from './starships.service'
 import { CreateStarshipDto } from './dto/create-starship.dto'
 import { UpdateStarshipDto } from './dto/update-starship.dto'
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger'
 import { Starship } from 'src/starships/entities/starship.entity'
 import { Pagination } from 'nestjs-typeorm-paginate'
-import { limitCount } from 'src/shared/utils'
+import { limitCount } from 'src/shared/constants'
 import { AdminGuard } from 'src/auth/guards/admin.guard'
 
 /**
@@ -157,7 +163,7 @@ export class StarshipsController {
   @Delete(':id')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete resource "starship" by its "id"' })
-  async remove(@Param('id') id: number): Promise<void> {
+  async remove(@Param('id') id: number): Promise<Starship> {
     return this.starshipsService.remove(id)
   }
 }

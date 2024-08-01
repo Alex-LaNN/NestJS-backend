@@ -6,7 +6,7 @@ import {
   entityClassesForFill,
   relatedEntitiesMap,
   swapiUrl,
-} from 'src/shared/utils'
+} from 'src/shared/constants'
 import { DataSource, QueryRunner, Repository } from 'typeorm'
 import fetch from 'cross-fetch'
 import {
@@ -41,15 +41,11 @@ export class SeedDatabase {
   }
 
   /**
-   * synchronizeDatabase: Synchronizes the database and fills it with data
+   * Synchronizes the local database with the remote data source.
    *
-   * This method performs the following steps:
-   * 1. Executes database migrations (if needed)
-   * 2. Starts a transaction to encapsulate data filling operations
-   * 3. Fills the database with data for each entity in `entityClassesForFill`
-   * 4. Commits the transaction if successful
-   * 5. Rolls back the transaction if an error occurs
-   * 6. Releases the QueryRunner resource
+   * This method checks if the database is empty, runs migrations if necessary, and
+   * then fills the database with data from the remote source. If an error occurs
+   * during the process, the transaction is rolled back.
    */
   synchronizeDatabase = async () => {
     this.queryRunner = this.dataSource.createQueryRunner()
@@ -76,7 +72,10 @@ export class SeedDatabase {
     } catch (error) {
       // Roll back the transaction in case of errors
       await this.queryRunner.rollbackTransaction()
-      console.error('sd:72 - Error during database synchronization: ', error)
+      console.error(
+        'seed.dat:76 - Error during database synchronization: ',
+        error,
+      )
       throw getResponceOfException(error)
     } finally {
       // Release the QueryRunner resource to avoid memory leaks
@@ -85,19 +84,24 @@ export class SeedDatabase {
   }
 
   /**
-   * addData: Fills the database with data for a specific entity
+   * Adds data for a specific entity to the database.
    *
-   * @param entityName The name of the entity to fill data for
+   * This method fetches data from the remote source (SWAPI), processes the data,
+   * and saves it to the local database.
+   * If the entity is 'people' or 'films', it also handles related data.
+   *
+   * @param entityName The name of the entity to add data for.
    */
   private async addData<T extends BaseEntity>(
     entityName: string,
   ): Promise<void> {
     // Get the TypeORM repository for the given entity
     const entityRepository: Repository<T> =
-      await this.getRepository<T>(entityName)
-    if (!entityRepository) throw new Error(`Repository not received!!!`)
+      await this.getRepositoryForEntity<T>(entityName)
+    if (!entityRepository)
+      throw new Error(`Repository for '${entityName}' not received!!!`)
     try {
-      console.log(`sd:93 - Start fill DB an entity ${entityName}...`)
+      console.log(`seed.dat:104 - Start fill DB an entity ${entityName}...`)
       // Construct the URL for fetching data from SWAPI
       let next: string | null = `${swapiUrl}${entityName}/`
       //let next: string | null = `<span class="math-inline">\{swapiUrl\}</span>{entityName}/`
@@ -109,7 +113,7 @@ export class SeedDatabase {
         const response: Response = await fetch(next)
         if (!response.ok) {
           throw new Error(
-            `sd:105 - Failed to fetch data for '${entityName}', received: '${response.statusText}'`,
+            `seed.dat:116 - Failed to fetch data for '${entityName}', received: '${response.statusText}'`,
           )
         }
         // Parse the response into an ApiResponse object
@@ -131,21 +135,24 @@ export class SeedDatabase {
           await this.fillRelatedData(entityName, results)
         }
       } while (next)
-      console.log(`sd:127 - Entity '${entityName}' added ok...`)
+      console.log(`seed.dat:138 - Entity '${entityName}' added ok...`)
     } catch (error) {
       console.error(
-        `sd:130 - Error when filling database with entity '${entityName}': "${error.message}"!!!`,
+        `seed.dat:141 - Error when filling database with entity '${entityName}': "${error.message}"!!!`,
       )
       throw getResponceOfException(error)
     }
   }
 
   /**
-   * saveDataToDB: Saves an array of data objects to the database
+   * Saves the fetched data to the local database.
    *
-   * @param results The array of data objects to save
-   * @param entityName The name of the entity the data belongs to
-   * @param entityRepository The TypeORM repository for the entity
+   * This method processes each object in the fetched data, modifies it as necessary,
+   * and then saves it to the local database using the provided repository.
+   *
+   * @param results The array of fetched data objects.
+   * @param entityName The name of the entity being processed.
+   * @param entityRepository The repository for the entity.
    */
   private async saveDataToDB<T extends ExtendedBaseEntity>(
     results: T[],
@@ -155,7 +162,7 @@ export class SeedDatabase {
     // Check for invalid arguments
     if (!results || !entityRepository) {
       throw new Error(
-        `sd:151 - Invalid arguments: 'results' or 'entityRepository' are null or undefined.`,
+        `seed.dat:165 - Invalid arguments: 'results' or 'entityRepository' are null or undefined.`,
       )
     }
     // Process and modify each object before saving
@@ -190,10 +197,13 @@ export class SeedDatabase {
   }
 
   /**
-   * fillRelatedData: Fills related data for 'people' and 'films' entities
+   * Fills related data for an entity.
    *
-   * @param entityName The name of the entity to fill related data for
-   * @param objects The array of objects for which to fill related data
+   * This method processes related data fields for an entity, replaces URLs with local URLs,
+   * and saves the related data to the database.
+   *
+   * @param entityName The name of the entity being processed.
+   * @param objects The array of entity objects.
    */
   private async fillRelatedData<T extends ExtendedBaseEntity>(
     entityName: string,
@@ -277,12 +287,14 @@ export class SeedDatabase {
   }
 
   /**
-   * changeUrlsObject: Replaces URLs in an object with local URLs and extracts IDs
+   * Replaces URLs in an object with local URLs.
    *
-   * @param object The object containing URLs to be replaced
-   * @param relationData The URL(s) to be replaced or the extracted ID(s)
-   * @param relationName The name of the related entity field
-   * @returns The updated URL(s) or extracted ID(s)
+   * This method processes URLs in an object's related data fields and replaces them with local URLs.
+   *
+   * @param object The object containing URLs to replace.
+   * @param relationData The related data containing URLs.
+   * @param relationName The name of the related entity field.
+   * @returns The updated related data with local URLs.
    */
   private async changeUrlsObject(
     object: Record<string, any>,
@@ -306,7 +318,7 @@ export class SeedDatabase {
       }
     } catch (error) {
       console.error(
-        `sd:294 - Error replacing URL for '${relationName}': ${error.message}. URL missing!`,
+        `seed.dat:321 - Error replacing URL for '${relationName}': ${error.message}. URL missing!`,
       )
       // Set default values in case of errors (URL missing)
       object[relationName] = Array.isArray(relationData) ? [] : null
@@ -315,35 +327,40 @@ export class SeedDatabase {
   }
 
   /**
-   * getRepository: Retrieves the TypeORM repository for a given entity
+   * Retrieves the TypeORM repository for a given entity.
    *
-   * @param entityName The name of the entity
-   * @returns The TypeORM repository for the entity
+   * This method retrieves the repository for an entity from the QueryRunner's manager.
+   *
+   * @param entityName The name of the entity.
+   * @returns The repository for the entity.
    */
-  private async getRepository<T extends BaseEntity>(entityName: string) {
+  private async getRepositoryForEntity<T extends BaseEntity>(
+    entityName: string,
+  ) {
     let entityRepository: Repository<T>
     try {
       entityRepository = this.queryRunner.manager.getRepository<T>(
         entityClasses[entityName],
       )
     } catch (error) {
-      throw new Error(`sd:315 - No metadata found for '${entityName}'`)
+      throw new Error(`seed.dat:346 - No metadata found for '${entityName}'`)
     }
     return entityRepository
   }
 
   /**
-   * isDatabaseEmpty: Checks if the database is empty
+   * Checks if the database is empty.
    *
-   * This method iterates over all entity classes and checks if there are any records in their corresponding tables.
-   * If any table is missing, it considers the database empty.
+   * This method checks if the database contains any data for the entities specified
+   * in the `entityClassesForFill` configuration. It returns `true` if the database is
+   * empty, and `false` otherwise.
    *
-   * @returns A promise that resolves to true if the database is empty, false otherwise
+   * @returns A boolean indicating whether the database is empty.
    */
   private async isDatabaseEmpty(): Promise<boolean> {
     try {
       for (const entityName of Object.keys(entityClassesForFill)) {
-        const repository = await this.getRepository(entityName)
+        const repository = await this.getRepositoryForEntity(entityName)
 
         // Check if table exists
         const tableName = repository.metadata.tableName

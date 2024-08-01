@@ -14,10 +14,8 @@ import { People } from 'src/people/entities/people.entity'
 import { Starship } from 'src/starships/entities/starship.entity'
 import { Species } from 'src/species/entities/species.entity'
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
-import { localUrl, relatedEntitiesMap } from 'src/shared/utils'
-import {
-  getResponceOfException,
-} from 'src/shared/common.functions'
+import { localUrl, relatedEntitiesMap } from 'src/shared/constants'
+import { getResponceOfException } from 'src/shared/common.functions'
 
 /**
  * FilmsService: Service for managing film resources
@@ -70,7 +68,7 @@ export class FilmsService {
       })
       // Return null if duplicate title found
       if (existingFilm) {
-        console.error(`Сущность ${createFilmDto.title} уже существует!`)
+        console.error(`Film '${createFilmDto.title}' already exists!`)
         return null
       }
 
@@ -89,9 +87,8 @@ export class FilmsService {
       }
       // Fill in related entities
       await this.fillRelatedEntities(newFilm, createFilmDto)
-      console.log(`film.serv93: newFilm - `, newFilm)/////////////////////////
       // Save the new film to the database
-      return this.filmsRepository.save(newFilm)
+      return await this.filmsRepository.save(newFilm)
     } catch (error) {
       throw getResponceOfException(error)
     }
@@ -169,7 +166,7 @@ export class FilmsService {
       // Fill in related entities
       await this.fillRelatedEntities(film, updateFilmDto)
       // Save the updated film
-      return this.filmsRepository.save(film)
+      return await this.filmsRepository.save(film)
     } catch (error) {
       throw getResponceOfException(error)
     }
@@ -184,7 +181,6 @@ export class FilmsService {
    *
    * @param filmId The ID of the film to delete (number)
    * @returns No return value, void on success
-   * @throws HttpException on error
    */
   async remove(filmId: number): Promise<Film> {
     const film: Film = await this.findOne(filmId)

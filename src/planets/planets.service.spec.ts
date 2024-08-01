@@ -8,15 +8,27 @@ import { getRepositoryToken } from '@nestjs/typeorm'
 import {
   createPlanetDto,
   existingPlanet,
+  film,
   newPlanet,
   paginatedResult,
+  people,
   planet,
   updatedPlanet,
   updatedPlanetDto,
 } from './test-constants'
 import { paginate } from 'nestjs-typeorm-paginate'
-import { paginationOptions } from 'src/shared/utils'
+import { paginationOptions } from 'src/shared/constants'
 
+/**
+ * Mocking the `nestjs-typeorm-paginate` module
+ *
+ * This line uses Jest to mock the `nestjs-typeorm-paginate` module.
+ * By mocking this module, we can control its behavior during tests,
+ * allowing us to isolate the functionality being tested and avoid
+ * dependencies on the actual implementation of the module.
+ * This is useful for unit testing, where we want to focus on testing
+ * the logic of our code without being affected by external modules or services.
+ */
 jest.mock('nestjs-typeorm-paginate')
 
 /**
@@ -126,7 +138,7 @@ describe('PlanetsService', () => {
 
       expect(await service.create(createPlanetDto)).toBeNull()
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        `Сущность ${createPlanetDto.name} уже существует!`,
+        `Planet '${createPlanetDto.name}' already exists!`,
       )
 
       consoleErrorSpy.mockRestore()
@@ -253,9 +265,6 @@ describe('PlanetsService', () => {
      * Test to verify that related entities are filled correctly.
      */
     it('should fill related entities', async () => {
-      const people = { url: 'people1' } as People
-      const film = { url: 'film1' } as Film
-
       jest.spyOn(peopleRepository, 'findOne').mockResolvedValue(people)
       jest.spyOn(filmRepository, 'findOne').mockResolvedValue(film)
 

@@ -21,7 +21,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger'
 import { Pagination } from 'nestjs-typeorm-paginate'
-import { limitCount } from 'src/shared/utils'
+import { limitCount } from 'src/shared/constants'
 import { People } from './entities/people.entity'
 import { AdminGuard } from 'src/auth/guards/admin.guard'
 
@@ -30,8 +30,8 @@ import { AdminGuard } from 'src/auth/guards/admin.guard'
  *
  * This controller handles CRUD (Create, Read, Update, Delete) operations for "people" resources
  * within the application. It utilizes the `PeopleService` to interact with the database
- * and manage "people" data. 
- * Admin privileges are required for creating, updating, and deleting "people" resources 
+ * and manage "people" data.
+ * Admin privileges are required for creating, updating, and deleting "people" resources
  * via the `AdminGuard`.
  */
 @ApiTags('people')

@@ -28,8 +28,8 @@ export abstract class AbstractEntity<T> {
    * Entity creation timestamp
    *
    * This property represents the date and time the entity was created in the database.
-   * It is a `Date` type and uses the @CreateDateColumn decorator from TypeORM. 
-   * The decorator specifies a `type` of `datetime` to automatically set the creation 
+   * It is a `Date` type and uses the @CreateDateColumn decorator from TypeORM.
+   * The decorator specifies a `type` of `datetime` to automatically set the creation
    * time upon entity creation.
    */
   @CreateDateColumn({
@@ -42,8 +42,8 @@ export abstract class AbstractEntity<T> {
    * Entity update timestamp
    *
    * This property represents the date and time the entity was last updated in the database.
-   * It is a `Date` type and uses the @UpdateDateColumn decorator from TypeORM. 
-   * The decorator specifies a `type` of `datetime` to automatically update the 
+   * It is a `Date` type and uses the @UpdateDateColumn decorator from TypeORM.
+   * The decorator specifies a `type` of `datetime` to automatically update the
    * timestamp on modification.
    */
   @UpdateDateColumn({

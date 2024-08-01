@@ -14,7 +14,7 @@ import { Film } from 'src/films/entities/film.entity'
 import { Starship } from 'src/starships/entities/starship.entity'
 import { Planet } from 'src/planets/entities/planet.entity'
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
-import { localUrl, relatedEntitiesMap } from 'src/shared/utils'
+import { localUrl, relatedEntitiesMap } from 'src/shared/constants'
 
 /**
  * PeopleService: Provides CRUD operations for "people" resources
@@ -64,7 +64,7 @@ export class PeopleService {
       where: { name: createPeopleDto.name },
     })
     if (existsPeople) {
-      console.error(`Сущность ${createPeopleDto.name} уже существует!`)
+      console.error(`People '${createPeopleDto.name}' already exists!`)
       return null
     }
 
@@ -84,9 +84,8 @@ export class PeopleService {
     }
     // Fill related entities (films, starships, planets, species, vehicles)
     await this.fillRelatedEntities(newPeople, createPeopleDto)
-    console.log(`pe.serv.87: newPeople - `, newPeople) /////////////////////////
     //Save a new People entity to the database.
-    return this.peopleRepository.save(newPeople)
+    return await this.peopleRepository.save(newPeople)
   }
 
   /**

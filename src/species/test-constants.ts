@@ -2,9 +2,12 @@ import { Pagination } from 'nestjs-typeorm-paginate'
 import { CreateSpeciesDto } from './dto/create-species.dto'
 import { UpdateSpeciesDto } from './dto/update-species.dto'
 import { Species } from './entities/species.entity'
+import { Planet } from 'src/planets/entities/planet.entity'
+import { People } from 'src/people/entities/people.entity'
+import { Film } from 'src/films/entities/film.entity'
 
 /**
- * A mock film object representing a species entity
+ * A mock species object representing a species entity
  *
  * This mock object represents a species entity with a specific id and name.
  */
@@ -55,11 +58,14 @@ export const updatedSpeciesDto: UpdateSpeciesDto = {
 }
 
 /**
- * A mock existing species object representing a film entity before update
+ * A mock existing species object representing a species entity before update
  *
  * This mock object represents a species entity with the fields from createSpeciesDto.
  */
-export const existingSpecies = { id: 1, ...createSpeciesDto } as unknown as Species
+export const existingSpecies = {
+  id: 1,
+  ...createSpeciesDto,
+} as unknown as Species
 
 /**
  * A mock updated species object representing a species entity after update
@@ -88,3 +94,24 @@ export const paginatedResult: Pagination<Species> = {
     currentPage: 1,
   },
 }
+
+/**
+ * A mock planet object representing a planet entity
+ *
+ * This mock object represents a planet entity with a specific URL.
+ */
+export const planet = { url: 'planet1' } as Planet
+
+/**
+ * A mock people object representing a people entity
+ *
+ * This mock object represents a people entity with a specific URL.
+ */
+export const people = { url: 'people1' } as People
+
+/**
+ * A mock film object representing a film entity
+ *
+ * This mock object represents a film entity with a specific URL.
+ */
+export const film = { url: 'film1' } as Film

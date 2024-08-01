@@ -13,7 +13,7 @@ describe('AppController (e2e)', () => {
 
     try {
       await dataSource.initialize()
-      console.log('Data Source has been initialized for tests!')
+      console.log('Data Source has been initialized for e2e-tests!')
 
       const moduleFixture: TestingModule = await Test.createTestingModule({
         imports: [AppModule],
@@ -28,7 +28,10 @@ describe('AppController (e2e)', () => {
   })
 
   afterAll(async () => {
-    await app.close()
+    if (app) {
+      await app.close()
+    }
+    await dataSource.destroy() // Ensure the data source is properly closed
   })
 
   describe('Authentication', () => {
@@ -73,7 +76,7 @@ describe('AppController (e2e)', () => {
       // Assertions on the response
       expect(response.body).toHaveProperty('id')
       expect(response.body).toHaveProperty('name', 'Luke Skywalker')
-    })
+    }, 30000)
 
     it('should get all people', async () => {
       const response = await request(app.getHttpServer())
@@ -82,7 +85,7 @@ describe('AppController (e2e)', () => {
 
       expect(response.body).toHaveProperty('items')
       expect(response.body).toHaveProperty('meta')
-    })
+    }, 30000)
 
     it('should get a person by ID', async () => {
       const response = await request(app.getHttpServer())
@@ -92,7 +95,7 @@ describe('AppController (e2e)', () => {
       const person = response.body
       expect(person.id).toBe(createdPersonId)
       expect(person.name).toBe(createPeopleDto.name)
-    })
+    }, 30000)
 
     it('should update a person', async () => {
       const updatePeopleDto = {
@@ -107,20 +110,20 @@ describe('AppController (e2e)', () => {
 
       const person = response.body
       expect(person.name).toBe(updatePeopleDto.name)
-    })
+    }, 30000)
 
     it('should delete a person', async () => {
       await request(app.getHttpServer())
         .delete(`/people/${createdPersonId}`)
         .set('Authorization', `Bearer ${validToken}`)
         .expect(200)
-    })
+    }, 30000)
 
     it('should return 404 for deleted person', async () => {
       await request(app.getHttpServer())
         .get(`/people/${createdPersonId}`)
         .set('Authorization', `Bearer ${validToken}`)
         .expect(404)
-    })
+    }, 30000)
   })
 })

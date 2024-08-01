@@ -5,7 +5,7 @@ import {
   errorMap,
   localUrl,
   swapiUrl,
-} from './utils'
+} from './constants'
 import * as bcrypt from 'bcrypt'
 import { User } from 'src/user/entities/user.entity'
 import { ConfigService } from '@nestjs/config'
@@ -64,14 +64,10 @@ export function getResponceOfException(error: any): Error {
  * @returns Promise<string> The hashed password.
  */
 export async function hashPassword(enteredPassword: string): Promise<string> {
-  /**
-   * Generate a random salt
-   */
+  // Generate a random salt
   const salt = bcrypt.genSaltSync(Number(process.env.SALT_ROUNDS))
 
-  /**
-   * Hash the user's password
-   */
+  // Hash the user's password
   return bcrypt.hashSync(enteredPassword, salt)
 }
 
@@ -119,7 +115,7 @@ export async function extractIdFromUrl(
   if (match && match[1]) {
     return parseInt(match[1], 10)
   } else {
-    throw new Error(`comfun:127 - Number not found. Invalid URL: ${url}`)
+    throw new Error(`com.fun:122 - Number not found. Invalid URL: ${url}`)
   }
 }
 
@@ -198,7 +194,7 @@ export async function getObjectNameFromUrl(
   const urlParts: string[] = actualUrl.split('/').filter(Boolean)
   // Check if the URL parts have at least 4 elements (minimum for the expected URL format)
   if (urlParts.length < 4) {
-    throw new Error(`comfun:206 - The wrong URL format: ${actualUrl}`)
+    throw new Error(`The wrong URL format: ${actualUrl}`)
   }
   // Extract the object name from the third part of the URL
   const name: string = urlParts[2]

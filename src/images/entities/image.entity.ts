@@ -1,10 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import {
-  Column,
-  Entity,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm'
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { People } from '../../people/entities/people.entity'
 import { Film } from '../../films/entities/film.entity'
 import { Planet } from '../../planets/entities/planet.entity'

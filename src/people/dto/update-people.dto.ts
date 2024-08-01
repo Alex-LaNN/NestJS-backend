@@ -1,5 +1,5 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreatePeopleDto } from './create-people.dto';
+import { PartialType } from '@nestjs/mapped-types'
+import { CreatePeopleDto } from './create-people.dto'
 
 /**
  * UpdatePeopleDto: Data Transfer Object for updating a person

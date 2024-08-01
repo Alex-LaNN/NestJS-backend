@@ -11,8 +11,11 @@ import {
   Pagination,
   paginate,
 } from 'nestjs-typeorm-paginate'
-import { getResponceOfException } from 'src/shared/common.functions'
-import { relatedEntitiesMap } from 'src/shared/utils'
+import {
+  extractIdFromUrl,
+  getResponceOfException,
+} from 'src/shared/common.functions'
+import { localUrl, relatedEntitiesMap } from 'src/shared/constants'
 
 /**
  * StarshipsService class
@@ -37,12 +40,10 @@ export class StarshipsService {
     @InjectRepository(Starship)
     private readonly starshipsRepository: Repository<Starship>,
     // Inject repositories for related entities (pilots, films)
-    @InjectRepository(People)
     @InjectRepository(Film)
-    private readonly repositories: {
-      pilots: Repository<People>
-      films: Repository<Film>
-    },
+    private readonly filmsRepository: Repository<Film>,
+    @InjectRepository(People)
+    private readonly peopleRepository: Repository<People>,
   ) {
     this.relatedEntities = relatedEntitiesMap.starships.relatedEntities
   }
@@ -50,14 +51,13 @@ export class StarshipsService {
   /**
    * Creates a new Starship record
    *
-   * This method creates a new Starship entity in the database based on the provided data
-   * in the `createStarshipDto` parameter. It checks for existing Starship with the same
-   * name, throws an error if such a starship exists, and otherwise creates a new Starship
-   * object, populates its properties, and saves it to the database.
+   * This method creates a new Starship entity in the database based on the data
+   * provided in the `createStarshipDto` parameter. It checks if there is a Starship
+   * with the same name, returns null if such a starship exists, and otherwise
+   * creates a new Starship object, populates its properties, and saves it to the database.
    *
    * @param createStarshipDto - Data transfer object containing Starship creation data
    * @returns Promise<Starship> - Promise resolving to the created Starship entity
-   * @throws HttpException - Error with code HttpStatus.FORBIDDEN if Starship with the same name exists
    */
   async create(createStarshipDto: CreateStarshipDto) {
     try {
@@ -65,13 +65,14 @@ export class StarshipsService {
         where: { name: createStarshipDto.name },
       })
       if (existsStarship) {
-        throw new HttpException(
-          'Starship already exists!',
-          HttpStatus.FORBIDDEN,
-        )
+        console.error(`Starship '${createStarshipDto.name}' already exists!`)
+        return null
       }
 
       const newStarship: Starship = new Starship()
+      // Finding the last starship's ID
+      const nextIdForNewStarship: number = await this.getNextIdForNewStarship()
+      newStarship.url = `${localUrl}starships/${nextIdForNewStarship}/`
       // Iterate through the DTO fields and populate the 'newStarship' object
       for (const key in createStarshipDto) {
         newStarship[key] = this.relatedEntities.includes(key)
@@ -80,7 +81,7 @@ export class StarshipsService {
       }
       // Filling in related entities.
       await this.fillRelatedEntities(newStarship, createStarshipDto)
-      return this.starshipsRepository.save(newStarship)
+      return await this.starshipsRepository.save(newStarship)
     } catch (error) {
       throw getResponceOfException(error)
     }
@@ -126,6 +127,7 @@ export class StarshipsService {
         id: starshipId,
       },
     })
+    // Return the Starship entity or 'null'
     return starship
   }
 
@@ -143,9 +145,14 @@ export class StarshipsService {
    * @returns Promise<Starship> - Promise resolving to the updated Starship entity
    * @throws HttpException - Error with code HttpStatus.INTERNAL_SERVER_ERROR if an error occurs
    */
-  async update(starshipId: number, updateStarshipDto: UpdateStarshipDto) {
+  async update(
+    starshipId: number,
+    updateStarshipDto: UpdateStarshipDto,
+  ): Promise<Starship> {
     try {
       const starship: Starship = await this.findOne(starshipId)
+      // Return null if not found
+      if (!starship) return null
       // Update 'starship' properties based on data from 'updateStarshipDto'
       for (const key in updateStarshipDto) {
         if (updateStarshipDto.hasOwnProperty(key) && updateStarshipDto[key]) {
@@ -169,20 +176,14 @@ export class StarshipsService {
    * provided `starshipId` parameter. It first retrieves the Starship record using
    * `findOne`. If the record is found, it uses the `remove` method of the
    * `starshipsRepository` to delete it. It returns a `Promise` that resolves to `void`
-   * if the deletion is successful, or throws an `HttpException` with code
-   * HttpStatus.NOT_FOUND if the record is not found, or re-throws any other error.
+   * if the deletion is successful.
    *
    * @param starshipId - ID of the Starship entity to delete (number)
    * @returns Promise<void> - Promise resolving to `void` if deletion is successful
-   * @throws HttpException - Error with code HttpStatus.NOT_FOUND if the record is not found
    */
-  async remove(starshipId: number) {
-    try {
-      const starship: Starship = await this.findOne(starshipId)
-      await this.starshipsRepository.remove(starship)
-    } catch (error) {
-      throw getResponceOfException(error)
-    }
+  async remove(starshipId: number): Promise<Starship> {
+    const starship: Starship = await this.findOne(starshipId)
+    return await this.starshipsRepository.remove(starship)
   }
 
   /**
@@ -213,7 +214,8 @@ export class StarshipsService {
           if (newStarshipDto[key]) {
             starship[key] = await Promise.all(
               newStarshipDto[key].map(async (elem: string) => {
-                const entity = await this.repositories[key].findOne({
+                const repository = this.getRepositoryByKey(key)
+                const entity = await repository.findOne({
                   where: { url: elem },
                 })
                 return entity
@@ -225,5 +227,53 @@ export class StarshipsService {
     } catch (error) {
       throw getResponceOfException(error)
     }
+  }
+
+  /**
+   * Retrieves the appropriate repository based on the given key.
+   *
+   * This private helper method returns the correct TypeORM repository
+   * based on the provided key. The key is expected to be one of the
+   * related entity types (e.g., 'films', 'pilots').
+   * If the key does not match any of these, an error is thrown.
+   *
+   * @param key The key representing the type of related entity
+   * @returns The corresponding TypeORM repository for the given key
+   * @throws Error if no repository is found for the given key
+   */
+  private getRepositoryByKey(key: string): Repository<any> {
+    switch (key) {
+      case 'pilots':
+        return this.peopleRepository
+      case 'films':
+        return this.filmsRepository
+      default:
+        throw new Error(`No repository found for key: ${key}`)
+    }
+  }
+
+  /**
+   * Get the next ID for a new starship
+   *
+   * This private method retrieves the highest ID currently used by starships in the database,
+   * and returns the next ID to be used for a new starship.
+   * It queries the database for the starship with the highest ID, extracts the numeric ID from its URL,
+   * and increments it to obtain the next ID.
+   *
+   * @returns A Promise resolving to the next ID for a new starship (number)
+   */
+  private async getNextIdForNewStarship(): Promise<number> {
+    const lastStarship = await this.starshipsRepository.query(`
+      SELECT url FROM starships ORDER BY id DESC LIMIT 1
+      `)
+    // Default ID if there are no starships in the database
+    let nextId = 1
+
+    if (lastStarship.length > 0 && lastStarship[0].url) {
+      // Use the extractIdFromUrl function to get the last ID
+      const lastId = (await extractIdFromUrl(lastStarship[0].url)) as number
+      nextId = lastId + 1 // Increment the ID for the new starship
+    }
+    return nextId
   }
 }

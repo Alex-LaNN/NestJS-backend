@@ -1,8 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { FilmsController } from './films.controller'
 import { FilmsService } from './films.service'
-import { CreateFilmDto } from './dto/create-film.dto'
-import { UpdateFilmDto } from './dto/update-film.dto'
 import { Film } from './entities/film.entity'
 import { ForbiddenException, HttpException, HttpStatus } from '@nestjs/common'
 import { getRepositoryToken } from '@nestjs/typeorm'
@@ -14,7 +12,14 @@ import { Species } from 'src/species/entities/species.entity'
 import { Starship } from 'src/starships/entities/starship.entity'
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
 import { Reflector } from '@nestjs/core'
-import { createFilmDto, film, newFilm, paginatedResult, updatedFilm, updatedFilmDto } from './test-constants'
+import {
+  createFilmDto,
+  film,
+  newFilm,
+  paginatedResult,
+  updatedFilm,
+  updatedFilmDto,
+} from './test-constants'
 
 /**
  * Unit test suite for FilmsController.

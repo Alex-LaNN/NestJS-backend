@@ -12,22 +12,27 @@ import { paginate } from 'nestjs-typeorm-paginate'
 import {
   createPeopleDto,
   existingPerson,
+  film,
   newPeople,
   paginatedResult,
   person,
+  planet,
+  species,
+  starship,
   updatedPerson,
   updatePeopleDto,
+  vehicle,
 } from './test-constants'
-import { paginationOptions } from 'src/shared/utils'
+import { paginationOptions } from 'src/shared/constants'
 
 /**
  * Mocking the `nestjs-typeorm-paginate` module
  *
- * This line uses Jest to mock the `nestjs-typeorm-paginate` module. 
- * By mocking this module, we can control its behavior during tests, 
- * allowing us to isolate the functionality being tested and avoid 
- * dependencies on the actual implementation of the module. 
- * This is useful for unit testing, where we want to focus on testing 
+ * This line uses Jest to mock the `nestjs-typeorm-paginate` module.
+ * By mocking this module, we can control its behavior during tests,
+ * allowing us to isolate the functionality being tested and avoid
+ * dependencies on the actual implementation of the module.
+ * This is useful for unit testing, where we want to focus on testing
  * the logic of our code without being affected by external modules or services.
  */
 jest.mock('nestjs-typeorm-paginate')
@@ -95,7 +100,9 @@ describe('PeopleService', () => {
         {
           provide: getRepositoryToken(Vehicle),
           useValue: {
-            findOne: jest.fn().mockResolvedValue({ url: 'vehicle1' } as Vehicle),
+            findOne: jest
+              .fn()
+              .mockResolvedValue({ url: 'vehicle1' } as Vehicle),
           },
         },
       ],
@@ -167,7 +174,7 @@ describe('PeopleService', () => {
 
       expect(await service.create(createPeopleDto)).toBeNull()
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        `Сущность ${createPeopleDto.name} уже существует!`,
+        `People '${createPeopleDto.name}' already exists!`,
       )
 
       consoleErrorSpy.mockRestore()
@@ -294,12 +301,6 @@ describe('PeopleService', () => {
      * Test to verify that related entities are filled correctly.
      */
     it('should fill related entities', async () => {
-      const film = { url: 'film1' } as Film
-      const planet = { url: 'planet1' } as Planet
-      const species = { url: 'species1' } as Species
-      const starship = { url: 'starship1' } as Starship
-      const vehicle = { url: 'vehicle1' } as Vehicle
-
       jest.spyOn(planetRepository, 'findOne').mockResolvedValue(planet)
       jest.spyOn(filmRepository, 'findOne').mockResolvedValue(film)
       jest.spyOn(speciesRepository, 'findOne').mockResolvedValue(species)

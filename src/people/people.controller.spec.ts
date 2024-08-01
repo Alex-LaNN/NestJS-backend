@@ -1,9 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { PeopleController } from './people.controller'
 import { PeopleService } from './people.service'
-import { CreatePeopleDto } from './dto/create-people.dto'
-import { UpdatePeopleDto } from './dto/update-people.dto'
-import { Pagination } from 'nestjs-typeorm-paginate'
 import { People } from './entities/people.entity'
 import { ForbiddenException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
@@ -15,6 +12,14 @@ import { Planet } from 'src/planets/entities/planet.entity'
 import { Species } from 'src/species/entities/species.entity'
 import { Starship } from 'src/starships/entities/starship.entity'
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
+import {
+  createPeopleDto,
+  newPeople,
+  paginatedResult,
+  person,
+  updatedPerson,
+  updatePeopleDto,
+} from './test-constants'
 
 /**
  * Unit test suite for PeopleController.
@@ -89,22 +94,6 @@ describe('PeopleController', () => {
    * Test suite for the `create` method of PeopleController.
    */
   describe('create', () => {
-    const createPeopleDto: CreatePeopleDto = {
-      name: 'Luke Skywalker',
-      height: '172',
-      mass: '77',
-      hair_color: 'blond',
-      skin_color: 'fair',
-      eye_color: 'blue',
-      birth_year: '19BBY',
-      gender: 'male',
-      homeworld: 1,
-      films: [],
-      species: [],
-      vehicles: [],
-      starships: [],
-    }
-
     /**
      * Test to verify that a 403 error is thrown when creating a person without admin rights.
      */
@@ -122,17 +111,10 @@ describe('PeopleController', () => {
      * Test to verify that a new person can be created successfully.
      */
     it('should create a new person', async () => {
-      const result = {
-        id: 1,
-        created: '2014-12-09T13:50:51.644Z',
-        edited: '2014-12-20T21:17:56.891Z',
-        ...createPeopleDto,
-      } as unknown as People
-
       // Mock the service's `create` method
-      jest.spyOn(service, 'create').mockResolvedValue(result)
+      jest.spyOn(service, 'create').mockResolvedValue(newPeople)
 
-      expect(await controller.create(createPeopleDto)).toEqual(result)
+      expect(await controller.create(createPeopleDto)).toEqual(newPeople)
     })
 
     /**
@@ -157,17 +139,6 @@ describe('PeopleController', () => {
      * Test to verify that the findAll method returns paginated people.
      */
     it('should return paginated people', async () => {
-      const paginatedResult: Pagination<People> = {
-        items: [],
-        meta: {
-          itemCount: 0,
-          totalItems: 0,
-          itemsPerPage: 10,
-          totalPages: 1,
-          currentPage: 1,
-        },
-      }
-
       // Mock the service's `findAll` method
       jest.spyOn(service, 'findAll').mockResolvedValue(paginatedResult)
 
@@ -183,8 +154,6 @@ describe('PeopleController', () => {
      * Test to verify that the `findOne` method returns a single person by ID.
      */
     it('should return a single person by ID', async () => {
-      const person = { id: 1, name: 'Luke Skywalker' } as People
-
       // Mock the service's `findOne` method
       jest.spyOn(service, 'findOne').mockResolvedValue(person)
 
@@ -209,10 +178,6 @@ describe('PeopleController', () => {
    * Test suite for the `update` method of PeopleController.
    */
   describe('update', () => {
-    const updatePeopleDto: UpdatePeopleDto = {
-      name: 'Luke Skywalker Updated',
-    }
-
     /**
      * Test to verify that a 403 error is thrown when updating a person without admin rights.
      */
@@ -230,12 +195,10 @@ describe('PeopleController', () => {
      * Test to verify that a person can be updated successfully.
      */
     it('should update a person', async () => {
-      const result = { id: 1, name: 'Luke Skywalker Updated' } as People
-
       // Mock the service's update method
-      jest.spyOn(service, 'update').mockResolvedValue(result)
+      jest.spyOn(service, 'update').mockResolvedValue(updatedPerson)
 
-      expect(await controller.update(1, updatePeopleDto)).toEqual(result)
+      expect(await controller.update(1, updatePeopleDto)).toEqual(updatedPerson)
     })
 
     /**

@@ -17,8 +17,8 @@ import { Image } from 'src/images/entities/image.entity'
  * `ImagesController` which handles API requests for images, and the
  * `ImagesService` which takes care of business logic for images.
  * Additionally, it imports the `TypeOrmModule` to establish a database connection
- * for the relevant entities: 
- * 
+ * for the relevant entities:
+ *
  * - `People`: Represents individuals associated with films and other entities.
  * - `Film`: Represents films that may have associated images.
  * - `Planet`: Represents planets that may have associated images.

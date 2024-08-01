@@ -2,6 +2,11 @@ import { Pagination } from 'nestjs-typeorm-paginate'
 import { CreateFilmDto } from './dto/create-film.dto'
 import { UpdateFilmDto } from './dto/update-film.dto'
 import { Film } from './entities/film.entity'
+import { People } from 'src/people/entities/people.entity'
+import { Planet } from 'src/planets/entities/planet.entity'
+import { Species } from 'src/species/entities/species.entity'
+import { Starship } from 'src/starships/entities/starship.entity'
+import { Vehicle } from 'src/vehicles/entities/vehicle.entity'
 
 /**
  * A mock film object representing a film entity
@@ -84,3 +89,38 @@ export const paginatedResult: Pagination<Film> = {
     currentPage: 1,
   },
 }
+
+/**
+ * A mock people object representing a people entity
+ *
+ * This mock object represents a people entity with a specific URL.
+ */
+export const people = { url: 'people1' } as People
+
+/**
+ * A mock planet object representing a planet entity
+ *
+ * This mock object represents a planet entity with a specific URL.
+ */
+export const planet = { url: 'planet1' } as Planet
+
+/**
+ * A mock species object representing a species entity
+ *
+ * This mock object represents a species entity with a specific URL.
+ */
+export const species = { url: 'species1' } as Species
+
+/**
+ * A mock starship object representing a starship entity
+ *
+ * This mock object represents a starship entity with a specific URL.
+ */
+export const starship = { url: 'starship1' } as Starship
+
+/**
+ * A mock vehicle object representing a vehicle entity
+ *
+ * This mock object represents a vehicle entity with a specific URL.
+ */
+export const vehicle = { url: 'vehicle1' } as Vehicle

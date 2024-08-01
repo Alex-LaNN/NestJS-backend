@@ -10,14 +10,27 @@ import { paginate } from 'nestjs-typeorm-paginate'
 import {
   createSpeciesDto,
   existingSpecies,
+  film,
   newSpecies,
   paginatedResult,
+  people,
+  planet,
   species,
   updatedSpecies,
   updatedSpeciesDto,
 } from './test-constants'
-import { paginationOptions } from 'src/shared/utils'
+import { paginationOptions } from 'src/shared/constants'
 
+/**
+ * Mocking the `nestjs-typeorm-paginate` module
+ *
+ * This line uses Jest to mock the `nestjs-typeorm-paginate` module.
+ * By mocking this module, we can control its behavior during tests,
+ * allowing us to isolate the functionality being tested and avoid
+ * dependencies on the actual implementation of the module.
+ * This is useful for unit testing, where we want to focus on testing
+ * the logic of our code without being affected by external modules or services.
+ */
 jest.mock('nestjs-typeorm-paginate')
 
 /**
@@ -140,7 +153,7 @@ describe('SpeciesService', () => {
 
       expect(await service.create(createSpeciesDto)).toBeNull()
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        `Сущность ${createSpeciesDto.name} уже существует!`,
+        `Species '${createSpeciesDto.name}' already exists!`,
       )
       consoleErrorSpy.mockRestore()
     })
@@ -151,10 +164,10 @@ describe('SpeciesService', () => {
     it('should handle repository errors on create', async () => {
       jest
         .spyOn(speciesRepository, 'save')
-        .mockRejectedValue(new Error('Repository error'))
+        .mockRejectedValue(new Error('Internal server error'))
 
       await expect(service.create(createSpeciesDto)).rejects.toThrow(
-        'Repository error',
+        'Internal server error',
       )
     })
   })
@@ -266,10 +279,6 @@ describe('SpeciesService', () => {
      * Test to verify that related entities are filled correctly.
      */
     it('should fill related entities', async () => {
-      const planet = { url: 'planet1' } as Planet
-      const people = { url: 'people1' } as People
-      const film = { url: 'film1' } as Film
-
       jest.spyOn(planetRepository, 'findOne').mockResolvedValue(planet)
       jest.spyOn(peopleRepository, 'findOne').mockResolvedValue(people)
       jest.spyOn(filmRepository, 'findOne').mockResolvedValue(film)

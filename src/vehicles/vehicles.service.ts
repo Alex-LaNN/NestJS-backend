@@ -11,7 +11,11 @@ import {
   Pagination,
   paginate,
 } from 'nestjs-typeorm-paginate'
-import { relatedEntitiesMap } from 'src/shared/utils'
+import { localUrl, relatedEntitiesMap } from 'src/shared/constants'
+import {
+  extractIdFromUrl,
+  getResponceOfException,
+} from 'src/shared/common.functions'
 
 /**
  * VehiclesService
@@ -26,13 +30,11 @@ export class VehiclesService {
   constructor(
     @InjectRepository(Vehicle)
     private readonly vehicleRepository: Repository<Vehicle>,
-    // Injections for repositories of related entities
+    // Inject repositories for related entities (pilots, films)
     @InjectRepository(People)
+    private readonly peopleRepository: Repository<People>,
     @InjectRepository(Film)
-    private readonly repositories: {
-      pilots: Repository<People>
-      films: Repository<Film>
-    },
+    private readonly filmsRepository: Repository<Film>,
   ) {
     this.relatedEntities = relatedEntitiesMap.vehicles.relatedEntities
   }
@@ -41,13 +43,12 @@ export class VehiclesService {
    * Create a new vehicle
    *
    * This method creates a new vehicle entity in the database. It checks for existing
-   * vehicles with the same name, creates a new `Vehicle` instance, populates its
-   * properties from the `CreateVehicleDto`, fills related entities (`pilots`, `films`),
-   * and saves the new vehicle to the repository.
+   * vehicles with the same name, returns null if such a starship exists, and otherwise
+   * creates a new `Vehicle` instance, populates its properties from the `CreateVehicleDto`,
+   * fills related entities (`pilots`, `films`), and saves the new vehicle to the repository.
    *
    * @param createVehicleDto Data Transfer Object containing vehicle creation data.
    * @returns The newly created Vehicle entity.
-   * @throws HttpException if a vehicle with the same name already exists.
    */
   async create(createVehicleDto: CreateVehicleDto) {
     try {
@@ -56,11 +57,15 @@ export class VehiclesService {
         where: { name: createVehicleDto.name },
       })
       if (existsVehicle) {
-        throw new HttpException('Vehicle already exists!', HttpStatus.FORBIDDEN)
+        console.error(`Vehicle '${createVehicleDto.name}' already exists!`)
+        return null
       }
 
       // Create a new Vehicle instance
       const newVehicle: Vehicle = new Vehicle()
+      // Finding the last vehicle's ID
+      const nextIdForNewVehicle: number = await this.getNextIdForNewVehicle()
+      newVehicle.url = `${localUrl}vehicles/${nextIdForNewVehicle}/`
       // Populate Vehicle properties from CreateVehicleDto
       for (const key in createVehicleDto) {
         newVehicle[key] = this.relatedEntities.includes(key)
@@ -70,10 +75,9 @@ export class VehiclesService {
       // Fill related entities (pilots, films)
       await this.fillRelatedEntities(newVehicle, createVehicleDto)
       // Save the new Vehicle to the repository
-      return this.vehicleRepository.save(newVehicle)
+      return await this.vehicleRepository.save(newVehicle)
     } catch (error) {
-      // Обработка ошибки с преобразованием в стандартный формат ответа.
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST)
+      throw getResponceOfException(error)
     }
   }
 
@@ -98,32 +102,26 @@ export class VehiclesService {
   }
 
   /**
-   * Find a vehicle by ID
+   * Retrieves a Vehicle entity by its ID
    *
-   * This method retrieves a single vehicle from the database by its ID.
-   * It uses the `findOne` method of the `vehicleRepository` and throws an
-   * `HttpException` if the vehicle is not found.
+   * This method retrieves a single Vehicle entity from the database based on the
+   * provided `vehicleId` parameter. It uses the `findOne` method of the
+   * `vehiclesRepository` to fetch the Vehicle record with the corresponding ID.
+   * It returns a `Promise` that resolves to the `Vehicle` entity if found,
+   * or `null` if no record is found.
    *
-   * @param vehicleId The ID of the vehicle to retrieve.
-   * @returns The Vehicle entity with the matching ID, or undefined if not found.
-   * @throws HttpException if the vehicle with the given ID is not found.
+   * @param vehicleId - ID of the Vehicle entity (number)
+   * @returns Promise<Vehicle> - Promise resolving to the Vehicle entity or `null` if not found
    */
-  async findOne(vehicleId: number) {
-    try {
-      // Find the Vehicle by ID
-      const vehicle: Vehicle = await this.vehicleRepository.findOne({
-        where: {
-          id: vehicleId,
-        },
-      })
-      return vehicle
-    } catch (error) {
-      // Throw an exception if the object is not found
-      throw new HttpException(
-        `Vehicle with ID ${vehicleId} not found!`,
-        HttpStatus.NOT_FOUND,
-      )
-    }
+  async findOne(vehicleId: number): Promise<Vehicle> {
+    // Find the Vehicle by ID
+    const vehicle: Vehicle = await this.vehicleRepository.findOne({
+      where: {
+        id: vehicleId,
+      },
+    })
+    // Return the Vehicle entity or 'null'
+    return vehicle
   }
 
   /**
@@ -140,10 +138,15 @@ export class VehiclesService {
    * @returns The updated Vehicle entity.
    * @throws HttpException if the vehicle with the given ID is not found or an error occurs during update.
    */
-  async update(vehicleId: number, updateVehicleDto: UpdateVehicleDto) {
+  async update(
+    vehicleId: number,
+    updateVehicleDto: UpdateVehicleDto,
+  ): Promise<Vehicle> {
     try {
       // Get the Vehicle by ID
       const vehicle: Vehicle = await this.findOne(vehicleId)
+      // Return null if not found
+      if (!vehicle) return null
       // Update Vehicle properties from UpdateVehicleDto
       for (const key in updateVehicleDto) {
         if (updateVehicleDto.hasOwnProperty(key) && updateVehicleDto[key]) {
@@ -170,17 +173,12 @@ export class VehiclesService {
    *
    * @param vehicleId The ID of the vehicle to delete.
    * @returns A Promise that resolves to nothing (void) upon successful deletion.
-   * @throws HttpException if the vehicle with the given ID is not found or an error occurs during deletion.
    */
-  async remove(vehicleId: number): Promise<void> {
-    try {
-      // Get the Vehicle by ID
-      const vehicle: Vehicle = await this.findOne(vehicleId)
-      // Delete the Vehicle from the repository
-      await this.vehicleRepository.remove(vehicle)
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
-    }
+  async remove(vehicleId: number): Promise<Vehicle> {
+    // Get the Vehicle by ID
+    const vehicle: Vehicle = await this.findOne(vehicleId)
+    // Delete the Vehicle from the repository
+    return await this.vehicleRepository.remove(vehicle)
   }
 
   /**
@@ -194,7 +192,7 @@ export class VehiclesService {
    * @param entity The Vehicle entity to update related entities for.
    * @param newVehicleDto The CreateVehicleDto or UpdateVehicleDto containing related entity URLs.
    * @returns A Promise that resolves when all related entities have been filled.
-   * @throws HttpException if an error occurs while fetching related entities.
+   * @throws HttpException - Error if any related entity cannot be found or any other error occurs.
    */
   private async fillRelatedEntities(
     entity: Vehicle,
@@ -208,7 +206,8 @@ export class VehiclesService {
             // Fetch related entities and assign them to the 'entity' object
             entity[key] = await Promise.all(
               newVehicleDto[key].map(async (elem: string) => {
-                const entity = await this.repositories[key].findOne({
+                const repository = this.getRepositoryByKey(key)
+                const entity = await repository.findOne({
                   where: { url: elem },
                 })
                 return entity
@@ -218,7 +217,48 @@ export class VehiclesService {
         }),
       )
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST)
+      throw getResponceOfException(error)
     }
+  }
+
+  /**
+   * Retrieves the appropriate repository based on the given key.
+   *
+   * This private helper method returns the correct TypeORM repository
+   * based on the provided key. The key is expected to be one of the
+   * related entity types (e.g., 'films', 'pilots').
+   * If the key does not match any of these, an error is thrown.
+   *
+   * @param key The key representing the type of related entity
+   * @returns The corresponding TypeORM repository for the given key
+   * @throws Error if no repository is found for the given key
+   */
+  private getRepositoryByKey(key: string): Repository<any> {
+    switch (key) {
+      case 'pilots':
+        return this.peopleRepository
+      case 'films':
+        return this.filmsRepository
+      default:
+        throw new Error(`No repository found for key: ${key}`)
+    }
+  }
+
+  /**
+   *
+   */
+  private async getNextIdForNewVehicle() {
+    const lastVehicle = await this.vehicleRepository.query(`
+      SELECT url FROM vehicles ORDER BY id DESC LIMIT 1
+      `)
+    // Default ID if there are no vehicles in the database
+    let nextId = 1
+
+    if (lastVehicle.length > 0 && lastVehicle[0].url) {
+      // Use the extractIdFromUrl function to get the last ID
+      const lastId = (await extractIdFromUrl(lastVehicle[0].url)) as number
+      nextId = lastId + 1 // Increment the ID for the new vehicle
+    }
+    return nextId
   }
 }

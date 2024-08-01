@@ -257,14 +257,18 @@ export interface DbConfig {
 }
 
 /**
- * Interface for a single entity response
+ * SingleEntityResponse Interface: Represents a response containing a single entity.
  *
- * This interface `SingleEntityResponse` defines the structure for a response containing a single entity object.
- * It includes the following property:
+ * This interface is used to structure the response that contains a single entity
+ * of a generic type extending BaseEntity. It includes a single property, `data`,
+ * which holds the entity.
  *
- * - `data`: The entity object itself.
+ * @template T - The type of the entity, extending BaseEntity.
  */
 export interface SingleEntityResponse<T extends BaseEntity> {
+  /**
+   * The entity data.
+   */
   data: T
 }
 

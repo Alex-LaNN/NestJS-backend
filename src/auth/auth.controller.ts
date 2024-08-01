@@ -14,7 +14,7 @@ import { LocalAuthGuard } from './guards/local-auth.guard'
 import { LoginUserDto } from './dto/login-user.dto'
 import { RegistrationUserDto } from './dto/registration-user.dto'
 import { AdminGuard } from './guards/admin.guard'
-import { UserRoles } from 'src/shared/utils'
+import { UserRoles } from 'src/shared/constants'
 import { UserService } from 'src/user/user.service'
 import { RemoveUserDto } from './dto/remove-user.dto'
 
@@ -92,9 +92,10 @@ export class AuthController {
   /**
    * Logout endpoint for user session termination
    *
-   * This method handles POST requests to the `/auth/logout` endpoint. It clears the
-   * "jwtToken" cookie from the user's response to invalidate the access token and
-   * potentially returns a success message indicating successful logout.
+   * This method handles POST requests to the `/auth/logout` endpoint.
+   * It clears the "jwtToken" cookie from the user's response to invalidate
+   * the access token and potentially returns a success message indicating
+   * successful logout.
    *
    * @param res The HTTP response object
    * @returns A Promise resolving to a JSON object with a success message

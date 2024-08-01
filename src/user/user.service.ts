@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { User } from './entities/user.entity'
 import { Repository } from 'typeorm'
 import { hashPassword } from 'src/shared/common.functions'
-import { ErrorResponce, UserRoles } from 'src/shared/utils'
+import { ErrorResponce, UserRoles } from 'src/shared/constants'
 
 /**
  * UserService class for managing user data in the application
@@ -44,9 +44,7 @@ export class UserService {
    *     - `user`: null (since no user was created).
    *     - `isActionCompleted`: false (indicates failed action).
    */
-  async create(
-    createUserDto: CreateUserDto,
-  ): Promise<User | ErrorResponce> {
+  async create(createUserDto: CreateUserDto): Promise<User | ErrorResponce> {
     // Check if a user with the same username already exists
     const existingUser: User | ErrorResponce = await this.findOneByName(
       createUserDto.userName,
@@ -148,7 +146,7 @@ export class UserService {
     } catch (error) {
       // Log the error with additional information
       console.error(
-        `us:151 - Error removing user with username: ${name}: `,
+        `us.ser:149 - Error removing user with username: ${name}: `,
         error,
       )
       return false

@@ -1,7 +1,7 @@
 import { ExtractJwt, Strategy } from 'passport-jwt'
 import { PassportStrategy } from '@nestjs/passport'
 import { Injectable } from '@nestjs/common'
-import { Payload } from 'src/shared/utils'
+import { Payload } from 'src/shared/constants'
 
 /**
  * JwtStrategy: JWT Authentication Strategy

@@ -9,7 +9,14 @@ import { PlanetsService } from './planets.service'
 import { Film } from 'src/films/entities/film.entity'
 import { Planet } from './entities/planet.entity'
 import { Reflector } from '@nestjs/core'
-import { createPlanetDto, paginatedResult, planet, updatedPlanet, updatedPlanetDto } from './test-constants'
+import {
+  createPlanetDto,
+  newPlanet,
+  paginatedResult,
+  planet,
+  updatedPlanet,
+  updatedPlanetDto,
+} from './test-constants'
 
 /**
  * Unit test suite for PlanetsController.
@@ -97,15 +104,8 @@ describe('PlanetsController', () => {
      * Test to verify that a new planet can be created successfully.
      */
     it('should create a new planet', async () => {
-      const result = {
-        id: 1,
-        created: '2014-12-09T13:50:51.644Z',
-        edited: '2014-12-20T21:17:56.891Z',
-        ...createPlanetDto,
-      } as unknown as Planet
-
-      jest.spyOn(service, 'create').mockResolvedValue(result)
-      expect(await controller.create(createPlanetDto)).toEqual(result)
+      jest.spyOn(service, 'create').mockResolvedValue(newPlanet)
+      expect(await controller.create(createPlanetDto)).toEqual(newPlanet)
     })
 
     /**
