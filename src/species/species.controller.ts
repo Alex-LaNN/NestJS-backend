@@ -13,7 +13,7 @@ import {
 import { SpeciesService } from './species.service'
 import { CreateSpeciesDto } from './dto/create-species.dto'
 import { UpdateSpeciesDto } from './dto/update-species.dto'
-import { ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
 import { Species } from 'src/species/entities/species.entity'
 import { Pagination } from 'nestjs-typeorm-paginate'
 import { limitCount } from 'src/shared/constants'
@@ -38,6 +38,7 @@ export class SpeciesController {
    * Requires admin privileges (protected by AdminGuard).
    *
    * @UseGuards - NestJS decorator to apply the AdminGuard for authorization.
+   * @ApiBearerAuth - Requires authorization (bearer token)
    * @Post - NestJS decorator to define a POST endpoint at the specified path.
    * @ApiBody - NestJS Swagger decorator to define the request body schema (CreateSpeciesDto).
    * @ApiOperation - NestJS Swagger decorator to provide a summary and description for the endpoint.
@@ -47,6 +48,7 @@ export class SpeciesController {
    */
   @UseGuards(AdminGuard)
   @Post('create')
+  @ApiBearerAuth()
   @ApiBody({ type: CreateSpeciesDto })
   @ApiOperation({ summary: 'Create new "species"' })
   async create(@Body() createSpeciesDto: CreateSpeciesDto): Promise<Species> {
@@ -113,6 +115,7 @@ export class SpeciesController {
    */
   @UseGuards(AdminGuard)
   @Patch(':id')
+  @ApiBearerAuth()
   @ApiBody({ type: UpdateSpeciesDto })
   @ApiOperation({ summary: 'Update resource "species" by its "id"' })
   async update(
@@ -137,6 +140,7 @@ export class SpeciesController {
    */
   @UseGuards(AdminGuard)
   @Delete(':id')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete resource "species" by its "id"' })
   async remove(@Param('id') id: number): Promise<Species> {
     return this.speciesService.remove(id)

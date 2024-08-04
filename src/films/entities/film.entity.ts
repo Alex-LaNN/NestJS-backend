@@ -44,7 +44,7 @@ export class Film extends AbstractEntity<Film> {
    * @Column and @Index for database mapping and indexing, and @ApiProperty
    * for Swagger documentation.
    */
-  @Column({ nullable: true })
+  @Column({ default: '' })
   @Index()
   @ApiProperty({ description: 'the hypermedia URL of this resource.' })
   url?: string
@@ -119,18 +119,8 @@ export class Film extends AbstractEntity<Film> {
    * between Film and People entities, @JoinTable to define the join table name,
    * and @ApiProperty for Swagger documentation.
    */
-  @ManyToMany(() => People, (people) => people.films)
-  @JoinTable({
-    name: 'people_films',
-    joinColumn: {
-      name: 'filmsId',
-      referencedColumnName: 'id',
-    },
-    inverseJoinColumn: {
-      name: 'peopleId',
-      referencedColumnName: 'id',
-    },
-  })
+  @ManyToMany(() => People, (people) => people.films, { onDelete: 'CASCADE' })
+  @JoinTable({ name: 'people_films' })
   @ApiProperty({
     description: 'An array of people resource URLs that are in this film.',
   })
@@ -145,7 +135,7 @@ export class Film extends AbstractEntity<Film> {
    * @ApiProperty for Swagger documentation, and the `cascade` option for
    * automatic persistence.
    */
-  @ManyToMany(() => Species, (species) => species.films)
+  @ManyToMany(() => Species, (species) => species.films, { cascade: true })
   @JoinTable({ name: 'films_species' })
   @ApiProperty({
     description: 'An array of species resource URLs that are in this film.',
@@ -161,7 +151,7 @@ export class Film extends AbstractEntity<Film> {
    * @ApiProperty for Swagger documentation, and the `cascade` option for
    * automatic persistence.
    */
-  @ManyToMany(() => Starship, (starships) => starships.films)
+  @ManyToMany(() => Starship, (starships) => starships.films, { cascade: true })
   @JoinTable({ name: 'films_starships' })
   @ApiProperty({
     description: 'An array of starship resource URLs that are in this film.',
@@ -177,7 +167,7 @@ export class Film extends AbstractEntity<Film> {
    * @ApiProperty for Swagger documentation, and the `cascade` option for
    * automatic persistence.
    */
-  @ManyToMany(() => Vehicle, (vehicles) => vehicles.films)
+  @ManyToMany(() => Vehicle, (vehicles) => vehicles.films, { cascade: true })
   @JoinTable({ name: 'films_vehicles' })
   @ApiProperty({
     description: 'An array of vehicle resource URLs that are in this film.',
@@ -193,7 +183,7 @@ export class Film extends AbstractEntity<Film> {
    * @ApiProperty for Swagger documentation, and the `cascade` option for
    * automatic persistence.
    */
-  @ManyToMany(() => Planet, (planets) => planets.films)
+  @ManyToMany(() => Planet, (planets) => planets.films, { cascade: true })
   @JoinTable({ name: 'films_planets' })
   @ApiProperty({
     description: 'An array of planet resource URLs that are in this film.',

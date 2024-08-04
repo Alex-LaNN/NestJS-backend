@@ -66,31 +66,57 @@ export class FilmsService {
       const existingFilm = await this.filmsRepository.findOne({
         where: { title: createFilmDto.title },
       })
-      // Return null if duplicate title found
       if (existingFilm) {
         console.error(`Film '${createFilmDto.title}' already exists!`)
         return null
       }
 
       // Create a new Film object
-      const newFilm: Film = new Film()
+      let newFilm: Film = new Film()
+
       // Get the last inserted ID
       const lastIdResult = await this.filmsRepository.query(
         'SELECT MAX(id) as maxId FROM films',
       )
-      newFilm.url = `${localUrl}films/${lastIdResult[0].maxId + 1}/`
-      // Populate film properties from DTO
+      const nextId: number =
+        lastIdResult.length > 0 ? lastIdResult[0].maxId + 1 : 1
+      newFilm.url = `${localUrl}films/${nextId}/`
+
+      // Populate film properties from DTO, excluding related entities
       for (const key in createFilmDto) {
-        newFilm[key] = this.relatedEntities.includes(key)
-          ? []
-          : createFilmDto[key]
+        if (key !== 'url' && !this.relatedEntities.includes(key)) {
+          newFilm[key] = createFilmDto[key]
+        }
       }
+
+      // Save the new film to the database without related entities
+      const savedFilm = await this.filmsRepository.save(newFilm)
+
+      // Update URL if necessary
+      if (savedFilm.id !== nextId) {
+        console.warn(
+          `Predicted ID (${nextId}) doesn't match actual ID (${savedFilm.id}). Updating URL...`,
+        )
+        await this.filmsRepository.query(
+          'UPDATE films SET url = ? WHERE id = ?',
+          [`${localUrl}films/${savedFilm.id}/`, savedFilm.id],
+        )
+        savedFilm.url = `${localUrl}films/${savedFilm.id}/`
+      }
+
       // Fill in related entities
-      await this.fillRelatedEntities(newFilm, createFilmDto)
-      // Save the new film to the database
-      return await this.filmsRepository.save(newFilm)
+      await this.fillRelatedEntities(savedFilm, createFilmDto)
+
+      // Fetch the updated film to reflect all changes
+      const updatedFilm: Film = await this.filmsRepository.findOne({
+        where: { id: savedFilm.id },
+        relations: this.relatedEntities,
+      })
+
+      return updatedFilm
     } catch (error) {
-      throw getResponceOfException(error)
+      console.error('Error creating film:', error)
+      throw new Error(`Failed to create film: ${error.message}`)
     }
   }
 
@@ -188,43 +214,63 @@ export class FilmsService {
   }
 
   /**
-   * Fills related entities for a new or updated film
+   * Fills the related entities for a film entity based on the provided DTO.
    *
-   * This method fills in the related entities (characters, starships, planets,
-   * species, vehicles) for a new or updated film object. It iterates through
-   * the `relatedEntities` array and checks if the corresponding property exists
-   * in the `newFilmDto` data. If it does, it uses a `Promise.all` chain to
-   * concurrently fetch the related entities from their respective repositories
-   * based on the URLs provided in the DTO. The fetched entities are then assigned
-   * to the corresponding property of the `newFilm` object.
+   * This method processes related entities (like characters, planets, etc.) for a given film entity
+   * and updates the database to reflect these relationships. It uses raw SQL queries to handle the
+   * relationships and ensures that duplicates are ignored.
    *
-   * @param newFilm The film object to fill related entities for (Film)
-   * @param newFilmDto The data containing related entity URLs (CreateFilmDto | UpdateFilmDto)
-   * @returns No return value, void on success
-   * @throws HttpException on error
+   * @param film - The film entity to update.
+   * @param filmDto - The DTO containing the related entities information.
+   * @returns A promise that resolves when the operation is complete.
+   * @throws An error if the operation fails.
    */
   private async fillRelatedEntities(
-    newFilm: Film,
-    newFilmDto: CreateFilmDto | UpdateFilmDto,
+    film: Film,
+    filmDto: CreateFilmDto | UpdateFilmDto,
   ): Promise<void> {
+    // Initialize variables for table name and parameter name
+    let tableName: string
+    let firstParameter: string
     try {
-      await Promise.all(
-        this.relatedEntities.map(async (key: string) => {
-          if (newFilmDto[key]) {
-            newFilm[key] = await Promise.all(
-              newFilmDto[key].map(async (elem: string) => {
-                const repository = this.getRepositoryByKey(key)
-                const entity = await repository.findOne({
-                  where: { url: elem },
-                })
-                return entity
-              }),
+      // Loop through each key in the relatedEntities array
+      for (const key of this.relatedEntities) {
+        // Check if the filmDto contains the key
+        if (filmDto[key]) {
+          // Fetch the related entities from the database
+          const entities = await Promise.all(
+            filmDto[key].map(async (url: string) => {
+              const repository = this.getRepositoryByKey(key)
+              const entity = await repository.findOne({ where: { url } })
+              return entity
+            }),
+          )
+
+          // Filter out any null values (entities that weren't found)
+          const validEntities = entities.filter((obj: null) => obj !== null)
+
+          // Use raw query to insert relations, ignoring duplicates
+          if (validEntities.length > 0) {
+            if (key === 'characters') {
+              tableName = 'people_films'
+              firstParameter = 'peopleId'
+            } else {
+              tableName = `films_${key}`
+              firstParameter = `${key}Id`
+            }
+            // Create the values string for the SQL query
+            const values = validEntities
+              .map((entity: { id: number }) => `(${entity.id}, ${film.id})`)
+              .join(',')
+            // Execute the SQL query to insert the relations
+            await this.filmsRepository.query(
+              `INSERT IGNORE INTO ${tableName} (${firstParameter}, filmsId) VALUES ${values}`,
             )
           }
-        }),
-      )
+        }
+      }
     } catch (error) {
-      throw getResponceOfException(error)
+      throw new Error(error)
     }
   }
 

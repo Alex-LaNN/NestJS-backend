@@ -84,19 +84,44 @@ export class SpeciesService {
       const lastIdResult = await this.speciesRepository.query(
         'SELECT MAX(id) as maxId FROM species',
       )
-      newSpecies.url = `${localUrl}species/${lastIdResult[0].maxId + 1}/`
+      const nextId: number =
+        lastIdResult.length > 0 ? lastIdResult[0].maxId + 1 : 1
+      newSpecies.url = `${localUrl}species/${nextId}/`
       // Populate Species properties from createSpeciesDto
       for (const key in createSpeciesDto) {
-        newSpecies[key] = this.relatedEntities.includes(key)
-          ? [] // Initialize empty array for related entities
-          : createSpeciesDto[key]
+        if (key !== 'url' && !this.relatedEntities.includes(key)) {
+          newSpecies[key] = createSpeciesDto[key]
+        }
       }
+
+      // Save the new species to the database without related entities
+      const savedSpecies = await this.speciesRepository.save(newSpecies)
+
+      // Update URL if necessary
+      if (savedSpecies.id !== nextId) {
+        console.warn(
+          `Predicted ID (${nextId}) doesn't match actual ID (${savedSpecies.id}). Updating URL...`,
+        )
+        await this.speciesRepository.query(
+          'UPDATE species SET url = ? WHERE id = ?',
+          [`${localUrl}species/${savedSpecies.id}/`, savedSpecies.id],
+        )
+        savedSpecies.url = `${localUrl}species/${savedSpecies.id}/`
+      }
+
       // Populate related entities
-      await this.fillRelatedEntities(newSpecies, createSpeciesDto)
+      await this.fillRelatedEntities(savedSpecies, createSpeciesDto)
+
+      // Fetch the updated film to reflect all changes
+      const updatedSpecies: Species = await this.speciesRepository.findOne({
+        where: { id: savedSpecies.id },
+        relations: this.relatedEntities,
+      })
       // Save the new Species entity to the database
-      return await this.speciesRepository.save(newSpecies)
+      return updatedSpecies
     } catch (error) {
-      throw getResponceOfException(error)
+      throw new Error(error)
+      //throw getResponceOfException(error)
     }
   }
 
@@ -225,29 +250,47 @@ export class SpeciesService {
    */
   private async fillRelatedEntities(
     species: Species,
-    newSpeciesDto: CreateSpeciesDto | UpdateSpeciesDto,
+    speciesDto: CreateSpeciesDto | UpdateSpeciesDto,
   ): Promise<void> {
-    await Promise.all(
-      this.relatedEntities.map(async (key) => {
-        if (key === 'homeworld' && newSpeciesDto.homeworld) {
-          const urlToSearch: string = `${localUrl}planets/${newSpeciesDto.homeworld}/`
+    let tableName: string
+    let firstParameter: string
+    try {
+      for (const key of this.relatedEntities) {
+        if (key === 'homeworld' && speciesDto.homeworld) {
+          const urlToSearch: string = `${localUrl}planets/${speciesDto.homeworld}/`
           const planet: Planet = await this.planetsRepository.findOne({
             where: { url: urlToSearch },
           })
           species.homeworld = planet
-        } else if (newSpeciesDto[key]) {
-          species[key] = await Promise.all(
-            newSpeciesDto[key].map(async (elem: string) => {
+        } else if (speciesDto[key]) {
+          const entities = await Promise.all(
+            speciesDto[key].map(async (url: string) => {
               const repository = this.getRepositoryByKey(key)
-              const entity = await repository.findOne({
-                where: { url: elem },
-              })
+              const entity = await repository.findOne({ where: { url } })
               return entity
             }),
           )
+
+          // Filter out any null values (entities that weren't found)
+          const validEntities = entities.filter((e: null) => e !== null)
+
+          // Use raw query to insert relations, ignoring duplicates
+          if (validEntities.length > 0) {
+            tableName = `${key}_species`
+            firstParameter = `${key}Id`
+
+            const values = validEntities
+              .map((entity: { id: number }) => `(${entity.id}, ${species.id})`)
+              .join(',')
+            await this.speciesRepository.query(
+              `INSERT IGNORE INTO ${tableName} (${firstParameter}, speciesId) VALUES ${values}`,
+            )
+          }
         }
-      }),
-    )
+      }
+    } catch (error) {
+      throw new Error(error)
+    }
   }
 
   /**
@@ -268,6 +311,8 @@ export class SpeciesService {
         return this.peopleRepository
       case 'films':
         return this.filmsRepository
+      case 'homeworld':
+        return this.planetsRepository
       default:
         throw new Error(`No repository found for key: ${key}`)
     }

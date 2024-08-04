@@ -9,121 +9,154 @@ describe('AppController (e2e)', () => {
   let validToken: string
 
   beforeAll(async () => {
-    jest.setTimeout(30000)
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile()
 
-    try {
-      await dataSource.initialize()
-      console.log('Data Source has been initialized for e2e-tests!')
+    app = moduleFixture.createNestApplication()
+    await app.init()
 
-      const moduleFixture: TestingModule = await Test.createTestingModule({
-        imports: [AppModule],
-      }).compile()
+    // Create a valid token for authentication
+    const response = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({
+        username: 'admin',
+        password: 'adminpassword',
+      })
 
-      app = moduleFixture.createNestApplication()
-      await app.init()
-    } catch (error) {
-      console.error('Error during Data Source initialization:', error)
-      throw error
-    }
+    validToken = response.body.access_token
+
+    // Initialize the database
+    await dataSource.synchronize(true)
   })
 
   afterAll(async () => {
-    if (app) {
-      await app.close()
-    }
-    await dataSource.destroy() // Ensure the data source is properly closed
+    await app.close()
   })
 
-  describe('Authentication', () => {
-    it('should login and return a token', async () => {
-      const loginDto = {
-        username: 'admin',
-        password: '55555',
+  describe('/people (POST)', () => {
+    it('should create a new person', async () => {
+      const createPeopleDto = {
+        name: 'Luke Skywalker',
+        height: 172,
+        mass: 77,
+        hair_color: 'blond',
+        skin_color: 'fair',
+        eye_color: 'blue',
+        birth_year: '19BBY',
+        gender: 'male',
+        homeworld: 'Tatooine',
+        films: [],
+        species: [],
+        vehicles: [],
+        starships: [],
       }
 
       const response = await request(app.getHttpServer())
-        .post('/auth/login')
-        .send(loginDto)
-        .expect(200)
-
-      validToken = response.body.access_token
-      expect(validToken).toBeDefined()
-    }, 30000)
-  })
-
-  describe('People CRUD', () => {
-    const createPeopleDto = {
-      name: 'Luke Skywalker',
-      height: '172',
-      mass: '77',
-      hair_color: 'blond',
-      skin_color: 'fair',
-      eye_color: 'blue',
-      birth_year: '19BBY',
-      gender: 'male',
-      homeworld: 1,
-    }
-
-    let createdPersonId: number = 1
-
-    it('should create a new person', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/people')
+        .post('/people/create')
         .set('Authorization', `Bearer ${validToken}`)
         .send(createPeopleDto)
         .expect(201)
 
-      // Assertions on the response
       expect(response.body).toHaveProperty('id')
-      expect(response.body).toHaveProperty('name', 'Luke Skywalker')
-    }, 30000)
+      expect(response.body.name).toEqual(createPeopleDto.name)
+    })
 
-    it('should get all people', async () => {
+    it('should return 400 for invalid data', async () => {
+      const invalidCreatePeopleDto = {
+        name: '',
+      }
+
+      await request(app.getHttpServer())
+        .post('/people/create')
+        .set('Authorization', `Bearer ${validToken}`)
+        .send(invalidCreatePeopleDto)
+        .expect(400)
+    })
+  })
+
+  describe('/people (GET)', () => {
+    it('should return all people', async () => {
       const response = await request(app.getHttpServer())
         .get('/people')
         .expect(200)
 
       expect(response.body).toHaveProperty('items')
-      expect(response.body).toHaveProperty('meta')
-    }, 30000)
+      expect(Array.isArray(response.body.items)).toBeTruthy()
+    })
 
-    it('should get a person by ID', async () => {
+    it('should return paginated people', async () => {
       const response = await request(app.getHttpServer())
-        .get(`/people/${createdPersonId}`)
+        .get('/people')
+        .query({ page: 1, limit: 2 })
         .expect(200)
 
-      const person = response.body
-      expect(person.id).toBe(createdPersonId)
-      expect(person.name).toBe(createPeopleDto.name)
-    }, 30000)
+      expect(response.body).toHaveProperty('items')
+      expect(response.body.meta).toHaveProperty('totalItems')
+      expect(response.body.meta).toHaveProperty('itemCount')
+      expect(response.body.meta).toHaveProperty('itemsPerPage')
+      expect(response.body.meta).toHaveProperty('totalPages')
+      expect(response.body.meta).toHaveProperty('currentPage')
+    })
+  })
 
-    it('should update a person', async () => {
+  describe('/people/:id (GET)', () => {
+    it('should return a single person by ID', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/people/1')
+        .expect(200)
+
+      expect(response.body).toHaveProperty('id')
+      expect(response.body.id).toEqual(1)
+    })
+
+    it('should return 404 for a non-existent person', async () => {
+      await request(app.getHttpServer()).get('/people/999').expect(404)
+    })
+  })
+
+  describe('/people/:id (PATCH)', () => {
+    it('should update a person by ID', async () => {
       const updatePeopleDto = {
-        name: 'Luke Skywalker Updated',
+        height: 180,
       }
 
       const response = await request(app.getHttpServer())
-        .patch(`/people/${createdPersonId}`)
+        .patch('/people/1')
         .set('Authorization', `Bearer ${validToken}`)
         .send(updatePeopleDto)
         .expect(200)
 
-      const person = response.body
-      expect(person.name).toBe(updatePeopleDto.name)
-    }, 30000)
+      expect(response.body).toHaveProperty('height')
+      expect(response.body.height).toEqual(updatePeopleDto.height)
+    })
 
-    it('should delete a person', async () => {
+    it('should return 404 for a non-existent person', async () => {
+      const updatePeopleDto = {
+        height: 180,
+      }
+
       await request(app.getHttpServer())
-        .delete(`/people/${createdPersonId}`)
+        .patch('/people/999')
+        .set('Authorization', `Bearer ${validToken}`)
+        .send(updatePeopleDto)
+        .expect(404)
+    })
+  })
+
+  describe('/people/:id (DELETE)', () => {
+    it('should delete a person by ID', async () => {
+      await request(app.getHttpServer())
+        .delete('/people/1')
         .set('Authorization', `Bearer ${validToken}`)
         .expect(200)
-    }, 30000)
+    })
 
-    it('should return 404 for deleted person', async () => {
+    it('should return 404 for a non-existent person', async () => {
       await request(app.getHttpServer())
-        .get(`/people/${createdPersonId}`)
+        .delete('/people/999')
         .set('Authorization', `Bearer ${validToken}`)
         .expect(404)
-    }, 30000)
+    })
   })
 })

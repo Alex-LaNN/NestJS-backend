@@ -169,17 +169,7 @@ export class People extends AbstractEntity<People> {
     description: 'An array of film resource URLs that this person has been in.',
   })
   @ManyToMany(() => Film, (films) => films.characters, { cascade: true })
-  @JoinTable({
-    name: 'people_films',
-    joinColumn: {
-      name: 'peopleId',
-      referencedColumnName: 'id',
-    },
-    inverseJoinColumn: {
-      name: 'filmsId',
-      referencedColumnName: 'id',
-    },
-  })
+  @JoinTable({ name: 'people_films' })
   films: Film[]
 
   /**
@@ -196,7 +186,7 @@ export class People extends AbstractEntity<People> {
     description:
       'An array of resource IDs of the species to which this person belongs.',
   })
-  @ManyToMany(() => Species, (species) => species.people)
+  @ManyToMany(() => Species, (species) => species.people, { cascade: true })
   @JoinTable({ name: 'people_species' })
   species: Species[]
 
@@ -214,7 +204,7 @@ export class People extends AbstractEntity<People> {
     description:
       'An array of resource IDs of the vehicles this person piloted.',
   })
-  @ManyToMany(() => Vehicle, (vehicles) => vehicles.pilots)
+  @ManyToMany(() => Vehicle, (vehicles) => vehicles.pilots, { cascade: true })
   @JoinTable({ name: 'people_vehicles' })
   vehicles: Vehicle[]
 
@@ -232,7 +222,9 @@ export class People extends AbstractEntity<People> {
     description:
       'An array of resource IDs of the spaceships that this person piloted.',
   })
-  @ManyToMany(() => Starship, (starships) => starships.pilots)
+  @ManyToMany(() => Starship, (starships) => starships.pilots, {
+    cascade: true,
+  })
   @JoinTable({ name: 'people_starships' })
   starships: Starship[]
 

@@ -9,7 +9,7 @@ export class LastMigration1718564931891 implements MigrationInterface {
             \`created\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             \`edited\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  
             \`name\` varchar(255) NOT NULL,
-            \`url\` varchar(255) NOT NULL,
+            \`url\` varchar(255) NULL,
             \`model\` varchar(255) NOT NULL,
             \`starship_class\` varchar(255) NOT NULL,
             \`manufacturer\` varchar(255) NOT NULL,
@@ -28,7 +28,7 @@ export class LastMigration1718564931891 implements MigrationInterface {
             \`created\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             \`edited\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, 
             \`name\` varchar(255) NOT NULL,
-            \`url\` varchar(255) NOT NULL,
+            \`url\` varchar(255) NULL,
             \`classification\` varchar(255) NOT NULL,
             \`designation\` varchar(255) NOT NULL,
             \`average_height\` varchar(255) NOT NULL,
@@ -57,7 +57,7 @@ export class LastMigration1718564931891 implements MigrationInterface {
             \`created\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             \`edited\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  
             \`name\` varchar(255) NOT NULL,
-            \`url\` varchar(255) NOT NULL,
+            \`url\` varchar(255) NULL,
             \`climate\` varchar(255) NOT NULL,
             \`diameter\` varchar(255) NOT NULL,
             \`rotation_period\` varchar(255) NOT NULL,
@@ -72,7 +72,7 @@ export class LastMigration1718564931891 implements MigrationInterface {
             \`created\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             \`edited\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  
             \`name\` varchar(255) NOT NULL,
-            \`url\` varchar(255) NOT NULL,
+            \`url\` varchar(255) NULL,
             \`height\` varchar(255) NOT NULL,
             \`mass\` varchar(255) NOT NULL,
             \`hair_color\` varchar(255) NOT NULL,
@@ -87,7 +87,7 @@ export class LastMigration1718564931891 implements MigrationInterface {
             \`created\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             \`edited\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, 
             \`title\` varchar(255) NOT NULL,
-            \`url\` varchar(255) NOT NULL,
+            \`url\` varchar(255) NULL,
             \`episode_id\` int NOT NULL,
             \`opening_crawl\` text NOT NULL,
             \`director\` varchar(255) NOT NULL,
@@ -100,7 +100,7 @@ export class LastMigration1718564931891 implements MigrationInterface {
             \`created\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             \`edited\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, 
             \`name\` varchar(255) NOT NULL,
-            \`url\` varchar(255) NOT NULL,
+            \`url\` varchar(255) NULL,
             \`model\` varchar(255) NOT NULL,
             \`vehicle_class\` varchar(255) NOT NULL,
             \`manufacturer\` varchar(255) NOT NULL,
@@ -190,35 +190,35 @@ export class LastMigration1718564931891 implements MigrationInterface {
         await queryRunner.query(`
             ALTER TABLE \`films_starships\` ADD CONSTRAINT \`FK_98904c9cab6a9c3c11aeacf768b\` FOREIGN KEY (\`starshipsId\`) REFERENCES \`starships\`(\`id\`) ON DELETE CASCADE ON UPDATE CASCADE`);
         await queryRunner.query(`
-            ALTER TABLE \`films_starships\` ADD CONSTRAINT \`FK_c6ae67fefde29efc7325b74baa4\` FOREIGN KEY (\`filmsId\`) REFERENCES \`films\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+            ALTER TABLE \`films_starships\` ADD CONSTRAINT \`FK_c6ae67fefde29efc7325b74baa4\` FOREIGN KEY (\`filmsId\`) REFERENCES \`films\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`)
         await queryRunner.query(`
             ALTER TABLE \`people_starships\` ADD CONSTRAINT \`FK_2ee1350798626e1c52a83f26c0f\` FOREIGN KEY (\`starshipsId\`) REFERENCES \`starships\`(\`id\`) ON DELETE CASCADE ON UPDATE CASCADE`);
         await queryRunner.query(`
-            ALTER TABLE \`people_starships\` ADD CONSTRAINT \`FK_25cb50d5fba38a9219e6b2eb79e\` FOREIGN KEY (\`peopleId\`) REFERENCES \`people\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+            ALTER TABLE \`people_starships\` ADD CONSTRAINT \`FK_25cb50d5fba38a9219e6b2eb79e\` FOREIGN KEY (\`peopleId\`) REFERENCES \`people\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`)
         await queryRunner.query(`
-            ALTER TABLE \`people_species\` ADD CONSTRAINT \`FK_3f0fe0fa1df5ad0ef0afc4e9fbf\` FOREIGN KEY (\`speciesId\`) REFERENCES \`species\`(\`id\`) ON DELETE CASCADE ON UPDATE CASCADE`);
+            ALTER TABLE \`people_species\` ADD CONSTRAINT \`FK_3f0fe0fa1df5ad0ef0afc4e9fbf\` FOREIGN KEY (\`speciesId\`) REFERENCES \`species\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`)
         await queryRunner.query(`
-            ALTER TABLE \`people_species\` ADD CONSTRAINT \`FK_56f67794e6fc76cd1c1427ed1a6\` FOREIGN KEY (\`peopleId\`) REFERENCES \`people\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+            ALTER TABLE \`people_species\` ADD CONSTRAINT \`FK_56f67794e6fc76cd1c1427ed1a6\` FOREIGN KEY (\`peopleId\`) REFERENCES \`people\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`)
         await queryRunner.query(`
             ALTER TABLE \`films_species\` ADD CONSTRAINT \`FK_b5b68c8f3779bcdaa9afda0378e\` FOREIGN KEY (\`speciesId\`) REFERENCES \`species\`(\`id\`) ON DELETE CASCADE ON UPDATE CASCADE`);
         await queryRunner.query(`
-            ALTER TABLE \`films_species\` ADD CONSTRAINT \`FK_30663fc8495f09199efa33ab85e\` FOREIGN KEY (\`filmsId\`) REFERENCES \`films\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+            ALTER TABLE \`films_species\` ADD CONSTRAINT \`FK_30663fc8495f09199efa33ab85e\` FOREIGN KEY (\`filmsId\`) REFERENCES \`films\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`)
         await queryRunner.query(`
             ALTER TABLE \`films_planets\` ADD CONSTRAINT \`FK_56eec3c43f5246c6a26f4e61d81\` FOREIGN KEY (\`planetsId\`) REFERENCES \`planets\`(\`id\`) ON DELETE CASCADE ON UPDATE CASCADE`);
         await queryRunner.query(`
-            ALTER TABLE \`films_planets\` ADD CONSTRAINT \`FK_a8db04b134255125a4a990c656d\` FOREIGN KEY (\`filmsId\`) REFERENCES \`films\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+            ALTER TABLE \`films_planets\` ADD CONSTRAINT \`FK_a8db04b134255125a4a990c656d\` FOREIGN KEY (\`filmsId\`) REFERENCES \`films\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`)
         await queryRunner.query(`
-            ALTER TABLE \`people_films\` ADD CONSTRAINT \`FK_f9d0038e205e511024d88b4c441\` FOREIGN KEY (\`peopleId\`) REFERENCES \`people\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+            ALTER TABLE \`people_films\` ADD CONSTRAINT \`FK_f9d0038e205e511024d88b4c441\` FOREIGN KEY (\`peopleId\`) REFERENCES \`people\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`)
         await queryRunner.query(`
-            ALTER TABLE \`people_films\` ADD CONSTRAINT \`FK_a6ae8e23d835bdbc6b9fe43823f\` FOREIGN KEY (\`filmsId\`) REFERENCES \`films\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+            ALTER TABLE \`people_films\` ADD CONSTRAINT \`FK_a6ae8e23d835bdbc6b9fe43823f\` FOREIGN KEY (\`filmsId\`) REFERENCES \`films\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`)
         await queryRunner.query(`
             ALTER TABLE \`people_vehicles\` ADD CONSTRAINT \`FK_1228470b9119a37bc0608e7ac62\` FOREIGN KEY (\`peopleId\`) REFERENCES \`people\`(\`id\`) ON DELETE CASCADE ON UPDATE CASCADE`);
         await queryRunner.query(`
-            ALTER TABLE \`people_vehicles\` ADD CONSTRAINT \`FK_f858faa2a7663a7258052fb4e54\` FOREIGN KEY (\`vehiclesId\`) REFERENCES \`vehicles\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+            ALTER TABLE \`people_vehicles\` ADD CONSTRAINT \`FK_f858faa2a7663a7258052fb4e54\` FOREIGN KEY (\`vehiclesId\`) REFERENCES \`vehicles\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`)
         await queryRunner.query(`
             ALTER TABLE \`films_vehicles\` ADD CONSTRAINT \`FK_d892418f6e02d0ebce56bd35809\` FOREIGN KEY (\`filmsId\`) REFERENCES \`films\`(\`id\`) ON DELETE CASCADE ON UPDATE CASCADE`);
         await queryRunner.query(`
-            ALTER TABLE \`films_vehicles\` ADD CONSTRAINT \`FK_4465b1c1a89520616f3c6ccad73\` FOREIGN KEY (\`vehiclesId\`) REFERENCES \`vehicles\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+            ALTER TABLE \`films_vehicles\` ADD CONSTRAINT \`FK_4465b1c1a89520616f3c6ccad73\` FOREIGN KEY (\`vehiclesId\`) REFERENCES \`vehicles\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`)
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
