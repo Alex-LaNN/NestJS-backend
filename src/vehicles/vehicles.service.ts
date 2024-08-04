@@ -63,19 +63,46 @@ export class VehiclesService {
 
       // Create a new Vehicle instance
       const newVehicle: Vehicle = new Vehicle()
-      // Finding the last vehicle's ID
-      const nextIdForNewVehicle: number = await this.getNextIdForNewVehicle()
-      newVehicle.url = `${localUrl}vehicles/${nextIdForNewVehicle}/`
-      // Populate Vehicle properties from CreateVehicleDto
+      // Get the last inserted ID
+      const lastIdResult = await this.vehicleRepository.query(
+        'SELECT MAX(id) as maxId FROM vehicles',
+      )
+      const nextId: number =
+        lastIdResult.length > 0 ? lastIdResult[0].maxId + 1 : 1
+      newVehicle.url = `${localUrl}vehicles/${nextId}/`
+
+      // Populate vehicle properties from DTO, excluding related entities
       for (const key in createVehicleDto) {
-        newVehicle[key] = this.relatedEntities.includes(key)
-          ? []
-          : createVehicleDto[key]
+        if (key !== 'url' && !this.relatedEntities.includes(key)) {
+          newVehicle[key] = createVehicleDto[key]
+        }
       }
-      // Fill related entities (pilots, films)
-      await this.fillRelatedEntities(newVehicle, createVehicleDto)
-      // Save the new Vehicle to the repository
-      return await this.vehicleRepository.save(newVehicle)
+
+      // Save the new vehicle to the database without related entities
+      const savedVehicle = await this.vehicleRepository.save(newVehicle)
+
+      // Update URL if necessary
+      if (savedVehicle.id !== nextId) {
+        console.warn(
+          `Predicted ID (${nextId}) doesn't match actual ID (${savedVehicle.id}). Updating URL...`,
+        )
+        await this.vehicleRepository.query(
+          'UPDATE vehicles SET url = ? WHERE id = ?',
+          [`${localUrl}vehicles/${savedVehicle.id}/`, savedVehicle.id],
+        )
+        savedVehicle.url = `${localUrl}vehicles/${savedVehicle.id}/`
+      }
+
+      // Fill in related entities
+      await this.fillRelatedEntities(savedVehicle, createVehicleDto)
+
+      // Fetch the updated vehicle to reflect all changes
+      const updatedVehicle: Vehicle = await this.vehicleRepository.findOne({
+        where: { id: savedVehicle.id },
+        relations: this.relatedEntities,
+      })
+
+      return updatedVehicle
     } catch (error) {
       throw getResponceOfException(error)
     }
@@ -195,27 +222,39 @@ export class VehiclesService {
    * @throws HttpException - Error if any related entity cannot be found or any other error occurs.
    */
   private async fillRelatedEntities(
-    entity: Vehicle,
-    newVehicleDto: CreateVehicleDto | UpdateVehicleDto,
+    vehicle: Vehicle,
+    vehicleDto: CreateVehicleDto | UpdateVehicleDto,
   ): Promise<void> {
+    let tableName: string
+    let firstParameter: string
     try {
-      // Parallel filling of related entities for each specified key
-      await Promise.all(
-        this.relatedEntities.map(async (key) => {
-          if (newVehicleDto[key]) {
-            // Fetch related entities and assign them to the 'entity' object
-            entity[key] = await Promise.all(
-              newVehicleDto[key].map(async (elem: string) => {
-                const repository = this.getRepositoryByKey(key)
-                const entity = await repository.findOne({
-                  where: { url: elem },
-                })
-                return entity
-              }),
+      for (const key of this.relatedEntities) {
+        if (vehicleDto[key]) {
+          const entities = await Promise.all(
+            vehicleDto[key].map(async (url: string) => {
+              const repository = this.getRepositoryByKey(key)
+              const entity = await repository.findOne({ where: { url } })
+              return entity
+            }),
+          )
+
+          // Filter out any null values (entities that weren't found)
+          const validEntities = entities.filter((obj: null) => obj !== null)
+
+          // Use raw query to insert relations, ignoring duplicates
+          if (validEntities.length > 0) {
+            tableName = key === 'pilots' ? 'people_vehicles' : `${key}_vehicles`
+            firstParameter = key === 'pilots' ? 'peopleId' : `${key}Id`
+
+            const values = validEntities
+              .map((entity: { id: number }) => `(${entity.id}, ${vehicle.id})`)
+              .join(',')
+            await this.vehicleRepository.query(
+              `INSERT IGNORE INTO ${tableName} (${firstParameter}, vehiclesId) VALUES ${values}`,
             )
           }
-        }),
-      )
+        }
+      }
     } catch (error) {
       throw getResponceOfException(error)
     }
@@ -242,23 +281,5 @@ export class VehiclesService {
       default:
         throw new Error(`No repository found for key: ${key}`)
     }
-  }
-
-  /**
-   *
-   */
-  private async getNextIdForNewVehicle() {
-    const lastVehicle = await this.vehicleRepository.query(`
-      SELECT url FROM vehicles ORDER BY id DESC LIMIT 1
-      `)
-    // Default ID if there are no vehicles in the database
-    let nextId = 1
-
-    if (lastVehicle.length > 0 && lastVehicle[0].url) {
-      // Use the extractIdFromUrl function to get the last ID
-      const lastId = (await extractIdFromUrl(lastVehicle[0].url)) as number
-      nextId = lastId + 1 // Increment the ID for the new vehicle
-    }
-    return nextId
   }
 }

@@ -68,17 +68,42 @@ export class PlanetsService {
       const lastIdResult = await this.planetsRepository.query(
         'SELECT MAX(id) as maxId FROM planets',
       )
-      newPlanet.url = `${localUrl}planets/${lastIdResult[0].maxId + 1}/`
-      // Iterate through the properties of the CreatePlanetDto and assign them to the new Planet object
+      const nextId: number =
+        lastIdResult.length > 0 ? lastIdResult[0].maxId + 1 : 1
+      newPlanet.url = `${localUrl}planets/${nextId}/`
+
+      // Populate planet properties from DTO, excluding related entities
       for (const key in createPlanetDto) {
-        newPlanet[key] = this.relatedEntities.includes(key)
-          ? []
-          : createPlanetDto[key]
+        if (key !== 'url' && !this.relatedEntities.includes(key)) {
+          newPlanet[key] = createPlanetDto[key]
+        }
       }
-      // Populate the related entities (residents and films)
-      await this.fillRelatedEntities(newPlanet, createPlanetDto)
-      // Save the new planet to the database
-      return await this.planetsRepository.save(newPlanet)
+
+      // Save the new planet to the database without related entities
+      const savedPlanet = await this.planetsRepository.save(newPlanet)
+
+      // Update URL if necessary
+      if (savedPlanet.id !== nextId) {
+        console.warn(
+          `Predicted ID (${nextId}) doesn't match actual ID (${savedPlanet.id}). Updating URL...`,
+        )
+        await this.planetsRepository.query(
+          'UPDATE planets SET url = ? WHERE id = ?',
+          [`${localUrl}films/${savedPlanet.id}/`, savedPlanet.id],
+        )
+        savedPlanet.url = `${localUrl}planets/${savedPlanet.id}/`
+      }
+
+      // Fill in related entities
+      await this.fillRelatedEntities(savedPlanet, createPlanetDto)
+
+      // Fetch the updated planet to reflect all changes
+      const updatedPlanet: Planet = await this.planetsRepository.findOne({
+        where: { id: savedPlanet.id },
+        relations: this.relatedEntities,
+      })
+
+      return updatedPlanet
     } catch (error) {
       throw getResponceOfException(error)
     }
@@ -196,25 +221,39 @@ export class PlanetsService {
    * @throws HttpException Throws an exception if an error occurs during retrieval of related entities.
    */
   private async fillRelatedEntities(
-    newPlanet: Planet,
-    newPlanetDto: CreatePlanetDto | UpdatePlanetDto,
+    planet: Planet,
+    planetDto: CreatePlanetDto | UpdatePlanetDto,
   ): Promise<void> {
+    let tableName: string
+    let firstParameter: string
     try {
-      await Promise.all(
-        this.relatedEntities.map(async (key) => {
-          if (newPlanetDto[key]) {
-            newPlanet[key] = await Promise.all(
-              newPlanetDto[key].map(async (elem: string) => {
-                const repository = this.getRepositoryByKey(key)
-                const entity = await repository.findOne({
-                  where: { url: elem },
-                })
-                return entity
-              }),
+      for (const key of this.relatedEntities) {
+        if (planetDto[key]) {
+          const entities = await Promise.all(
+            planetDto[key].map(async (url: string) => {
+              const repository = this.getRepositoryByKey(key)
+              const entity = await repository.findOne({ where: { url } })
+              return entity
+            }),
+          )
+
+          // Filter out any null values (entities that weren't found)
+          const validEntities = entities.filter((obj: null) => obj !== null)
+
+          // Use raw query to insert relations, ignoring duplicates
+          if (validEntities.length > 0) {
+            tableName = key === 'residents' ? `people_planets` : `${key}_planets`
+            firstParameter = key === 'residents' ? `peopleId` : `${key}Id`
+
+            const values = validEntities
+              .map((entity: { id: number }) => `(${entity.id}, ${planet.id})`)
+              .join(',')
+            await this.planetsRepository.query(
+              `INSERT IGNORE INTO ${tableName} (${firstParameter}, planetsId) VALUES ${values}`,
             )
           }
-        }),
-      )
+        }
+      }
     } catch (error) {
       throw getResponceOfException(error)
     }

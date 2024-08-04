@@ -112,16 +112,15 @@ export class SpeciesService {
       // Populate related entities
       await this.fillRelatedEntities(savedSpecies, createSpeciesDto)
 
-      // Fetch the updated film to reflect all changes
+      // Fetch the updated species to reflect all changes
       const updatedSpecies: Species = await this.speciesRepository.findOne({
         where: { id: savedSpecies.id },
         relations: this.relatedEntities,
       })
-      // Save the new Species entity to the database
+      // Return the updated species
       return updatedSpecies
     } catch (error) {
       throw new Error(error)
-      //throw getResponceOfException(error)
     }
   }
 
@@ -261,7 +260,10 @@ export class SpeciesService {
           const planet: Planet = await this.planetsRepository.findOne({
             where: { url: urlToSearch },
           })
-          species.homeworld = planet
+          await this.speciesRepository.query(
+            `UPDATE species SET homeworldId = ? WHERE id = ?`,
+            [planet.id, species.id],
+          )
         } else if (speciesDto[key]) {
           const entities = await Promise.all(
             speciesDto[key].map(async (url: string) => {

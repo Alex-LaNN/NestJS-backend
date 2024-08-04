@@ -74,18 +74,42 @@ export class PeopleService {
     const lastIdResult = await this.peopleRepository.query(
       'SELECT MAX(id) as maxId FROM people',
     )
-    newPeople.url = `${localUrl}people/${lastIdResult[0].maxId + 1}/`
-    // Populate People entity fields from DTO (excluding "homeworld")
+    const nextId: number =
+      lastIdResult.length > 0 ? lastIdResult[0].maxId + 1 : 1
+    newPeople.url = `${localUrl}people/${nextId}/`
+
+    // Populate people properties from DTO, excluding related entities
     for (const key in createPeopleDto) {
-      if (key === 'homeworld') continue
-      newPeople[key] = this.relatedEntities.includes(key)
-        ? []
-        : createPeopleDto[key]
+      if (key !== 'url' && !this.relatedEntities.includes(key)) {
+        newPeople[key] = createPeopleDto[key]
+      }
     }
-    // Fill related entities (films, starships, planets, species, vehicles)
-    await this.fillRelatedEntities(newPeople, createPeopleDto)
-    //Save a new People entity to the database.
-    return await this.peopleRepository.save(newPeople)
+
+    // Save the new people to the database without related entities
+    const savedPeople = await this.peopleRepository.save(newPeople)
+
+    // Update URL if necessary
+    if (savedPeople.id !== nextId) {
+      console.warn(
+        `Predicted ID (${nextId}) doesn't match actual ID (${savedPeople.id}). Updating URL...`,
+      )
+      await this.peopleRepository.query(
+        'UPDATE people SET url = ? WHERE id = ?',
+        [`${localUrl}vehicles/${savedPeople.id}/`, savedPeople.id],
+      )
+      savedPeople.url = `${localUrl}people/${savedPeople.id}/`
+    }
+
+    // Fill in related entities
+    await this.fillRelatedEntities(savedPeople, createPeopleDto)
+
+    // Fetch the updated people to reflect all changes
+    const updatedPeople: People = await this.peopleRepository.findOne({
+      where: { id: savedPeople.id },
+      relations: this.relatedEntities,
+    })
+
+    return updatedPeople
   }
 
   /**
@@ -181,31 +205,78 @@ export class PeopleService {
    * @returns A Promise resolving to `void`
    */
   private async fillRelatedEntities(
-    newPeople: People,
-    newPersonDto: CreatePeopleDto | UpdatePeopleDto,
+    people: People,
+    peopleDto: CreatePeopleDto | UpdatePeopleDto,
   ): Promise<void> {
-    await Promise.all(
-      this.relatedEntities.map(async (key) => {
-        if (key === 'homeworld' && newPersonDto.homeworld) {
-          const urlToSearch: string = `${localUrl}planets/${newPersonDto.homeworld}/`
+    let tableName: string
+    let secondParameter: string
+    try {
+      for (const key of this.relatedEntities) {
+        if (key === 'homeworld' && peopleDto.homeworld) {
+          const urlToSearch: string = `${localUrl}planets/${peopleDto.homeworld}/`
           const planet: Planet = await this.homeworldRepository.findOne({
             where: { url: urlToSearch },
           })
-          newPeople.homeworld = planet
-        } else if (newPersonDto[key]) {
-          newPeople[key] = await Promise.all(
-            newPersonDto[key].map(async (elem: string) => {
+          await this.peopleRepository.query(
+            `UPDATE people SET homeworldId = ? WHERE id = ?`,
+            [planet.id, people.id],
+          )
+        } else if (peopleDto[key]) {
+          const entities = await Promise.all(
+            peopleDto[key].map(async (url: string) => {
               const repository = this.getRepositoryForKey(key)
-              const entity = await repository.findOne({
-                where: { url: elem },
-              })
+              const entity = await repository.findOne({ where: { url } })
               return entity
             }),
           )
+
+          // Filter out any null values (entities that weren't found)
+          const validEntities = entities.filter((e: null) => e !== null)
+
+          // Use raw query to insert relations, ignoring duplicates
+          if (validEntities.length > 0) {
+            tableName = `people_${key}`
+            secondParameter = `${key}Id`
+
+            const values = validEntities
+              .map((entity: { id: number }) => `(${people.id}, ${entity.id})`)
+              .join(',')
+            await this.peopleRepository.query(
+              `INSERT IGNORE INTO ${tableName} (peopleId, ${secondParameter}) VALUES ${values}`,
+            )
+          }
         }
-      }),
-    )
+      }
+    } catch (error) {
+      throw new Error(error)
+    }
   }
+  // private async fillRelatedEntities(
+  //   newPeople: People,
+  //   newPersonDto: CreatePeopleDto | UpdatePeopleDto,
+  // ): Promise<void> {
+  //   await Promise.all(
+  //     this.relatedEntities.map(async (key) => {
+  //       if (key === 'homeworld' && newPersonDto.homeworld) {
+  //         const urlToSearch: string = `${localUrl}planets/${newPersonDto.homeworld}/`
+  //         const planet: Planet = await this.homeworldRepository.findOne({
+  //           where: { url: urlToSearch },
+  //         })
+  //         newPeople.homeworld = planet
+  //       } else if (newPersonDto[key]) {
+  //         newPeople[key] = await Promise.all(
+  //           newPersonDto[key].map(async (elem: string) => {
+  //             const repository = this.getRepositoryForKey(key)
+  //             const entity = await repository.findOne({
+  //               where: { url: elem },
+  //             })
+  //             return entity
+  //           }),
+  //         )
+  //       }
+  //     }),
+  //   )
+  // }
 
   /**
    * Retrieves the appropriate repository based on the given key.

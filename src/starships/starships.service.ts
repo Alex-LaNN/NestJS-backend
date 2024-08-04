@@ -49,18 +49,19 @@ export class StarshipsService {
   }
 
   /**
-   * Creates a new Starship record
+   * Creates a new starship and saves it to the database.
    *
-   * This method creates a new Starship entity in the database based on the data
-   * provided in the `createStarshipDto` parameter. It checks if there is a Starship
-   * with the same name, returns null if such a starship exists, and otherwise
-   * creates a new Starship object, populates its properties, and saves it to the database.
+   * This method checks if a starship with the given name already exists. If not, it creates a new starship,
+   * sets its properties, saves it to the database, updates its URL if necessary, fills related entities,
+   * and finally returns the updated starship.
    *
-   * @param createStarshipDto - Data transfer object containing Starship creation data
-   * @returns Promise<Starship> - Promise resolving to the created Starship entity
+   * @param createStarshipDto - The DTO containing data for the new starship.
+   * @returns The saved starship with all related entities populated, or null if a starship with the same name already exists.
+   * @throws An error if the operation fails.
    */
   async create(createStarshipDto: CreateStarshipDto) {
     try {
+      // Check if a starship with the given name already exists
       const existsStarship: Starship = await this.starshipsRepository.findOne({
         where: { name: createStarshipDto.name },
       })
@@ -69,21 +70,52 @@ export class StarshipsService {
         return null
       }
 
+      // Create a new starship instance
       const newStarship: Starship = new Starship()
-      // Finding the last starship's ID
-      const nextIdForNewStarship: number = await this.getNextIdForNewStarship()
-      newStarship.url = `${localUrl}starships/${nextIdForNewStarship}/`
-      // Iterate through the DTO fields and populate the 'newStarship' object
+      // Get the last inserted ID to predict the next ID
+      const lastIdResult = await this.starshipsRepository.query(
+        'SELECT MAX(id) as maxId FROM starships',
+      )
+      const nextId: number =
+        lastIdResult.length > 0 ? lastIdResult[0].maxId + 1 : 1
+      // Set the URL for the new starship
+      newStarship.url = `${localUrl}starships/${nextId}/`
+      // Populate the starship's properties from the DTO, excluding the URL and related entities
       for (const key in createStarshipDto) {
-        newStarship[key] = this.relatedEntities.includes(key)
-          ? []
-          : createStarshipDto[key]
+        if (key !== 'url' && !this.relatedEntities.includes(key)) {
+          newStarship[key] = createStarshipDto[key]
+        }
       }
-      // Filling in related entities.
-      await this.fillRelatedEntities(newStarship, createStarshipDto)
-      return await this.starshipsRepository.save(newStarship)
+
+      // Save the new starship to the database without related entities
+      const savedStarship = await this.starshipsRepository.save(newStarship)
+
+      // Update URL if the actual ID does not match the predicted ID
+      if (savedStarship.id !== nextId) {
+        console.warn(
+          `Predicted ID (${nextId}) doesn't match actual ID (${savedStarship.id}). Updating URL...`,
+        )
+        await this.starshipsRepository.query(
+          'UPDATE starships SET url = ? WHERE id = ?',
+          [`${localUrl}starships/${savedStarship.id}/`, savedStarship.id],
+        )
+        savedStarship.url = `${localUrl}starships/${savedStarship.id}/`
+      }
+
+      // Fill related entities for the new starship
+      await this.fillRelatedEntities(savedStarship, createStarshipDto)
+
+      // Fetch the updated starship to reflect all changes
+      const updatedStarships: Starship = await this.starshipsRepository.findOne(
+        {
+          where: { id: savedStarship.id },
+          relations: this.relatedEntities,
+        },
+      )
+      // Return the updated starship
+      return updatedStarships
     } catch (error) {
-      throw getResponceOfException(error)
+      throw new Error(error)
     }
   }
 
@@ -206,24 +238,44 @@ export class StarshipsService {
    */
   private async fillRelatedEntities(
     starship: Starship,
-    newStarshipDto: CreateStarshipDto | UpdateStarshipDto,
+    starshipDto: CreateStarshipDto | UpdateStarshipDto,
   ): Promise<void> {
+    let tableName: string
+    let firstParameter: string
     try {
-      await Promise.all(
-        this.relatedEntities.map(async (key) => {
-          if (newStarshipDto[key]) {
-            starship[key] = await Promise.all(
-              newStarshipDto[key].map(async (elem: string) => {
-                const repository = this.getRepositoryByKey(key)
-                const entity = await repository.findOne({
-                  where: { url: elem },
-                })
-                return entity
-              }),
+      for (const key of this.relatedEntities) {
+        if (starshipDto[key]) {
+          const entities = await Promise.all(
+            starshipDto[key].map(async (url: string) => {
+              const repository = this.getRepositoryByKey(key)
+              const entity = await repository.findOne({ where: { url } })
+              return entity
+            }),
+          )
+          console.log(`starship.service:255 - entities:`, entities)
+
+          // Filter out any null values (entities that weren't found)
+          const validEntities = entities.filter((obj: null) => obj !== null)
+
+          // Use raw query to insert relations, ignoring duplicates
+          if (validEntities.length > 0) {
+            if (key === 'pilots') {
+            tableName = `people_starships`
+            firstParameter = `peopleId`
+            } else {
+              tableName = `${key}_starships`
+              firstParameter = `${key}Id`
+          }
+
+            const values = validEntities
+              .map((entity: { id: number }) => `(${entity.id}, ${starship.id})`)
+              .join(',')
+            await this.starshipsRepository.query(
+              `INSERT IGNORE INTO ${tableName} (${firstParameter}, starshipsId) VALUES ${values}`,
             )
           }
-        }),
-      )
+        }
+      }
     } catch (error) {
       throw getResponceOfException(error)
     }
@@ -250,30 +302,5 @@ export class StarshipsService {
       default:
         throw new Error(`No repository found for key: ${key}`)
     }
-  }
-
-  /**
-   * Get the next ID for a new starship
-   *
-   * This private method retrieves the highest ID currently used by starships in the database,
-   * and returns the next ID to be used for a new starship.
-   * It queries the database for the starship with the highest ID, extracts the numeric ID from its URL,
-   * and increments it to obtain the next ID.
-   *
-   * @returns A Promise resolving to the next ID for a new starship (number)
-   */
-  private async getNextIdForNewStarship(): Promise<number> {
-    const lastStarship = await this.starshipsRepository.query(`
-      SELECT url FROM starships ORDER BY id DESC LIMIT 1
-      `)
-    // Default ID if there are no starships in the database
-    let nextId = 1
-
-    if (lastStarship.length > 0 && lastStarship[0].url) {
-      // Use the extractIdFromUrl function to get the last ID
-      const lastId = (await extractIdFromUrl(lastStarship[0].url)) as number
-      nextId = lastId + 1 // Increment the ID for the new starship
-    }
-    return nextId
   }
 }
