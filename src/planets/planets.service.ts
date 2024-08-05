@@ -172,6 +172,21 @@ export class PlanetsService {
       // Update planet properties based on UpdatePlanetDto
       for (const key in updatePlanetDto) {
         if (updatePlanetDto.hasOwnProperty(key) && updatePlanetDto[key]) {
+          // Check if the planet name is being updated
+          if (updatePlanetDto.name) {
+            // Search for an existing planet with the new name
+            const existingPlanet = await this.planetsRepository.findOne({
+              where: {
+                name: updatePlanetDto.name,
+              },
+            })
+
+            // If a planet with this name exists and it's not the same planet we're updating
+            if (existingPlanet && existingPlanet.id !== planet.id) {
+              console.error(`Planet '${updatePlanetDto.name}' already exists!`)
+              return null
+            }
+          }
           planet[key] = updatePlanetDto[key]
         }
       }

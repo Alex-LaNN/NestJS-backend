@@ -192,6 +192,23 @@ export class SpeciesService {
       // Update Species properties based on updateSpeciesDto
       for (const key in updateSpeciesDto) {
         if (updateSpeciesDto.hasOwnProperty(key) && updateSpeciesDto[key]) {
+          // Check if the species name is being updated
+          if (updateSpeciesDto.name) {
+            // Search for an existing species with the new name
+            const existingSpecies = await this.speciesRepository.findOne({
+              where: {
+                name: updateSpeciesDto.name,
+              },
+            })
+
+            // If a species with this name exists and it's not the same species we're updating
+            if (existingSpecies && existingSpecies.id !== species.id) {
+              console.error(
+                `Species '${updateSpeciesDto.name}' already exists!`,
+              )
+              return null
+            }
+          }
           species[key] = updateSpeciesDto[key]
         }
       }

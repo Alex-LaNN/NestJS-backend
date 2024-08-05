@@ -184,6 +184,21 @@ export class FilmsService {
       // Update film properties from DTO
       for (const key in updateFilmDto) {
         if (updateFilmDto.hasOwnProperty(key) && updateFilmDto[key]) {
+          // Check if the film title is being updated
+          if (updateFilmDto.title) {
+            // Search for an existing film with the new title
+            const existingFilm = await this.filmsRepository.findOne({
+              where: {
+                title: updateFilmDto.title,
+              },
+            })
+
+            // If a film with this title exists and it's not the same film we're updating
+            if (existingFilm && existingFilm.id !== film.id) {
+              console.error(`Film '${updateFilmDto.title}' already exists!`)
+              return null
+            }
+          }
           film[key] = updateFilmDto[key]
         }
       }

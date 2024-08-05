@@ -176,6 +176,23 @@ export class VehiclesService {
       // Update Vehicle properties from UpdateVehicleDto
       for (const key in updateVehicleDto) {
         if (updateVehicleDto.hasOwnProperty(key) && updateVehicleDto[key]) {
+          // Check if the vehicle name is being updated
+          if (updateVehicleDto.name) {
+            // Search for an existing vehicle with the new name
+            const existingVehicle = await this.vehicleRepository.findOne({
+              where: {
+                name: updateVehicleDto.name,
+              },
+            })
+
+            // If a vehicle with this name exists and it's not the same vehicle we're updating
+            if (existingVehicle && existingVehicle.id !== vehicle.id) {
+              console.error(
+                `Vehicle '${updateVehicleDto.name}' already exists!`,
+              )
+              return null
+            }
+          }
           vehicle[key] = updateVehicleDto[key]
         }
       }

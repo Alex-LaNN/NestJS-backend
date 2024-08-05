@@ -184,6 +184,23 @@ export class StarshipsService {
       // Update 'starship' properties based on data from 'updateStarshipDto'
       for (const key in updateStarshipDto) {
         if (updateStarshipDto.hasOwnProperty(key) && updateStarshipDto[key]) {
+          // Check if the starship name is being updated
+          if (updateStarshipDto.name) {
+            // Search for an existing starship with the new name
+            const existingStarship = await this.starshipsRepository.findOne({
+              where: {
+                name: updateStarshipDto.name,
+              },
+            })
+
+            // If a starship with this name exists and it's not the same starship we're updating
+            if (existingStarship && existingStarship.id !== starship.id) {
+              console.error(
+                `Starship '${updateStarshipDto.name}' already exists!`,
+              )
+              return null
+            }
+          }
           starship[key] = updateStarshipDto[key]
         }
       }

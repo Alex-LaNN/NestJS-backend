@@ -160,7 +160,22 @@ export class PeopleService {
     const person = await this.findOne(peopleId)
     // Prepare an object with updated data
     for (const key in updatePeopleDto) {
-      if (updatePeopleDto.hasOwnProperty(key) && updatePeopleDto[key]) { // найден кейс возможности изменения поля 'name' на уже существующее значение => 2 одинаковых по имени персонажа!!!       Надо исправить!!!
+      if (updatePeopleDto.hasOwnProperty(key) && updatePeopleDto[key]) {
+        // Check if the name is being updated
+        if (updatePeopleDto.name) {
+          // Search for an existing person with the new name
+          const existingPerson = await this.peopleRepository.findOne({
+            where: {
+              name: updatePeopleDto.name,
+            },
+          })
+
+          // If a person with this name exists and it's not the same person we're updating
+          if (existingPerson && existingPerson.id !== person.id) {
+            console.error(`People '${updatePeopleDto.name}' already exists!`)
+            return null
+          }
+        }
         person[key] = updatePeopleDto[key]
       }
     }
