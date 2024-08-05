@@ -1,7 +1,4 @@
-import {
-  ApiHideProperty,
-  ApiProperty,
-} from '@nestjs/swagger'
+import { ApiHideProperty, ApiProperty } from '@nestjs/swagger'
 import { Exclude } from 'class-transformer'
 import { IsArray, IsOptional, IsString } from 'class-validator'
 

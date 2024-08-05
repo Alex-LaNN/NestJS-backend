@@ -229,7 +229,7 @@ export class SeedDatabase {
         // Set the updated related data on the object
         setObjectField(object, relationName, typedUpdatedRelationData)
         // Get the original related data from the object
-        let relationDataForObject: string | string[] = object[relationName]
+        const relationDataForObject: string | string[] = object[relationName]
         // Initialize the related data field if it's missing or for 'images'
         if (relationName === 'images' || !relationDataForObject) {
           setObjectField(

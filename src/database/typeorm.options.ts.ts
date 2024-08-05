@@ -48,4 +48,3 @@ export class TypeOrmOptions implements TypeOrmOptionsFactory {
     return options
   }
 }
-

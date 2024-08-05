@@ -72,7 +72,7 @@ export class FilmsService {
       }
 
       // Create a new Film object
-      let newFilm: Film = new Film()
+      const newFilm: Film = new Film()
 
       // Get the last inserted ID
       const lastIdResult = await this.filmsRepository.query(

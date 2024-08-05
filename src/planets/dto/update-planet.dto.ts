@@ -1,5 +1,5 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreatePlanetDto } from './create-planet.dto';
+import { PartialType } from '@nestjs/swagger'
+import { CreatePlanetDto } from './create-planet.dto'
 
 /**
  * UpdatePlanetDto: DTO for updating a Planet entity

@@ -66,7 +66,7 @@ export class PeopleService {
     }
 
     // Create a new People entity
-    let newPeople = new People()
+    const newPeople = new People()
     // Get the last inserted ID
     const lastIdResult = await this.peopleRepository.query(
       'SELECT MAX(id) as maxId FROM people',
@@ -160,7 +160,7 @@ export class PeopleService {
     const person = await this.findOne(peopleId)
     // Prepare an object with updated data
     for (const key in updatePeopleDto) {
-      if (updatePeopleDto.hasOwnProperty(key) && updatePeopleDto[key]) {
+      if (updatePeopleDto.hasOwnProperty(key) && updatePeopleDto[key]) { // найден кейс возможности изменения поля 'name' на уже существующее значение => 2 одинаковых по имени персонажа!!!       Надо исправить!!!
         person[key] = updatePeopleDto[key]
       }
     }

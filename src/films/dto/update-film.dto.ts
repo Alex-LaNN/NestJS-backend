@@ -1,5 +1,5 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateFilmDto } from './create-film.dto';
+import { PartialType } from '@nestjs/swagger'
+import { CreateFilmDto } from './create-film.dto'
 
 /**
  * UpdateFilmDto: Data Transfer Object for updating an existing film

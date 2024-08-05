@@ -15,7 +15,6 @@ import { RegistrationUserDto } from 'src/auth/dto/registration-user.dto'
 @ValidatorConstraint({ name: 'match', async: false })
 @Injectable()
 export class MatchValidator implements ValidatorConstraintInterface {
-  
   /**
    * Validates if the provided value matches the value of another property on the DTO.
    *

@@ -36,12 +36,7 @@ import { UserService } from 'src/user/user.service'
       signOptions: { expiresIn: '21600s' }, // 6 hours...
     }),
   ],
-  providers: [
-    AuthService,
-    LocalStrategy,
-    JwtStrategy,
-    UserService,
-  ],
+  providers: [AuthService, LocalStrategy, JwtStrategy, UserService],
   controllers: [AuthController],
   exports: [AuthService],
 })

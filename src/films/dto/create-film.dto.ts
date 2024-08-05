@@ -1,6 +1,12 @@
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger'
 import { Exclude } from 'class-transformer'
-import { IsArray, IsISO8601, IsNumber, IsOptional, IsString } from 'class-validator'
+import {
+  IsArray,
+  IsISO8601,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator'
 
 /**
  * CreateFilmDto: Data Transfer Object for creating a new film
