@@ -157,9 +157,19 @@ describe('PeopleService', () => {
      * Test to verify that a new person can be created successfully.
      */
     it('should create a new person', async () => {
+      jest.spyOn(peopleRepository, 'findOne').mockResolvedValueOnce(null)
       jest.spyOn(peopleRepository, 'save').mockResolvedValue(newPeople)
+      jest.spyOn(peopleRepository, 'query').mockResolvedValue([{ maxId: 0 }])
+      jest.spyOn(peopleRepository, 'findOne').mockResolvedValueOnce(newPeople)
 
-      expect(await service.create(createPeopleDto)).toEqual(newPeople)
+      // Setting up mocks for related entities
+      jest.spyOn(filmRepository, 'findOne').mockResolvedValue(film)
+      jest.spyOn(speciesRepository, 'findOne').mockResolvedValue(species)
+      jest.spyOn(starshipRepository, 'findOne').mockResolvedValue(starship)
+      jest.spyOn(vehicleRepository, 'findOne').mockResolvedValue(vehicle)
+
+      const result = await service.create(createPeopleDto)
+      expect(result).toEqual(newPeople)
     })
 
     /**
@@ -309,11 +319,12 @@ describe('PeopleService', () => {
 
       await service['fillRelatedEntities'](newPeople, createPeopleDto)
 
+      expect(newPeople.homeworld).toBeDefined()
       expect(newPeople.homeworld).toEqual(planet)
-      expect(newPeople.films).toContain(film)
-      expect(newPeople.species).toContain(species)
-      expect(newPeople.starships).toContain(starship)
-      expect(newPeople.vehicles).toContain(vehicle)
+      expect(newPeople.films).toContainEqual(film)
+      expect(newPeople.species).toContainEqual(species)
+      expect(newPeople.starships).toContainEqual(starship)
+      expect(newPeople.vehicles).toContainEqual(vehicle)
     })
 
     /**

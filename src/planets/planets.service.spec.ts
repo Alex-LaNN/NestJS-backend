@@ -41,7 +41,6 @@ describe('PlanetsService', () => {
   let planetRepository: Repository<Planet>
   let peopleRepository: Repository<People>
   let filmRepository: Repository<Film>
-  let dataSource: DataSource
 
   /**
    * Setup for each test in the suite.
@@ -90,7 +89,6 @@ describe('PlanetsService', () => {
     peopleRepository = module.get<Repository<People>>(
       getRepositoryToken(People),
     )
-    dataSource = module.get<DataSource>(DataSource)
 
     // Mock implementation for paginate function
     jest
@@ -114,22 +112,28 @@ describe('PlanetsService', () => {
    * Test suite for the `create` method of PlanetsService.
    */
   describe('create', () => {
-    beforeEach(() => {
-      jest.spyOn(planetRepository, 'findOne').mockResolvedValue(null)
-    })
     /**
      * Test to verify that a new planet can be created successfully.
      */
     it('should create a new planet', async () => {
+      jest.spyOn(planetRepository, 'findOne').mockResolvedValueOnce(null)
       jest.spyOn(planetRepository, 'save').mockResolvedValue(newPlanet)
+      jest.spyOn(planetRepository, 'query').mockResolvedValue([{ maxId: 0 }])
+      jest.spyOn(planetRepository, 'findOne').mockResolvedValueOnce(newPlanet)
 
-      expect(await service.create(createPlanetDto)).toEqual(newPlanet)
+      // Setting up mocks for related entities
+      jest.spyOn(filmRepository, 'findOne').mockResolvedValue(film)
+      jest.spyOn(peopleRepository, 'findOne').mockResolvedValue(people)
+
+      const result = await service.create(createPlanetDto)
+      expect(result).toEqual(newPlanet)
     })
 
     /**
      * Test to verify that creating a planet with an existing name returns null.
      */
     it('should return null if a planet with the same name already exists', async () => {
+      jest.spyOn(planetRepository, 'findOne').mockResolvedValue(null)
       jest.spyOn(planetRepository, 'findOne').mockResolvedValue(existingPlanet)
 
       const consoleErrorSpy = jest

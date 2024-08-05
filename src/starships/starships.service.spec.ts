@@ -41,7 +41,6 @@ describe('StarshipsService', () => {
   let starshipRepository: Repository<Starship>
   let filmRepository: Repository<Film>
   let peopleRepository: Repository<People>
-  let dataSource: DataSource
 
   /**
    * Setup for each test in the suite.
@@ -90,7 +89,6 @@ describe('StarshipsService', () => {
     peopleRepository = module.get<Repository<People>>(
       getRepositoryToken(People),
     )
-    dataSource = module.get<DataSource>(DataSource)
 
     // Mock implementation for paginate function
     jest
@@ -114,23 +112,30 @@ describe('StarshipsService', () => {
    * Test suite for the `create` method of StarshisService.
    */
   describe('create', () => {
-    beforeEach(() => {
-      jest.spyOn(starshipRepository, 'findOne').mockResolvedValue(null)
-    })
     /**
      * Test to verify that a new starship can be created successfully.
      */
     it('should create a new starship', async () => {
-      //jest.spyOn(service, 'getNextIdForNewStarship').mockResolvedValue(1)
+      jest.spyOn(starshipRepository, 'findOne').mockResolvedValueOnce(null)
       jest.spyOn(starshipRepository, 'save').mockResolvedValue(newStarship)
+      jest.spyOn(starshipRepository, 'query').mockResolvedValue([{ maxId: 0 }])
+      jest
+        .spyOn(starshipRepository, 'findOne')
+        .mockResolvedValueOnce(newStarship)
 
-      expect(await service.create(createStarshipDto)).toEqual(newStarship)
+      // Setting up mocks for related entities
+      jest.spyOn(filmRepository, 'findOne').mockResolvedValue(film)
+      jest.spyOn(peopleRepository, 'findOne').mockResolvedValue(people)
+
+      const result = await service.create(createStarshipDto)
+      expect(result).toEqual(newStarship)
     })
 
     /**
      * Test to verify that creating a starship with an existing name returns null.
      */
     it('should return null if a starship with the same name already exists', async () => {
+      jest.spyOn(starshipRepository, 'findOne').mockResolvedValue(null)
       jest
         .spyOn(starshipRepository, 'findOne')
         .mockResolvedValue(existingStarship)

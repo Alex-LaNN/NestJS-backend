@@ -259,10 +259,12 @@ export class StarshipsService {
               return entity
             }),
           )
-          console.log(`starship.service:255 - entities:`, entities)
 
           // Filter out any null values (entities that weren't found)
           const validEntities = entities.filter((obj: null) => obj !== null)
+
+          // Filling in the starship property
+          starship[key] = validEntities
 
           // Use raw query to insert relations, ignoring duplicates
           if (validEntities.length > 0) {

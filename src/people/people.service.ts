@@ -225,6 +225,7 @@ export class PeopleService {
           const planet: Planet = await this.homeworldRepository.findOne({
             where: { url: urlToSearch },
           })
+          people[key] = planet
           await this.peopleRepository.query(
             `UPDATE people SET homeworldId = ? WHERE id = ?`,
             [planet.id, people.id],
@@ -241,6 +242,9 @@ export class PeopleService {
 
           // Filter out any null values (entities that weren't found)
           const validEntities = entities.filter((e: null) => e !== null)
+
+          // Filling in the people property
+          people[key] = validEntities
 
           // Use raw query to insert relations, ignoring duplicates
           if (validEntities.length > 0) {

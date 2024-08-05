@@ -44,7 +44,6 @@ describe('SpeciesService', () => {
   let peopleRepository: Repository<People>
   let filmRepository: Repository<Film>
   let planetRepository: Repository<Planet>
-  let dataSource: DataSource
 
   /**
    * Setup for each test in the suite.
@@ -102,7 +101,6 @@ describe('SpeciesService', () => {
     planetRepository = module.get<Repository<Planet>>(
       getRepositoryToken(Planet),
     )
-    dataSource = module.get<DataSource>(DataSource)
 
     // Mock implementation for paginate function
     jest
@@ -127,22 +125,29 @@ describe('SpeciesService', () => {
    * Test suite for the `create` method of SpeciesService.
    */
   describe('create', () => {
-    beforeEach(() => {
-      jest.spyOn(speciesRepository, 'findOne').mockResolvedValue(null)
-    })
     /**
      * Test to verify that a new species can be created successfully.
      */
     it('should create a new species', async () => {
+      jest.spyOn(speciesRepository, 'findOne').mockResolvedValueOnce(null)
       jest.spyOn(speciesRepository, 'save').mockResolvedValue(newSpecies)
+      jest.spyOn(speciesRepository, 'query').mockResolvedValue([{ maxId: 0 }])
+      jest.spyOn(speciesRepository, 'findOne').mockResolvedValueOnce(newSpecies)
 
-      expect(await service.create(createSpeciesDto)).toEqual(newSpecies)
+      // Setting up mocks for related entities
+      jest.spyOn(filmRepository, 'findOne').mockResolvedValue(film)
+      jest.spyOn(peopleRepository, 'findOne').mockResolvedValue(people)
+      jest.spyOn(planetRepository, 'findOne').mockResolvedValue(planet)
+
+      const result = await service.create(createSpeciesDto)
+      expect(result).toEqual(newSpecies)
     })
 
     /**
      * Test to verify that creating a species with an existing name throws an exception.
      */
     it('should return null if a species with the same name already exists', async () => {
+      jest.spyOn(speciesRepository, 'findOne').mockResolvedValue(null)
       jest
         .spyOn(speciesRepository, 'findOne')
         .mockResolvedValue(existingSpecies)

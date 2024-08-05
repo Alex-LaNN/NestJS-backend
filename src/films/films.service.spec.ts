@@ -50,7 +50,6 @@ describe('FilmsService', () => {
   let speciesRepository: Repository<Species>
   let starshipRepository: Repository<Starship>
   let vehicleRepository: Repository<Vehicle>
-  let dataSource: DataSource
 
   /**
    * Setup for each test in the suite.
@@ -132,7 +131,6 @@ describe('FilmsService', () => {
     vehicleRepository = module.get<Repository<Vehicle>>(
       getRepositoryToken(Vehicle),
     )
-    dataSource = module.get<DataSource>(DataSource)
 
     // Mock implementation for paginate function
     jest
@@ -166,9 +164,20 @@ describe('FilmsService', () => {
      * Test to verify that a new film can be created successfully.
      */
     it('should create a new film', async () => {
+      jest.spyOn(filmRepository, 'findOne').mockResolvedValueOnce(null)
       jest.spyOn(filmRepository, 'save').mockResolvedValue(newFilm)
+      jest.spyOn(filmRepository, 'query').mockResolvedValue([{ maxId: 0 }])
+      jest.spyOn(filmRepository, 'findOne').mockResolvedValueOnce(newFilm)
 
-      expect(await service.create(createFilmDto)).toEqual(newFilm)
+      // Setting up mocks for related entities
+      jest.spyOn(peopleRepository, 'findOne').mockResolvedValue(people)
+      jest.spyOn(planetRepository, 'findOne').mockResolvedValue(planet)
+      jest.spyOn(speciesRepository, 'findOne').mockResolvedValue(species)
+      jest.spyOn(starshipRepository, 'findOne').mockResolvedValue(starship)
+      jest.spyOn(vehicleRepository, 'findOne').mockResolvedValue(vehicle)
+
+      const result = await service.create(createFilmDto)
+      expect(result).toEqual(newFilm)
     })
 
     /**
@@ -318,11 +327,12 @@ describe('FilmsService', () => {
 
       await service['fillRelatedEntities'](newFilm, createFilmDto)
 
-      expect(newFilm.characters).toContain(people)
-      expect(newFilm.planets).toContain(planet)
-      expect(newFilm.species).toContain(species)
-      expect(newFilm.starships).toContain(starship)
-      expect(newFilm.vehicles).toContain(vehicle)
+      expect(newFilm.characters).toBeDefined()
+      expect(newFilm.characters).toContainEqual(people)
+      expect(newFilm.planets).toContainEqual(planet)
+      expect(newFilm.species).toContainEqual(species)
+      expect(newFilm.starships).toContainEqual(starship)
+      expect(newFilm.vehicles).toContainEqual(vehicle)
     })
 
     /**

@@ -41,7 +41,6 @@ describe('VehiclesService', () => {
   let vehicleRepository: Repository<Vehicle>
   let filmRepository: Repository<Film>
   let peopleRepository: Repository<People>
-  let dataSource: DataSource
 
   /**
    * Setup for each test in the suite.
@@ -90,7 +89,6 @@ describe('VehiclesService', () => {
     peopleRepository = module.get<Repository<People>>(
       getRepositoryToken(People),
     )
-    dataSource = module.get<DataSource>(DataSource)
 
     // Mock implementation for paginate function
     jest
@@ -114,23 +112,28 @@ describe('VehiclesService', () => {
    * Test suite for the `create` method of VehiclesService.
    */
   describe('create', () => {
-    beforeEach(() => {
-      jest.spyOn(vehicleRepository, 'findOne').mockResolvedValue(null)
-    })
     /**
      * Test to verify that a new vehicle can be created successfully.
      */
     it('should create a new vehicle', async () => {
-      //jest.spyOn(service, 'getNextIdForNewVehicle').mockResolvedValue(1)
+      jest.spyOn(vehicleRepository, 'findOne').mockResolvedValueOnce(null)
       jest.spyOn(vehicleRepository, 'save').mockResolvedValue(newVehicle)
+      jest.spyOn(vehicleRepository, 'query').mockResolvedValue([{ maxId: 0 }])
+      jest.spyOn(vehicleRepository, 'findOne').mockResolvedValueOnce(newVehicle)
 
-      expect(await service.create(createVehicleDto)).toEqual(newVehicle)
+      // Setting up mocks for related entities
+      jest.spyOn(filmRepository, 'findOne').mockResolvedValue(film)
+      jest.spyOn(peopleRepository, 'findOne').mockResolvedValue(people)
+
+      const result = await service.create(createVehicleDto)
+      expect(result).toEqual(newVehicle)
     })
 
     /**
      * Test to verify that creating a vehicle with an existing name returns null.
      */
     it('should return null if a vehicle with the same name already exists', async () => {
+      jest.spyOn(vehicleRepository, 'findOne').mockResolvedValue(null)
       jest
         .spyOn(vehicleRepository, 'findOne')
         .mockResolvedValue(existingVehicle)

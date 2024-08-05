@@ -256,6 +256,9 @@ export class VehiclesService {
           // Filter out any null values (entities that weren't found)
           const validEntities = entities.filter((obj: null) => obj !== null)
 
+          // Filling in the vehicle property
+          vehicle[key] = validEntities
+
           // Use raw query to insert relations, ignoring duplicates
           if (validEntities.length > 0) {
             tableName = key === 'pilots' ? 'people_vehicles' : `${key}_vehicles`

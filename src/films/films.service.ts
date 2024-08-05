@@ -115,8 +115,9 @@ export class FilmsService {
 
       return updatedFilm
     } catch (error) {
-      console.error('Error creating film:', error)
-      throw new Error(`Failed to create film: ${error.message}`)
+      //console.error('Error creating film:', error)
+      throw getResponceOfException(error)
+      //throw new Error(`Failed to create film: ${error.message}`)
     }
   }
 
@@ -263,6 +264,9 @@ export class FilmsService {
 
           // Filter out any null values (entities that weren't found)
           const validEntities = entities.filter((obj: null) => obj !== null)
+
+          // Filling in the film property
+          film[key] = validEntities
 
           // Use raw query to insert relations, ignoring duplicates
           if (validEntities.length > 0) {

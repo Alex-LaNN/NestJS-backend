@@ -268,6 +268,7 @@ export class SpeciesService {
           const planet: Planet = await this.planetsRepository.findOne({
             where: { url: urlToSearch },
           })
+          species[key] = planet
           await this.speciesRepository.query(
             `UPDATE species SET homeworldId = ? WHERE id = ?`,
             [planet.id, species.id],
@@ -284,6 +285,9 @@ export class SpeciesService {
 
           // Filter out any null values (entities that weren't found)
           const validEntities = entities.filter((e: null) => e !== null)
+
+          // Filling in the species property
+          species[key] = validEntities
 
           // Use raw query to insert relations, ignoring duplicates
           if (validEntities.length > 0) {

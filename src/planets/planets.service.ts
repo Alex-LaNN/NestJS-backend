@@ -246,6 +246,9 @@ export class PlanetsService {
           // Filter out any null values (entities that weren't found)
           const validEntities = entities.filter((obj: null) => obj !== null)
 
+          // Filling in the planet property
+          planet[key] = validEntities
+
           // Use raw query to insert relations, ignoring duplicates
           if (validEntities.length > 0) {
             tableName =
