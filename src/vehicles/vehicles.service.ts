@@ -12,10 +12,7 @@ import {
   paginate,
 } from 'nestjs-typeorm-paginate'
 import { localUrl, relatedEntitiesMap } from 'src/shared/constants'
-import {
-  extractIdFromUrl,
-  getResponceOfException,
-} from 'src/shared/common.functions'
+import { getResponceOfException } from 'src/shared/common.functions'
 
 /**
  * VehiclesService
@@ -40,15 +37,17 @@ export class VehiclesService {
   }
 
   /**
-   * Create a new vehicle
+   * Creates a new Vehicle entity and populates its related entities.
    *
-   * This method creates a new vehicle entity in the database. It checks for existing
-   * vehicles with the same name, returns null if such a starship exists, and otherwise
-   * creates a new `Vehicle` instance, populates its properties from the `CreateVehicleDto`,
-   * fills related entities (`pilots`, `films`), and saves the new vehicle to the repository.
+   * This method checks if a vehicle with the same name already exists. If not,
+   * it creates a new Vehicle entity, sets its properties from the provided DTO,
+   * and saves it to the database. It then populates related entities and
+   * updates the vehicle's URL if necessary.
    *
-   * @param createVehicleDto Data Transfer Object containing vehicle creation data.
-   * @returns The newly created Vehicle entity.
+   * @param createVehicleDto - The DTO containing data for creating the vehicle.
+   * @returns A promise that resolves with the created and fully populated Vehicle entity,
+   * or null if a vehicle with the same name already exists.
+   * @throws An error if the operation fails.
    */
   async create(createVehicleDto: CreateVehicleDto) {
     try {
@@ -209,17 +208,16 @@ export class VehiclesService {
   }
 
   /**
-   * Fill related entities for a vehicle
+   * Populates and inserts related entities for the provided Vehicle entity.
    *
-   * This private helper method fills the related entities (`pilots`, `films`) for a given
-   * vehicle entity. It iterates over the `relatedEntities` array, checks if the corresponding
-   * property in the `newVehicleDto` is not empty, and then fetches the related entities
-   * (People or Films) from the respective repositories based on their URLs.
+   * This method iterates over related entities, finds the corresponding entities in the database,
+   * filters out null values, and uses a raw query to insert the relationships into the relevant table,
+   * ignoring duplicates.
    *
-   * @param entity The Vehicle entity to update related entities for.
-   * @param newVehicleDto The CreateVehicleDto or UpdateVehicleDto containing related entity URLs.
-   * @returns A Promise that resolves when all related entities have been filled.
-   * @throws HttpException - Error if any related entity cannot be found or any other error occurs.
+   * @param vehicle - The Vehicle entity to populate related entities for.
+   * @param vehicleDto - The DTO containing data for creating or updating the vehicle.
+   * @returns A promise that resolves when the related entities have been populated and inserted.
+   * @throws An error if the operation fails.
    */
   private async fillRelatedEntities(
     vehicle: Vehicle,

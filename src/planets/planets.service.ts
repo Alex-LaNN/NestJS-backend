@@ -38,18 +38,15 @@ export class PlanetsService {
   }
 
   /**
-   * Creates a new planet
+   * Creates a new planet entity.
    *
-   * This method creates a new planet entity. It checks for existing planets
-   * with the same name before creating. It iterates through the properties of
-   * the `CreatePlanetDto` and assigns them to the new planet object, except for
-   * related entities (residents and films) which are initialized as empty arrays.
-   * Then, it calls `fillRelatedEntities` to populate the related entities based
-   * on the data in `CreatePlanetDto`. Finally, it saves the new planet to the database.
+   * This method creates a new planet in the database. It first checks if a planet with the same name already exists.
+   * If not, it creates a new planet, assigns it a URL, populates its properties from the DTO, and saves it to the database.
+   * It also handles filling in related entities and updating the URL if necessary.
    *
-   * @param createPlanetDto (CreatePlanetDto) The data to create the new planet.
-   * @returns Promise<Planet> A promise that resolves to the created Planet entity.
-   * @throws HttpException Throws an exception if a planet with the same name already exists.
+   * @param createPlanetDto - The DTO containing data for creating the planet.
+   * @returns The newly created planet entity, including its related entities.
+   * @throws An error if the operation fails.
    */
   async create(createPlanetDto: CreatePlanetDto): Promise<Planet> {
     try {
@@ -205,20 +202,14 @@ export class PlanetsService {
   }
 
   /**
-   * Fills related entities (residents and films) for a planet
+   * Fills related entities for a planet.
    *
-   * This private helper method is used to populate the related entities (residents and films)
-   * for a planet object. It iterates through the `relatedEntities` array to identify related entity
-   * properties. For each related entity property with data in the `newPlanetDto`, it uses a nested
-   * `Promise.all` to:
-   *   1. Map over each element in the related entity array from the DTO.
-   *   2. For each element (URL), find the corresponding entity from the appropriate repository
-   *      (based on the `key`) using `findOne` with a filter on the `url` property.
-   *   3. The resolved entities are assigned back to the corresponding related entity property in the `newPlanet` object.
+   * This method populates the related entities for a given planet by fetching the related entities from the database
+   * and inserting the relationships into the appropriate table. If any related entity is not found, it is ignored.
    *
-   * @param newPlanet (Planet) The planet object to populate related entities for.
-   * @param newPlanetDto (CreatePlanetDto | UpdatePlanetDto) The DTO containing data for the planet and its related entities.
-   * @throws HttpException Throws an exception if an error occurs during retrieval of related entities.
+   * @param planet - The planet entity to which related entities are to be added.
+   * @param planetDto - The DTO containing data for creating or updating the planet.
+   * @throws An error if the operation fails.
    */
   private async fillRelatedEntities(
     planet: Planet,
@@ -242,7 +233,8 @@ export class PlanetsService {
 
           // Use raw query to insert relations, ignoring duplicates
           if (validEntities.length > 0) {
-            tableName = key === 'residents' ? `people_planets` : `${key}_planets`
+            tableName =
+              key === 'residents' ? `people_planets` : `${key}_planets`
             firstParameter = key === 'residents' ? `peopleId` : `${key}Id`
 
             const values = validEntities

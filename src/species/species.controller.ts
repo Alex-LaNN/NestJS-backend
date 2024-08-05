@@ -13,7 +13,13 @@ import {
 import { SpeciesService } from './species.service'
 import { CreateSpeciesDto } from './dto/create-species.dto'
 import { UpdateSpeciesDto } from './dto/update-species.dto'
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger'
 import { Species } from 'src/species/entities/species.entity'
 import { Pagination } from 'nestjs-typeorm-paginate'
 import { limitCount } from 'src/shared/constants'

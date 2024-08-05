@@ -11,10 +11,7 @@ import {
   Pagination,
   paginate,
 } from 'nestjs-typeorm-paginate'
-import {
-  extractIdFromUrl,
-  getResponceOfException,
-} from 'src/shared/common.functions'
+import { getResponceOfException } from 'src/shared/common.functions'
 import { localUrl, relatedEntitiesMap } from 'src/shared/constants'
 
 /**
@@ -49,14 +46,13 @@ export class StarshipsService {
   }
 
   /**
-   * Creates a new starship and saves it to the database.
+   * Creates a new Starship entity.
    *
-   * This method checks if a starship with the given name already exists. If not, it creates a new starship,
-   * sets its properties, saves it to the database, updates its URL if necessary, fills related entities,
-   * and finally returns the updated starship.
+   * This method handles the creation of a new Starship entity, including checking for existing entities
+   * with the same name, setting the URL, populating properties from the DTO, and filling related entities.
    *
-   * @param createStarshipDto - The DTO containing data for the new starship.
-   * @returns The saved starship with all related entities populated, or null if a starship with the same name already exists.
+   * @param createStarshipDto - The DTO containing data for creating the starship.
+   * @returns The created Starship entity with all related entities populated, or null if a starship with the same name already exists.
    * @throws An error if the operation fails.
    */
   async create(createStarshipDto: CreateStarshipDto) {
@@ -219,22 +215,16 @@ export class StarshipsService {
   }
 
   /**
-   * Fills related entities for a new or updated Starship record
+   * Fills related entities for a given Starship.
    *
-   * This private helper method handles populating related entities for a Starship
-   * record when creating a new record or updating an existing one. It iterates
-   * through the `relatedEntities` array, which defines the related entity names
-   * (e.g., 'pilots', 'films').
+   * This method populates the related entities for a Starship entity based on the provided DTO.
+   * It finds the corresponding related entities in the database, filters out any null values,
+   * and inserts the relationships into the appropriate join tables using raw SQL queries.
    *
-   * For each related entity, it iterates through the array of URLs provided
-   * in `newStarshipDto` for that specific entity key. For each URL, it finds the
-   * corresponding entity from the repository and adds it to the Starship's
-   * related entity array.
-   *
-   * @param starship - Starship entity to fill related entities for
-   * @param newStarshipDto - Data transfer object containing Starship creation or update data
-   * @returns Promise<void> - Promise resolving to `void` upon successful completion
-   * @throws HttpException - Error if any related entity cannot be found or any other error occurs
+   * @param starship - The Starship entity to populate related entities for.
+   * @param starshipDto - The DTO containing data for creating or updating the starship, including related entities.
+   * @returns A promise that resolves when the related entities have been populated.
+   * @throws An error if the operation fails.
    */
   private async fillRelatedEntities(
     starship: Starship,
@@ -260,12 +250,12 @@ export class StarshipsService {
           // Use raw query to insert relations, ignoring duplicates
           if (validEntities.length > 0) {
             if (key === 'pilots') {
-            tableName = `people_starships`
-            firstParameter = `peopleId`
+              tableName = `people_starships`
+              firstParameter = `peopleId`
             } else {
               tableName = `${key}_starships`
               firstParameter = `${key}Id`
-          }
+            }
 
             const values = validEntities
               .map((entity: { id: number }) => `(${entity.id}, ${starship.id})`)

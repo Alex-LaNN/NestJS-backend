@@ -45,18 +45,15 @@ export class PeopleService {
   }
 
   /**
-   * Creates a new "people" resource
+   * Creates a new people entity and populates related entities.
    *
-   * This method creates a new "people" resource by accepting a `CreatePeopleDto` object.
-   * It checks for existing characters with the same name before creating the new entry.
-   * It then iterates through the DTO properties, populating the corresponding fields in the
-   * `People` entity and handling related entities (films, starships, planets, species,
-   * vehicles) by calling the `fillRelatedEntities` method. Finally, it saves the new
-   * "people" resource to the database.
+   * This method handles the creation of a new people entity, including checking for duplicates, populating properties
+   * from the provided DTO, and filling in related entities. It also handles updating the URL if the predicted ID
+   * does not match the actual ID.
    *
-   * @param createPeopleDto A DTO object containing data for the new "people" resource
-   * @returns A Promise resolving to the newly created `People` entity object,
-   *          or `null` if a character with the same name already exists.
+   * @param createPeopleDto - The DTO containing data for creating the people entity.
+   * @returns A promise that resolves to the newly created and updated people entity.
+   * @throws An error if the operation fails.
    */
   async create(createPeopleDto: CreatePeopleDto): Promise<People> {
     // Check for existing character with the same name
@@ -189,20 +186,15 @@ export class PeopleService {
   }
 
   /**
-   * Fills related entities for a "people" resource
+   * Populates related entities for a given people entity.
    *
-   * This private helper method handles updates for related entities (films, starships, planets,
-   * species, vehicles) associated with a "people" resource.
-   * It iterates through the `relatedEntities` array and checks for updates in the
-   * corresponding fields of the `updatePeopleDto` object. For the "homeworld" entity,
-   * it constructs a URL based on `localUrl` and searches for the planet by URL.
-   * For other related entities (films, starships, vehicles), it uses a Promise.all to fetch
-   * all related entities based on their URLs provided in the `updatePeopleDto`.
-   * Finally, it updates the corresponding fields in the `newPeople` object.
+   * This method handles the population of related entities for a given people entity based on the provided DTO.
+   * It updates the homeworld if specified and handles other related entities by inserting relations into the database.
    *
-   * @param newPeople The "People" entity object to update related entities for
-   * @param newPersonDto A DTO object containing update data (including related entities)
-   * @returns A Promise resolving to `void`
+   * @param people - The People entity to populate related entities for.
+   * @param peopleDto - The DTO containing data for creating or updating the people entity.
+   * @returns A promise that resolves when related entities are populated.
+   * @throws An error if the operation fails.
    */
   private async fillRelatedEntities(
     people: People,
@@ -212,6 +204,7 @@ export class PeopleService {
     let secondParameter: string
     try {
       for (const key of this.relatedEntities) {
+        // Handle homeworld relationship
         if (key === 'homeworld' && peopleDto.homeworld) {
           const urlToSearch: string = `${localUrl}planets/${peopleDto.homeworld}/`
           const planet: Planet = await this.homeworldRepository.findOne({
@@ -222,6 +215,7 @@ export class PeopleService {
             [planet.id, people.id],
           )
         } else if (peopleDto[key]) {
+          // Handle other related entities
           const entities = await Promise.all(
             peopleDto[key].map(async (url: string) => {
               const repository = this.getRepositoryForKey(key)
@@ -251,32 +245,6 @@ export class PeopleService {
       throw new Error(error)
     }
   }
-  // private async fillRelatedEntities(
-  //   newPeople: People,
-  //   newPersonDto: CreatePeopleDto | UpdatePeopleDto,
-  // ): Promise<void> {
-  //   await Promise.all(
-  //     this.relatedEntities.map(async (key) => {
-  //       if (key === 'homeworld' && newPersonDto.homeworld) {
-  //         const urlToSearch: string = `${localUrl}planets/${newPersonDto.homeworld}/`
-  //         const planet: Planet = await this.homeworldRepository.findOne({
-  //           where: { url: urlToSearch },
-  //         })
-  //         newPeople.homeworld = planet
-  //       } else if (newPersonDto[key]) {
-  //         newPeople[key] = await Promise.all(
-  //           newPersonDto[key].map(async (elem: string) => {
-  //             const repository = this.getRepositoryForKey(key)
-  //             const entity = await repository.findOne({
-  //               where: { url: elem },
-  //             })
-  //             return entity
-  //           }),
-  //         )
-  //       }
-  //     }),
-  //   )
-  // }
 
   /**
    * Retrieves the appropriate repository based on the given key.

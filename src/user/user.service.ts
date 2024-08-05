@@ -63,7 +63,7 @@ export class UserService {
     const hashedPassword: string = await hashPassword(createUserDto.password)
     // Extract user data from 'createUserDto', excluding the 'password' field
     const { password, ...newUserData } = createUserDto
-    // Set the user's role to 'Admin' .....
+    // Set the user's role
     newUserData.roles = createUserDto.roles || UserRoles.User
     // Create a new user object
     const newUser: User = this.usersRepository.create({

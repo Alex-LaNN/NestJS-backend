@@ -29,8 +29,8 @@ import { FileInterceptor } from '@nestjs/platform-express'
  */
 @Controller('images')
 @ApiTags('images')
-@ApiBearerAuth()
 @UseGuards(AdminGuard)
+@ApiBearerAuth()
 export class ImagesController {
   constructor(private readonly imagesService: ImagesService) {}
 

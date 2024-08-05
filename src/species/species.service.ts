@@ -56,16 +56,14 @@ export class SpeciesService {
   }
 
   /**
-   * Creates a new Species record
+   * Creates a new Species entity and saves it to the database.
    *
-   * This method creates a new Species entity in the database based on the provided data
-   * in the `createSpeciesDto` parameter. It checks for existing Species with the same
-   * name, throws an error if such a species exists, and otherwise creates a new Species
-   * object, populates its properties, and saves it to the database.
+   * This method checks if a species with the same name already exists. If not, it creates a new species,
+   * populates its properties from the provided DTO, saves it to the database, and updates related entities.
    *
-   * @param createSpeciesDto - Data transfer object containing Species creation data
-   * @returns Promise<Species> - Promise resolving to the created Species entity
-   * @throws HttpException - Error with code HttpStatus.FORBIDDEN if Species with the same name exists
+   * @param createSpeciesDto - The DTO containing data for creating the species.
+   * @returns A promise that resolves with the created species, or null if a species with the same name already exists.
+   * @throws An error if the operation fails.
    */
   async create(createSpeciesDto: CreateSpeciesDto): Promise<Species> {
     try {
@@ -228,24 +226,16 @@ export class SpeciesService {
   }
 
   /**
-   * Fills related entities for a new or updated Species record
+   * Fills related entities for the given species entity.
    *
-   * This private helper method handles populating related entities for a Species
-   * record when creating a new record or updating an existing one. It iterates
-   * through the `relatedEntities` array, which defines the related entity names
-   * (e.g., 'homeworld', 'residents', 'films').
+   * This method populates related entities for the given species entity, such as homeworld and other related data.
+   * It updates the species entity with references to the related entities and inserts the relations into the database,
+   * ignoring any duplicates.
    *
-   * - For the 'homeworld' entity, it constructs a URL based on `localUrl` and the
-   *   provided URL in `newSpeciesDto`. It then finds the corresponding Planet entity
-   *   based on the URL and assigns it to the `homeworld` property of the Species object.
-   * - For other related entities, it iterates through the array of URLs provided
-   *   in `newSpeciesDto` for that specific entity key. For each URL, it finds the
-   *   corresponding entity using the appropriate repository and assigns it to the
-   *   corresponding array property within the Species object (e.g., `residents`, `films`).
-   *
-   * @param species - Species entity object
-   * @param newSpeciesDto - Data transfer object containing Species creation or update data
-   * @returns Promise<void> - Promise resolving to `void` after populating related entities
+   * @param species - The species entity to which related entities are to be added.
+   * @param speciesDto - The DTO containing data for creating or updating the species entity.
+   * @returns A promise that resolves when the related entities are successfully filled.
+   * @throws An error if the operation fails.
    */
   private async fillRelatedEntities(
     species: Species,
@@ -256,6 +246,7 @@ export class SpeciesService {
     try {
       for (const key of this.relatedEntities) {
         if (key === 'homeworld' && speciesDto.homeworld) {
+          // Handle the homeworld separately
           const urlToSearch: string = `${localUrl}planets/${speciesDto.homeworld}/`
           const planet: Planet = await this.planetsRepository.findOne({
             where: { url: urlToSearch },
@@ -265,6 +256,7 @@ export class SpeciesService {
             [planet.id, species.id],
           )
         } else if (speciesDto[key]) {
+          // Handle other related entities
           const entities = await Promise.all(
             speciesDto[key].map(async (url: string) => {
               const repository = this.getRepositoryByKey(key)
