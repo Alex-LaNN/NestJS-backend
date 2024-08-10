@@ -26,7 +26,6 @@ import { Planet } from 'src/planets/entities/planet.entity'
 describe('SpeciesController', () => {
   let controller: SpeciesController
   let service: SpeciesService
-  let dataSource: DataSource
 
   /**
    * Setup for each test in the suite.
@@ -71,7 +70,6 @@ describe('SpeciesController', () => {
 
     controller = module.get<SpeciesController>(SpeciesController)
     service = module.get<SpeciesService>(SpeciesService)
-    dataSource = module.get<DataSource>(DataSource)
   })
 
   /**

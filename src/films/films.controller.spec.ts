@@ -29,7 +29,6 @@ import {
 describe('FilmsController', () => {
   let controller: FilmsController
   let service: FilmsService
-  let dataSource: DataSource
 
   /**
    * Setup for each test in the suite.
@@ -88,7 +87,6 @@ describe('FilmsController', () => {
 
     controller = module.get<FilmsController>(FilmsController)
     service = module.get<FilmsService>(FilmsService)
-    dataSource = module.get<DataSource>(DataSource)
   })
 
   /**

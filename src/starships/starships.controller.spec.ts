@@ -26,7 +26,6 @@ import {
 describe('StarshipsController', () => {
   let controller: StarshipsController
   let service: StarshipsService
-  let dataSource: DataSource
 
   /**
    * Setup for each test in the suite.
@@ -73,7 +72,6 @@ describe('StarshipsController', () => {
 
     controller = module.get<StarshipsController>(StarshipsController)
     service = module.get<StarshipsService>(StarshipsService)
-    dataSource = module.get<DataSource>(DataSource)
   })
 
   /**
