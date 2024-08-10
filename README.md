@@ -102,4 +102,4 @@ This project is open source and available under the MIT license. If you have any
 
 * Author - [Alex-LaNN](https://alex-lann.github.io/)
 * My Telegram - https://t.me/Alex_LaNN
-* Email - alex75klg@gmailcom
+* Email - alex75klg@gmail.com
