@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/conf:/etc/nginx/conf.d
+      - ./docker/nginx/html:/usr/share/nginx/html
+      - ./docker/certbot/conf:/etc/letsencrypt
+    networks:
+      - my_network
+    depends_on:
+      - app
+
+  mysql:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASS}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+    ports:
+      - "${DB_PORT}:3306"
+    volumes:
+      - ./docker/mysql/data:/var/lib/mysql
+    networks:
+      - my_network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /usr/src/app                # Рабочая директория внутри контейнера
+    volumes:
+      - ./:/usr/src/app                      # Монтируем текущую директорию в /usr/src/app
+    environment:
+      PORT: ${APP_PORT}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      DB_NAME: ${DB_NAME}
+      NODE_ENV: production                   # Приложение будет работать в production режиме
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
+    networks:
+      - my_network
+    depends_on:
+      - mysql
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./docker/certbot/conf:/etc/letsencrypt
+      - ./docker/nginx/html:/usr/share/nginx/html
+    networks:
+      - my_network
+
+networks:
+  my_network:
+    driver: bridge

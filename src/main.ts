@@ -44,7 +44,7 @@ async function bootstrap() {
   // Enable CORS (Cross-Origin Resource Sharing)
   app.enableCors()
   // Start listening on the specified port
-  await app.listen(configService.get('port'))
-  console.log(`Application is running on: ${await app.getUrl()}`)
+  await app.listen(configService.get('port') || 3000, '0.0.0.0')
+  console.log(`Application is running on: ${await app.getUrl()}/api#`)
 }
 bootstrap()
