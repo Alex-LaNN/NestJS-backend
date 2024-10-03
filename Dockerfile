@@ -8,7 +8,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Install Dependencies
-RUN npm install --only=production
+RUN npm install
 
 # Copying the rest of the application code
 COPY . .
@@ -20,4 +20,4 @@ RUN npm run build
 EXPOSE 3000
 
 # Run command for production mode
-CMD ["npm", "run", "start:prod"]
+CMD ["npm", "run", "s"]

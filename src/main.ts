@@ -44,7 +44,12 @@ async function bootstrap() {
   // Enable CORS (Cross-Origin Resource Sharing)
   app.enableCors()
   // Start listening on the specified port
-  await app.listen(configService.get('port') || 3000, '0.0.0.0')
-  console.log(`Application is running on: ${await app.getUrl()}/api#`)
+  await app.listen(Number(process.env.APP_PORT) || 3000, '0.0.0.0')
+  const DOMAIN_NAME: string = process.env.DOMAIN_NAME
+  if (DOMAIN_NAME) {
+    console.log(`Application is running on: https:${DOMAIN_NAME}/api#`)
+  } else console.log(`Application is running on: ${await app.getUrl()}/api#`)
+
+  //console.log(`Application is running on: ${await app.getUrl()}/api#`)
 }
 bootstrap()

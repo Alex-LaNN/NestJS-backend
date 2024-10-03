@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   nginx:
+    container_name: swapi_nginx
     image: nginx:latest
     ports:
       - "80:80"
@@ -9,13 +10,15 @@ services:
     volumes:
       - ./docker/nginx/conf:/etc/nginx/conf.d
       - ./docker/nginx/html:/usr/share/nginx/html
-      - ./docker/certbot/conf:/etc/letsencrypt
+      - /etc/letsencrypt:/etc/letsencrypt
     networks:
-      - my_network
+      - swapi_network
     depends_on:
       - app
+    restart: always
 
   mysql:
+    container_name: swapi_mysql
     image: mysql:latest
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASS}
@@ -27,38 +30,28 @@ services:
     volumes:
       - ./docker/mysql/data:/var/lib/mysql
     networks:
-      - my_network
+      - swapi_network
+    restart: always
 
   app:
+    container_name: swapi_app
     build:
       context: .
       dockerfile: Dockerfile
-    working_dir: /usr/src/app                # Рабочая директория внутри контейнера
+    working_dir: /usr/src/app
     volumes:
-      - ./:/usr/src/app                      # Монтируем текущую директорию в /usr/src/app
-    environment:
-      PORT: ${APP_PORT}
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
-      DB_USER: ${DB_USER}
-      DB_PASS: ${DB_PASS}
-      DB_NAME: ${DB_NAME}
-      NODE_ENV: production                   # Приложение будет работать в production режиме
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules  # To avoid overwriting the folder with installed dependencies
+    env_file:
+      - .env
     ports:
       - "${APP_PORT}:${APP_PORT}"
     networks:
-      - my_network
+      - swapi_network
     depends_on:
       - mysql
-
-  certbot:
-    image: certbot/certbot
-    volumes:
-      - ./docker/certbot/conf:/etc/letsencrypt
-      - ./docker/nginx/html:/usr/share/nginx/html
-    networks:
-      - my_network
+    restart: always
 
 networks:
-  my_network:
+  swapi_network:
     driver: bridge

@@ -35,32 +35,15 @@ This project is a NestJS-based backend application for managing Star Wars data, 
 ## Installation
 
 ```bash
+# Clone the project from the repository
+$ git clone https://github.com/Alex-LaNN/NestJS-backend.git
+
+# Navigate into the project directory
+$ cd NestJS-backend
+
+# Install dependencies
 $ npm install
 ```
-
-## Running the app
-
-```bash
-# development
-$ npm run s
-
-# watch mode
-$ npm run s:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Test
-
-```bash
-# unit tests
-$ npm run test
-```
-
-## Swagger API Documentation
-
-The API documentation is available at /api once the application is running. It provides detailed information about the available endpoints and their usage.
 
 ## Configuration
 
@@ -94,6 +77,25 @@ JWT_SECRET=your_jwt_secret
 # For bcrypt password hashing.
 SALT_ROUNDS=you_salt_rounds
 ```
+
+## Running the app
+
+```bash
+# development
+$ npm run s
+```
+
+## Test
+
+```bash
+# unit tests
+$ npm run test
+```
+
+## Swagger API Documentation
+
+The API documentation is available at /api once the application is running. It provides detailed information about the available endpoints and their usage.
+
 ## Support
 
 This project is open source and available under the MIT license. If you have any questions or need support, feel free to open an issue on the [GitHub repository](https://github.com/Alex-LaNN/NestJS-backend/tree/master).

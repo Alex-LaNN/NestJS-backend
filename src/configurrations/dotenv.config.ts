@@ -4,6 +4,7 @@ import 'dotenv/config'
 export default () => ({
   host: process.env.APP_HOST,
   port: Number(process.env.APP_PORT),
+  domain: (process.env.DOMAIN_NAME),
   limitCount: Number(process.env.LIMIT_COUNT),
   saltRounds: Number(process.env.SALT_ROUNDS),
   dbType: process.env.DB_TYPE,
