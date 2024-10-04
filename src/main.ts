@@ -49,7 +49,5 @@ async function bootstrap() {
   if (DOMAIN_NAME) {
     console.log(`Application is running on: https:${DOMAIN_NAME}/api#`)
   } else console.log(`Application is running on: ${await app.getUrl()}/api#`)
-
-  //console.log(`Application is running on: ${await app.getUrl()}/api#`)
 }
 bootstrap()
