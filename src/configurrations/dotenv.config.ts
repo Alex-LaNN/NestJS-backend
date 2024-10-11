@@ -1,10 +1,13 @@
-import 'dotenv/config'
+const dotenvFlow = require('dotenv-flow')
+
+// Initialize 'dotenv-flow' to load the appropriate .env file
+dotenvFlow.config()
 
 // Retrieve configuration values from environment variables
 export default () => ({
   host: process.env.APP_HOST,
   port: Number(process.env.APP_PORT),
-  domain: (process.env.DOMAIN_NAME),
+  domain: process.env.DOMAIN_NAME,
   limitCount: Number(process.env.LIMIT_COUNT),
   saltRounds: Number(process.env.SALT_ROUNDS),
   dbType: process.env.DB_TYPE,

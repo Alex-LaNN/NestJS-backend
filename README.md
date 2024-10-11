@@ -47,7 +47,9 @@ $ npm install
 
 ## Configuration
 
-The application uses environment variables for configuration. You can create a .env file in the root directory with the following variables:
+The application uses environment variables for configuration. You can create `.env.development` and `.env.production` files in the root directory with the following variables:
+
+### .env.development
 
 ```TypeScript
 # Server parameters
@@ -78,11 +80,38 @@ JWT_SECRET=your_jwt_secret
 SALT_ROUNDS=you_salt_rounds
 ```
 
-## Running the app
+### .env.production
 
-```bash
-# development
-$ npm run s
+``` Typescript
+
+# Server parameters
+DOMAIN_NAME=your_domain_name
+APP_PORT=your_application_port
+
+# Maximum number of items to display per page.
+LIMIT_COUNT=your_limit_count
+
+# Database connection parameters
+DB_TYPE=mysql
+DB_HOST=mysql
+DB_PORT=3306
+DB_USER=your_database_username
+# Password to your database
+DB_PASS=your_database_password
+# Name of your database
+DB_NAME=your_database_name
+
+# Secret Key for JWT
+JWT_SECRET=your_jwt_secret
+
+# Number of rounds for bcrypt password hashing
+SALT_ROUNDS=you_salt_rounds
+
+# AWS S3 parameters
+AWS_ACCESS_KEY_ID=your_aws_access_key_id
+AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key
+AWS_S3_REGION=your_aws_region
+BUCKET_NAME=your_s3_bucket_name
 ```
 
 ## Test
@@ -90,6 +119,15 @@ $ npm run s
 ```bash
 # unit tests
 $ npm run test
+```
+
+## Running the app
+
+```bash
+# development
+$ npm run start:dev
+# production
+$ npm run start:prod
 ```
 
 ## Swagger API Documentation

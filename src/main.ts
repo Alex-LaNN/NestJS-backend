@@ -3,7 +3,6 @@ import { AppModule } from './app.module'
 import { ValidationPipe } from '@nestjs/common'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import * as packageJsone from '../package.json'
-import { ConfigService } from '@nestjs/config'
 import 'dotenv/config'
 import { TransformInterceptor } from './shared/Transform.interceptor'
 import { CustomExceptionFilter } from './shared/app.custom-exception.filter'
@@ -33,9 +32,6 @@ async function bootstrap() {
   // Mount Swagger at '/api' route
   SwaggerModule.setup('api', app, document)
 
-  // Get configuration service
-  const configService = app.get<ConfigService>(ConfigService)
-
   // Apply global middleware
   app.useGlobalPipes(new ValidationPipe())
   app.useGlobalInterceptors(new TransformInterceptor())
@@ -45,9 +41,9 @@ async function bootstrap() {
   app.enableCors()
   // Start listening on the specified port
   await app.listen(Number(process.env.APP_PORT) || 3000, '0.0.0.0')
-  const DOMAIN_NAME: string = process.env.DOMAIN_NAME
-  if (DOMAIN_NAME) {
-    console.log(`Application is running on: https:${DOMAIN_NAME}/api#`)
+  const HOST_NAME: string = process.env.HOSTNAME
+  if (HOST_NAME) {
+    console.log(`Application is running on: https:${HOST_NAME}/api#`)
   } else console.log(`Application is running on: ${await app.getUrl()}/api#`)
 }
 bootstrap()
