@@ -1,6 +1,9 @@
 #!/usr/bin/bash
 
-LOGFILE="deploy.log"
+# Get the absolute path to the current directory
+LOGDIR=$(pwd)
+
+LOGFILE="$LOGDIR/deploy.log"
 
 log() {
 echo "$(date '+%Y-%m-%d %H:%M:%S') - $*" | tee -a "$LOGFILE"
@@ -36,6 +39,18 @@ git clone https://github.com/Alex-LaNN/NestJS-backend.git | tee -a "$LOGFILE" ||
 
 log "Changing to project directory..."
 cd NestJS-backend || error_exit "Failed to change to project directory."
+
+# Move .env.production file to project directory
+log "Moving .env.production file to the project directory..."
+if [ -f "/home/ubuntu/.env.production" ]; then
+    mv /home/ubuntu/.env.production . | tee -a "$LOGFILE" || error_exit "Failed to move .env.production file to project directory."
+else
+    error_exit ".env.production not found in /home/ubuntu."
+fi
+
+# Set permissions for .env.production
+log "Setting permissions for .env.production..."
+sudo chmod 600 .env.production | tee -a "$LOGFILE" || error_exit "Failed to set permissions for .env.production."
 
 log "Starting Docker Compose..."
 sudo docker-compose up -d --build | tee -a "$LOGFILE" || error_exit "Failed to start Docker Compose."
