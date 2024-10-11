@@ -3,7 +3,10 @@
 # Get the absolute path to the current directory
 LOGDIR=$(pwd)
 
-LOGFILE="$LOGDIR/deploy.log"
+LOGFILE="$LOGDIR/start_deploy.log"
+
+# Clear the log file at the start of the script
+> "$LOGFILE"
 
 log() {
 echo "$(date '+%Y-%m-%d %H:%M:%S') - $*" | tee -a "$LOGFILE"
@@ -35,7 +38,11 @@ log "Installing Docker Compose..."
 sudo apt install -y docker-compose | tee -a "$LOGFILE" || error_exit "Failed to install Docker Compose."
 
 log "Cloning repository from GitHub..."
-git clone https://github.com/Alex-LaNN/NestJS-backend.git | tee -a "$LOGFILE" || error_exit "Failed to clone repository."
+if [ ! -d "NestJS-backend" ]; then
+    git clone https://github.com/Alex-LaNN/NestJS-backend.git | tee -a "$LOGFILE" || error_exit "Failed to clone repository."
+else
+    log "Repository 'NestJS-backend' already exists, skipping cloning."
+fi
 
 log "Changing to project directory..."
 cd NestJS-backend || error_exit "Failed to change to project directory."
@@ -45,7 +52,7 @@ log "Moving .env.production file to the project directory..."
 if [ -f "/home/ubuntu/.env.production" ]; then
     mv /home/ubuntu/.env.production . | tee -a "$LOGFILE" || error_exit "Failed to move .env.production file to project directory."
 else
-    error_exit ".env.production not found in /home/ubuntu."
+    log "WARNING: .env.production not found in /home/ubuntu, skipping move. Check for this file in project root."
 fi
 
 # Set permissions for .env.production
@@ -53,7 +60,7 @@ log "Setting permissions for .env.production..."
 sudo chmod 600 .env.production | tee -a "$LOGFILE" || error_exit "Failed to set permissions for .env.production."
 
 log "Starting Docker Compose..."
-sudo docker-compose up -d --build | tee -a "$LOGFILE" || error_exit "Failed to start Docker Compose."
+sudo -E APP_COMMAND=start:prod docker-compose --profile production up -d --build | tee -a "$LOGFILE" || error_exit "Failed to start Docker Compose."
 
 log "Checking running containers..."
 sudo docker ps | tee -a "$LOGFILE" || error_exit "Failed to check running containers."
