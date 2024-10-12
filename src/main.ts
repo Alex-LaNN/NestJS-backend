@@ -41,9 +41,9 @@ async function bootstrap() {
   app.enableCors()
   // Start listening on the specified port
   await app.listen(Number(process.env.APP_PORT) || 3000, '0.0.0.0')
-  const HOST_NAME: string = process.env.HOSTNAME
-  if (HOST_NAME) {
-    console.log(`Application is running on: https:${HOST_NAME}/api#`)
+  const hostName: string = process.env.DOMAIN_NAME
+  if (hostName) {
+    console.log(`Application is running on: https:${hostName}/api#`)
   } else console.log(`Application is running on: ${await app.getUrl()}/api#`)
 }
 bootstrap()

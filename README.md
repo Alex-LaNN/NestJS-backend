@@ -47,9 +47,9 @@ $ npm install
 
 ## Configuration
 
-The application uses environment variables for configuration. You can create `.env.development` and `.env.production` files in the root directory with the following variables:
+The application uses environment variables for configuration. You can create `.env` file in the root directory with the following variables:
 
-### .env.development
+### `.env` file for development
 
 ```TypeScript
 # Server parameters
@@ -80,7 +80,7 @@ JWT_SECRET=your_jwt_secret
 SALT_ROUNDS=you_salt_rounds
 ```
 
-### .env.production
+### `.env` file for production
 
 ``` Typescript
 
@@ -124,10 +124,7 @@ $ npm run test
 ## Running the app
 
 ```bash
-# development
-$ npm run start:dev
-# production
-$ npm run start:prod
+$ npm run s
 ```
 
 ## Swagger API Documentation

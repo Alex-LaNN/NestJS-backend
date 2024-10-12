@@ -1,6 +1,8 @@
+// import 'dotenv/config'
+
 const dotenvFlow = require('dotenv-flow')
 
-// Initialize 'dotenv-flow' to load the appropriate .env file
+// Initialize 'dotenv-flow' to load the appropriate .env file (When using 2 different .env files in a project for 'dev' and 'prod')
 dotenvFlow.config()
 
 // Retrieve configuration values from environment variables
