@@ -47,9 +47,9 @@ fi
 log "Changing to project directory..."
 cd NestJS-backend || error_exit "Failed to change to project directory."
 
-# Move .env.production file to project directory
-log "Moving .env.production file to the project directory..."
-if [ -f "/home/ubuntu/.env.production" ]; then
+# Move .env file to project directory
+log "Moving .env file to the project directory..."
+if [ -f "/home/ubuntu/.env" ]; then
     mv /home/ubuntu/.env.production . | tee -a "$LOGFILE" || error_exit "Failed to move .env.production file to project directory."
 else
     log "WARNING: .env.production not found in /home/ubuntu, skipping move. Check for this file in project root."
@@ -60,7 +60,7 @@ log "Setting permissions for .env.production..."
 sudo chmod 600 .env.production | tee -a "$LOGFILE" || error_exit "Failed to set permissions for .env.production."
 
 log "Starting Docker Compose..."
-sudo -E APP_COMMAND=start:prod docker-compose --profile production up -d --build | tee -a "$LOGFILE" || error_exit "Failed to start Docker Compose."
+sudo --preserve-env docker-compose --env-file .env.production -f docker-compose.production.yml up -d --build| tee -a "$LOGFILE" || error_exit "Failed to start Docker Compose."
 
 log "Checking running containers..."
 sudo docker ps | tee -a "$LOGFILE" || error_exit "Failed to check running containers."

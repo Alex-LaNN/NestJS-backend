@@ -34,6 +34,7 @@ services:
     restart: always
 
   app:
+    image: app:${BUILD_NUMBER}
     container_name: swapi_app
     build:
       context: .
@@ -42,6 +43,8 @@ services:
     volumes:
       - ./:/usr/src/app
       - /usr/src/app/node_modules
+    env_file:
+      - .env.production
     ports:
       - "${APP_PORT}:${APP_PORT}"
     networks:

@@ -114,14 +114,14 @@ AWS_S3_REGION=your_aws_region
 BUCKET_NAME=your_s3_bucket_name
 ```
 
-## Test
+## Testing the application locally
 
 ```bash
 # unit tests
 $ npm run test
 ```
 
-## Running the app
+## Running the application locally
 
 ```bash
 $ npm run s
