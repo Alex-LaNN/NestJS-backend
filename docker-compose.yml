@@ -38,10 +38,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    working_dir: /usr/src/app
+    working_dir: /usr/src
     volumes:
-      - ./:/usr/src/app
-      - /usr/src/app/node_modules
+      - ./:/usr/src/
+      - /usr/src/node_modules
     ports:
       - "${APP_PORT}:${APP_PORT}"
     networks:
