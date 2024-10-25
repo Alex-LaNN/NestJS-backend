@@ -39,9 +39,6 @@ services:
       context: .
       dockerfile: Dockerfile
     working_dir: /usr/src
-    volumes:
-      - ./:/usr/src/
-      - /usr/src/node_modules
     ports:
       - "${APP_PORT}:${APP_PORT}"
     networks:

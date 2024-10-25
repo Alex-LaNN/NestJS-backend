@@ -13,6 +13,9 @@ RUN npm install -g npm-check-updates @nestjs/cli && ncu -u && npm install
 # Copying the rest of the application code
 COPY . .
 
+# Copy the file with environment variables for production to the image
+COPY .env.production ./.env
+
 # Assembly of the project
 RUN npm run build
 
