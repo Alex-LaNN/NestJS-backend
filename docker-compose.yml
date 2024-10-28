@@ -34,6 +34,7 @@ services:
     restart: always
 
   app:
+    image: app:first_deploy
     container_name: swapi_app
     build:
       context: .

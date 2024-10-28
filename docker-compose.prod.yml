@@ -38,8 +38,10 @@ services:
     container_name: swapi_app
     build:
       context: .
-      dockerfile: Dockerfile
-    working_dir: /usr/src/app
+      dockerfile: Dockerfile.prod
+      environment:
+      - NODE_ENV=production
+    working_dir: /usr/src
     volumes:
       - ./:/usr/src
       - /usr/src/node_modules
