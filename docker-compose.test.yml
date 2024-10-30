@@ -17,18 +17,17 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    volumes:
-      - mysql-test-data:/var/lib/mysql
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     
   app-test:
     image: app:test
     container_name: swapi_app_test
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: /home/ubuntu/NestJS-backend
+      dockerfile: Dockerfile.test
       args:
         - NODE_ENV=test
+        - ENV_FILE=.env.production
     environment:
       - NODE_ENV=test
       - DB_HOST=mysql-test
@@ -44,10 +43,6 @@ services:
     depends_on:
       mysql-test:
         condition: service_healthy
-
-volumes:
-  mysql-test-data:
-    driver: local
 
 networks:
   swapi_network_test:
