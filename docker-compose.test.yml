@@ -36,6 +36,9 @@ services:
       - DB_NAME=%env.DB_NAME%_test
       - DB_USER=%env.DB_USER%
       - DB_PASS=%env.DB_PASS%
+    volumes:
+      - ./dist:/usr/src/dist
+      - ./node_modules:/usr/src/node_modules
     ports:
       - "3001:3000"
     networks:
