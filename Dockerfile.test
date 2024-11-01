@@ -10,7 +10,7 @@ ARG ENV_FILE
 
 # Копирование и установка зависимостей
 COPY package*.json ./
-RUN npm install
+RUN npm install --upgrade
 
 # Копирование всех файлов проекта
 COPY . .
