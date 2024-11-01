@@ -48,11 +48,6 @@ services:
     depends_on:
       mysql-test:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
 networks:
   swapi_network_test:
