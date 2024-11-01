@@ -21,8 +21,6 @@ COPY ${ENV_FILE} ./.env
 # Компиляция TypeScript в JavaScript
 RUN npm run build
 
-RUN ls -la dist/src || exit 1
-
 # Второй этап: создание финального образа
 FROM node:20-alpine
 
