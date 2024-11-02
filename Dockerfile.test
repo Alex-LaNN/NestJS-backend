@@ -37,4 +37,4 @@ COPY --from=builder /usr/src/.env ./
 EXPOSE 3000
 
 # Запуск приложения в режиме production
-CMD ["sh", "-c", "npm run test && tee test_results.txt"]
+CMD ["sh", "-c", "npm test 2>&1 | tee test_results.txt"]
