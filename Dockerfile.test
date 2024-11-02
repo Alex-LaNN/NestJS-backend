@@ -36,5 +36,7 @@ COPY --from=builder /usr/src/.env ./
 # Открытие порта для доступа к приложению
 EXPOSE 3000
 
+RUN ls -lart
+
 # Запуск приложения в режиме production
-CMD ["npm", "run", "start:prod"]
+CMD ["npm", "run", "test"]
