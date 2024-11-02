@@ -27,14 +27,20 @@ FROM node:20-alpine
 # Установка рабочей директории
 WORKDIR /usr/src
 
+# Установка глобальных зависимостей в финальном образе
+RUN npm install -g @nestjs/cli
+
 # Копирование файлов и директорий из предыдущего этапа
 COPY --from=builder /usr/src/dist ./dist
 COPY --from=builder /usr/src/node_modules ./node_modules
 COPY --from=builder /usr/src/package*.json ./
 COPY --from=builder /usr/src/.env ./
+COPY --from=builder /usr/src/test ./test
+COPY --from=builder /usr/src/jest.config.js ./
 
 # Открытие порта для доступа к приложению
 EXPOSE 3000
 
 # Запуск приложения в режиме production
-CMD ["sh", "-c", "npm test 2>&1 | tee test_results.txt"]
+#CMD ["sh", "-c", "npm test 2>&1 | tee test_results.txt"]
+CMD ["sh", "-c", "jest --forceExit 2>&1 | tee test_results.txt"]
