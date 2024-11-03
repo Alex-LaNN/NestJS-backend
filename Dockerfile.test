@@ -8,18 +8,11 @@ WORKDIR /usr/src
 ARG NODE_ENV
 ARG ENV_FILE
 
-# Копирование и установка зависимостей
-COPY package*.json ./
-RUN npm install
-
 # Копирование всех файлов проекта
 COPY . .
 
 # Копирование нужного .env-файла, зависящего от ENV_FILE
 COPY ${ENV_FILE} ./.env
-
-# Компиляция TypeScript в JavaScript
-RUN npm run build
 
 # Второй этап: создание финального образа
 FROM node:20-alpine
@@ -27,20 +20,12 @@ FROM node:20-alpine
 # Установка рабочей директории
 WORKDIR /usr/src
 
-# Установка глобальных зависимостей в финальном образе
-RUN npm install -g @nestjs/cli
+# Копирование всех файлов проекта для тестирования
+COPY --from=builder /usr/src ./
 
-# Копирование файлов и директорий из предыдущего этапа
-COPY --from=builder /usr/src/dist ./dist
-COPY --from=builder /usr/src/node_modules ./node_modules
-COPY --from=builder /usr/src/package*.json ./
-COPY --from=builder /usr/src/.env ./
-COPY --from=builder /usr/src/test ./test
-#COPY --from=builder /usr/src/jest.config.js ./
+# Копирование скрипта для тестов и делаем его исполняемым
+COPY run-tests.sh /usr/src/run-tests.sh
+RUN chmod +x /usr/src/run-tests.sh
 
-# Открытие порта для доступа к приложению
-EXPOSE 3000
-
-# Запуск тестирования приложения
-CMD ["sh", "-c", "npm run test 2>&1 | tee test_results.txt"]
-#CMD ["sh", "-c", "jest --forceExit 2>&1 | tee test_results.txt"]
+# Запуск скрипта тестирования
+CMD ["/usr/src/run-tests.sh"]
