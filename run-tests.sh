@@ -1,25 +1,25 @@
 #!/bin/sh
 
-# Переходим в рабочую директорию
+# Go to the working directory
 cd /usr/src
 
-# Очищаем node_modules если они есть
+# Cleaning node_modules if they exist
 rm -rf node_modules
 
-# Устанавливаем зависимости
+# Install Dependencies
 echo "Installing dependencies..."
 npm install
 
-# Выполняем сборку
+# Performing a build
 echo "Building the project..."
 npm run build
 
-# Запускаем тесты
+# Run tests
 echo "Running tests..."
 npm run test
 
-# Сохраняем статус выполнения тестов
+# Saving test execution status
 TEST_EXIT_CODE=$?
 
-# Выходим с кодом завершения тестов
+# Exit with test completion code
 exit $TEST_EXIT_CODE

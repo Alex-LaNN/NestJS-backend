@@ -43,7 +43,7 @@ async function bootstrap() {
   await app.listen(Number(process.env.APP_PORT) || 3000, '0.0.0.0')
   const hostName: string = process.env.DOMAIN_NAME
   if (hostName) {
-    console.log(`Application is running on: https:${hostName}/api#`)
-  } else console.log(`Application is running on: ${await app.getUrl()}/api#`)
+    console.log(`Application is running on: https:${hostName}/api`)
+  } else console.log(`Application is running on: ${await app.getUrl()}/api`)
 }
 bootstrap()

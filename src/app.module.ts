@@ -22,6 +22,7 @@ import { Planet } from './planets/entities/planet.entity'
 import { People } from './people/entities/people.entity'
 import { Film } from './films/entities/film.entity'
 import { Image } from './images/entities/image.entity'
+import { HealthModule } from './health/health.module'
 
 /**
  * AppModule
@@ -71,6 +72,7 @@ import { Image } from './images/entities/image.entity'
       Film,
       Image,
     ]),
+    HealthModule,
     // Database utilities
     DatabaseModule,
     // Feature modules
