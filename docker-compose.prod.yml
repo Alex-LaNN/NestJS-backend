@@ -58,7 +58,6 @@ services:
     working_dir: /usr/src
     volumes:
       - ./:/usr/src
-      - ./node_modules:/usr/src/node_modules
     ports:
       - "${APP_PORT}:${APP_PORT}"
     networks:
