@@ -4,7 +4,7 @@ FROM node:20-alpine AS builder
 # Установка рабочей директории
 WORKDIR /usr/src
 
-# Аргументы, которые будут переданы из docker-compose.yml
+# Аргументы, которые будут переданы из docker-compose.test.yml
 ARG NODE_ENV
 ARG ENV_FILE
 

@@ -8,7 +8,7 @@ WORKDIR /usr/src
 COPY package*.json ./
 
 # Install and update all Dependencies
-RUN npm install -g npm-check-updates @nestjs/cli && ncu -u && npm install
+RUN npm install
 
 # Copying the rest of the application code
 COPY . .

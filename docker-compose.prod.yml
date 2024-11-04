@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   nginx:
-    container_name: swapi_nginx
+    container_name: swapi_nginx:%env.BUILD_NUMBER%
     image: nginx:latest
     ports:
       - "8080:80"
@@ -18,15 +18,15 @@ services:
     restart: always
 
   mysql:
-    container_name: swapi_mysql
+    container_name: swapi_mysql:%env.BUILD_NUMBER%
     image: mysql:latest
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASS}
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASS}
+      - MYSQL_ROOT_PASSWORD=%env.DB_PASS%
+      - MYSQL_DATABASE=%env.DB_NAME%_test
+      - MYSQL_USER=%env.DB_USER%
+      - MYSQL_PASSWORD=%env.DB_PASS%
     ports:
-      - "${DB_PORT}:3306"
+      - "%env.DB_PORT%:3306"
     volumes:
       - ./docker/mysql/data:/var/lib/mysql
     networks:
@@ -34,19 +34,27 @@ services:
     restart: always
 
   app:
-    image: app:${BUILD_NUMBER}
+    image: app:%env.BUILD_NUMBER%
     container_name: swapi_app
     build:
       context: .
       dockerfile: Dockerfile.prod
-      environment:
+      args:
+        - NODE_ENV=production
+        - ENV_FILE=.env.production
+    environment:
       - NODE_ENV=production
+      - DB_HOST=%env.DB_HOST%
+      - DB_PORT=%env.DB_PORT%
+      - APP_PORT=%env.APP_PORT%
+      - DB_NAME=%env.DB_NAME%
+      - DB_USER=%env.DB_USER%
+      - DB_PASS=%env.DB_PASS%
     working_dir: /usr/src
     volumes:
       - ./:/usr/src
-      - /usr/src/node_modules
     ports:
-      - "${APP_PORT}:${APP_PORT}"
+      - "%env.APP_PORT%:%env.APP_PORT%"
     networks:
       - swapi_network
     depends_on:

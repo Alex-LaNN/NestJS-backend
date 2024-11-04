@@ -3,11 +3,15 @@ FROM node:20-alpine AS builder
 
 WORKDIR /usr/src
 
+# Аргументы, которые будут переданы из docker-compose.prod.yml
+ARG NODE_ENV
+ARG ENV_FILE
+
 COPY package*.json ./
 RUN npm ci
 
 COPY . .
-COPY .env.production ./.env
+COPY ${ENV_FILE} ./.env
 
 RUN npm run build
 
