@@ -37,9 +37,6 @@ services:
       timeout: 5s
       retries: 5
     restart: on-failure
-    restart_policy:
-      delay: 10s
-      max_attempts: 5
 
   app:
     container_name: swapi_app:${BUILD_NUMBER}
