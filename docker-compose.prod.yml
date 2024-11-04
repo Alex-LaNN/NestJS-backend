@@ -26,7 +26,7 @@ services:
       - MYSQL_USER=%env.DB_USER%
       - MYSQL_PASSWORD=%env.DB_PASS%
     ports:
-      - "%env.DB_PORT%:3306"
+      - "${DB_PORT}:3306"
     volumes:
       - ./docker/mysql/data:/var/lib/mysql
     networks:
@@ -54,7 +54,7 @@ services:
     volumes:
       - ./:/usr/src
     ports:
-      - "%env.APP_PORT%:%env.APP_PORT%"
+      - "${APP_PORT}:${APP_PORT}"
     networks:
       - swapi_network
     depends_on:
