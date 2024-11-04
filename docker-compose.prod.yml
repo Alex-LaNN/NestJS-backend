@@ -31,7 +31,15 @@ services:
       - ./docker/mysql/data:/var/lib/mysql
     networks:
       - swapi_network
-    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p${MYSQL_ROOT_PASSWORD} || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: on-failure
+    restart_policy:
+      delay: 10s
+      max_attempts: 5
 
   app:
     container_name: swapi_app:${BUILD_NUMBER}
