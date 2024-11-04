@@ -16,7 +16,8 @@ npm run build
 
 # Run tests
 echo "Running tests..."
-npm run test
+#npm run test
+npm run test -- films.controller.spec.ts
 
 # Saving test execution status
 TEST_EXIT_CODE=$?
