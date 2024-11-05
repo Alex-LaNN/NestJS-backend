@@ -40,7 +40,7 @@ services:
 
   app:
     container_name: swapi_app:${BUILD_NUMBER}
-    image: nestjs-backend_app:latest
+    image: app:latest
     build:
       context: .
       dockerfile: Dockerfile.prod

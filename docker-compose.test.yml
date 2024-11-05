@@ -3,7 +3,7 @@
 version: '3.8'
 services:
   mysql-test:
-    container_name: swapi_mysql_test
+    container_name: swapi_mysql_test:${BUILD_NUMBER}
     image: mysql:latest
     environment:
       - MYSQL_ROOT_PASSWORD=%env.DB_PASS%
@@ -22,8 +22,8 @@ services:
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     
   app-test:
+    container_name: swapi_app_test:${BUILD_NUMBER}
     image: app:test
-    container_name: swapi_app_test
     build:
       context: .
       dockerfile: Dockerfile.test

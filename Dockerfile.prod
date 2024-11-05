@@ -1,29 +1,32 @@
-# Dockerfile.prod
+# Начальный этап сборки
 FROM node:20-alpine AS builder
-
 WORKDIR /usr/src
 
-# Аргументы, которые будут переданы из docker-compose.prod.yml
+# Аргументы сборки
 ARG NODE_ENV
 ARG ENV_FILE
 
+# Копирование файлов проекта
 COPY package*.json ./
-RUN npm install
+COPY tsconfig*.json ./
+COPY src ./src
 
-COPY . .
+# Копирование env файла
 COPY ${ENV_FILE} ./.env
 
+# Установка зависимостей и сборка
+RUN npm ci
 RUN npm run build
 
+# Финальный этап
 FROM node:20-alpine
-
 WORKDIR /usr/src
 
+# Копирование собранного приложения
 COPY --from=builder /usr/src/dist ./dist
 COPY --from=builder /usr/src/node_modules ./node_modules
 COPY --from=builder /usr/src/package*.json ./
 COPY --from=builder /usr/src/.env ./
 
-EXPOSE 3000
-
+# Определение команды запуска
 CMD ["npm", "run", "start:prod"]

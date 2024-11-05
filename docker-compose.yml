@@ -34,8 +34,8 @@ services:
     restart: always
 
   app:
-    image: app:first_deploy
     container_name: swapi_app
+    image: app:first_deploy
     build:
       context: .
       dockerfile: Dockerfile

@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# Use for teamcity agent
+
 # Go to the working directory
 cd /usr/src
 
