@@ -15,7 +15,8 @@ COPY src ./src
 COPY ${ENV_FILE} ./.env
 
 # Установка зависимостей и сборка
-RUN npm ci
+RUN npm install
+RUN ls -lart
 RUN npm run build
 
 # Финальный этап
