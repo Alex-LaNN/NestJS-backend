@@ -43,7 +43,7 @@ services:
     image: app:latest
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.production
       args:
         - NODE_ENV=production
         - ENV_FILE=.env.production
