@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   nginx:
-    container_name: swapi_nginx:${BUILD_NUMBER}
+    container_name: swapi_nginx_${BUILD_NUMBER}
     image: nginx:latest
     ports:
       - "8080:80"
@@ -18,10 +18,10 @@ services:
     restart: always
 
   mysql:
-    container_name: swapi_mysql:${BUILD_NUMBER}
+    container_name: swapi_mysql_${BUILD_NUMBER}
     image: mysql:latest
     environment:
-      - MYSQL_ROOT_PASSWORD=${DB_PASS}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=${DB_NAME}
       - MYSQL_USER=${DB_USER}
       - MYSQL_PASSWORD=${DB_PASS}
@@ -39,7 +39,7 @@ services:
     restart: on-failure
 
   app:
-    container_name: swapi_app:${BUILD_NUMBER}
+    container_name: swapi_app_${BUILD_NUMBER}
     image: app:latest
     build:
       context: .
