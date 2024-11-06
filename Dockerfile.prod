@@ -1,41 +1,26 @@
-# Начальный этап сборки
-FROM node:20-alpine AS builder
+# Node.js image is used
+FROM node:20-alpine
+
+# Working directory inside the container
 WORKDIR /usr/src
 
-# Аргументы сборки
-ARG NODE_ENV
-ARG ENV_FILE
+# Copying package.json and package-lock.json to install dependencies
+COPY package*.json ./
 
-# # Копирование файлов проекта
-# COPY package*.json ./
-# COPY tsconfig*.json ./
-# COPY nest-cli.json ./
-# COPY src ./src
+# Install and update all Dependencies
+RUN npm install
 
-# Копирование всех файлов проекта
+# Copying the rest of the application code
 COPY . .
 
-# Копирование env файла
-COPY ${ENV_FILE} ./.env.production
+# Copy the file with environment variables for production to the image
+COPY .env.production ./.env.production
 
-# Установка зависимостей и сборка
-RUN npm install
-RUN pwd
-RUN ls -lart
+# Assembly of the project
 RUN npm run build
 
-# Финальный этап
-FROM node:20-alpine
-WORKDIR /usr/src
+# Specifying the port for the application to run
+EXPOSE 3000
 
-# Копирование собранного приложения
-COPY --from=builder /usr/src/dist ./dist
-COPY --from=builder /usr/src/node_modules ./node_modules
-COPY --from=builder /usr/src/package*.json ./
-COPY --from=builder /usr/src/.env.production ./
-
-RUN pwd
-RUN ls -lart
-
-# Определение команды запуска
+# Run command for production mode
 CMD ["npm", "run", "start:prod"]
