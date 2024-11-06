@@ -6,17 +6,21 @@ WORKDIR /usr/src
 ARG NODE_ENV
 ARG ENV_FILE
 
-# Копирование файлов проекта
-COPY package*.json ./
-COPY tsconfig*.json ./
-COPY nest-cli.json ./
-COPY src ./src
+# # Копирование файлов проекта
+# COPY package*.json ./
+# COPY tsconfig*.json ./
+# COPY nest-cli.json ./
+# COPY src ./src
+
+# Копирование всех файлов проекта
+COPY . .
 
 # Копирование env файла
 COPY ${ENV_FILE} ./.env.production
 
 # Установка зависимостей и сборка
 RUN npm install
+RUN pwd
 RUN ls -lart
 RUN npm run build
 
@@ -30,6 +34,7 @@ COPY --from=builder /usr/src/node_modules ./node_modules
 COPY --from=builder /usr/src/package*.json ./
 COPY --from=builder /usr/src/.env.production ./
 
+RUN pwd
 RUN ls -lart
 
 # Определение команды запуска
