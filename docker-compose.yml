@@ -15,7 +15,6 @@ services:
       - swapi_network
     depends_on:
       - app
-    restart: always
 
   mysql:
     container_name: swapi_mysql
@@ -34,7 +33,7 @@ services:
     restart: always
 
   app:
-    container_name: swapi_app
+    container_name: swapi_app_test
     image: app:first_deploy
     build:
       context: .
