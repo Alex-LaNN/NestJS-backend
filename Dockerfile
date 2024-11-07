@@ -13,8 +13,8 @@ RUN npm install
 # Copying the rest of the application code
 COPY . .
 
-# Copy the file with environment variables for production to the image
-COPY .env.production ./.env
+# Copy the file with environment variables for production to the image(for 1st - ./.env, next - ./.env.production)
+COPY .env.production ./.env.production
 
 # Assembly of the project
 RUN npm run build
@@ -23,4 +23,4 @@ RUN npm run build
 EXPOSE 3000
 
 # Run command for production mode
-CMD ["npm", "run", "s"]
+CMD ["npm", "run", "start:prod"]
