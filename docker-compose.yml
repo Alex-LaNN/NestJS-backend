@@ -33,7 +33,7 @@ services:
     restart: always
 
   app:
-    container_name: swapi_app_test
+    container_name: swapi_app
     image: app:first_deploy
     build:
       context: .
