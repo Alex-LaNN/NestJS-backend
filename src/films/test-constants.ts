@@ -42,7 +42,7 @@ export const createFilmDto: CreateFilmDto = {
  * created and edited timestamps, along with the fields from createFilmDto.
  */
 export const newFilm = {
-  id: 5,
+  id: 1,
   created: '2014-12-09T13:50:51.644Z',
   edited: '2014-12-20T21:17:56.891Z',
   ...createFilmDto,
