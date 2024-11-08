@@ -2,7 +2,7 @@ import {
   Injectable,
   CanActivate,
   ExecutionContext,
-  UnauthorizedException,
+  ForbiddenException,
 } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { UserRoles } from 'src/shared/constants'
@@ -42,12 +42,12 @@ export class AdminGuard implements CanActivate {
     const authorizationHeader = request.headers.authorization
 
     if (!authorizationHeader) {
-      throw new UnauthorizedException('Missing authorization header')
+      throw new ForbiddenException('Missing authorization header')
     }
 
     const token = authorizationHeader.split(' ')[1]
     if (!token) {
-      throw new UnauthorizedException('Missing token')
+      throw new ForbiddenException('Missing token')
     }
 
     try {
@@ -55,10 +55,10 @@ export class AdminGuard implements CanActivate {
       if (payload.role && payload.role === UserRoles.Admin) {
         return true
       } else {
-        throw new UnauthorizedException('User is not an administrator')
+        throw new ForbiddenException('User is not an administrator')
       }
     } catch (error) {
-      throw new UnauthorizedException('Invalid token')
+      throw new ForbiddenException('Invalid token')
     }
   }
 }
