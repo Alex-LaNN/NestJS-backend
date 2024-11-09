@@ -11,29 +11,30 @@ ARG ENV_FILE
 # Копирование всех файлов проекта
 COPY . .
 
-RUN echo "Просмотр из Dockerfile.test после COPY . ."
-RUN pwd
+# # Второй этап: создание финального образа
+# FROM node:20-alpine
+
+# # Установка рабочей директории
+# WORKDIR /usr/src
+
+# # Копирование всех файлов проекта для тестирования
+# COPY --from=builder /usr/src ./
+
+# # Копирование скрипта для тестов и делаем его исполняемым
+# COPY run-tests.sh /usr/src/run-tests.sh
+# RUN chmod +x /usr/src/run-tests.sh
+
+# # Запуск скрипта тестирования
+# CMD ["/usr/src/run-tests.sh"]
+
+RUN echo "1. Просмотр содержимого..."
 RUN ls -lart
 
-# Копирование нужного .env-файла, зависящего от ENV_FILE
-COPY ${ENV_FILE} ./.env
+RUN rm -rf node_modules
+RUN npm install
+RUN npm run build
 
-# Второй этап: создание финального образа
-FROM node:20-alpine
-
-# Установка рабочей директории
-WORKDIR /usr/src
-
-# Копирование всех файлов проекта для тестирования
-COPY --from=builder /usr/src ./
-
-RUN echo "Просмотр из Dockerfile.test после COPY --from=builder /usr/src ./"
-RUN pwd
+RUN echo "2. Просмотр содержимого..."
 RUN ls -lart
 
-# Копирование скрипта для тестов и делаем его исполняемым
-COPY run-tests.sh /usr/src/run-tests.sh
-RUN chmod +x /usr/src/run-tests.sh
-
-# Запуск скрипта тестирования
-CMD ["/usr/src/run-tests.sh"]
+RUN npm run test -- films.controller.spec.ts
