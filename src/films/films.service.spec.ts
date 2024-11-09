@@ -114,7 +114,7 @@ describe('FilmsService', () => {
       ],
     }).compile()
 
-    //service = module.get<FilmsService>(FilmsService)
+    service = module.get<FilmsService>(FilmsService)
     filmRepository = module.get<Repository<Film>>(getRepositoryToken(Film))
     peopleRepository = module.get<Repository<People>>(
       getRepositoryToken(People),

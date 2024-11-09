@@ -1,40 +1,25 @@
-# Указание базового образа Node.js для этапа сборки
-FROM node:20-alpine AS builder
+# Node.js image is used
+FROM node:20-alpine
 
-# Установка рабочей директории
+# Working directory inside the container
 WORKDIR /usr/src
 
-# Аргументы, которые будут переданы из docker-compose.test.yml
+# Arguments that will be passed from docker-compose.test.yml
 ARG NODE_ENV
 ARG ENV_FILE
 
-# Копирование всех файлов проекта
+# Copying the rest of the application code
 COPY . .
 
-# # Второй этап: создание финального образа
-# FROM node:20-alpine
-
-# # Установка рабочей директории
-# WORKDIR /usr/src
-
-# # Копирование всех файлов проекта для тестирования
-# COPY --from=builder /usr/src ./
-
-# # Копирование скрипта для тестов и делаем его исполняемым
-# COPY run-tests.sh /usr/src/run-tests.sh
-# RUN chmod +x /usr/src/run-tests.sh
-
-# # Запуск скрипта тестирования
-# CMD ["/usr/src/run-tests.sh"]
-
-RUN echo "1. Просмотр содержимого..."
-RUN ls -lart
-
+# Remove the node_modules directory to ensure a fresh installation of dependencies
 RUN rm -rf node_modules
+
+# Install dependencies based on the package.json file
 RUN npm install
+
+# Build the application
 RUN npm run build
 
-RUN echo "2. Просмотр содержимого..."
-RUN ls -lart
-
+# Run tests using the specified test file (films.controller.spec.ts)
 RUN npm run test -- films.controller.spec.ts
+#RUN npm run test
