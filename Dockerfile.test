@@ -1,5 +1,5 @@
 # Node.js image is used
-FROM node:20-alpine
+FROM node:20-alpine AS builder
 
 # Working directory inside the container
 WORKDIR /usr/src
@@ -11,22 +11,18 @@ ARG ENV_FILE
 # Copying the rest of the application code
 COPY . .
 
-RUN ls -lart
+# Второй этап: создание финального образа
+FROM node:20-alpine
 
-# Copy the file with environment variables for production to the image
-COPY ${ENV_FILE} ./${ENV_FILE}
+# Установка рабочей директории
+WORKDIR /usr/src
 
-RUN ls -lart
+# Копирование всех файлов проекта для тестирования
+COPY --from=builder /usr/src ./
 
-# Remove the node_modules directory to ensure a fresh installation of dependencies
-RUN rm -rf node_modules
+# Копирование скрипта для тестов и делаем его исполняемым
+COPY run-tests.sh /usr/src/run-tests.sh
+RUN chmod +x /usr/src/run-tests.sh
 
-# Install dependencies based on the package.json file
-RUN npm install
-
-# Build the application
-RUN npm run build
-
-# Run tests using the specified test file (films.controller.spec.ts)
-RUN npm run test -- films.controller.spec.ts
-#RUN npm run test
+# Запуск скрипта тестирования
+CMD ["/usr/src/run-tests.sh"]
