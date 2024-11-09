@@ -14,7 +14,7 @@ COPY . .
 RUN ls -lart
 
 # Copy the file with environment variables for production to the image
-COPY COPY ${ENV_FILE} ./${ENV_FILE}
+COPY ${ENV_FILE} ./${ENV_FILE}
 
 RUN ls -lart
 
