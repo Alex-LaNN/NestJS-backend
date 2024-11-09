@@ -3,12 +3,14 @@
 # Use for teamcity agent
 
 echo "1.Просмотр из run-tests.sh..."
+pwd
 ls -lart
 
 # Go to the working directory
 cd /usr/src
 
 echo "2.Просмотр из run-tests.sh..."
+pwd
 ls -lart
 
 # Cleaning node_modules if they exist
@@ -23,6 +25,7 @@ echo "Building the project..."
 npm run build
 
 echo "3.Просмотр из run-tests.sh..."
+pwd
 ls -lart
 
 # Run tests
