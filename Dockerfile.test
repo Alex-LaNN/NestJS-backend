@@ -12,7 +12,7 @@ ARG ENV_FILE
 COPY . .
 
 # Copy the file with environment variables for production to the image
-COPY .env.production ./.env.production
+COPY .env.production /usr/src/
 
 # Remove the node_modules directory to ensure a fresh installation of dependencies
 RUN rm -rf node_modules
