@@ -8,13 +8,15 @@ WORKDIR /usr/src
 ARG NODE_ENV
 ARG ENV_FILE
 
-RUN ls -lart
-
 # Copying the rest of the application code
 COPY . .
 
+RUN ls -lart
+
 # Copy the file with environment variables for production to the image
-COPY .env.production /usr/src/
+COPY COPY ${ENV_FILE} ./${ENV_FILE}
+
+RUN ls -lart
 
 # Remove the node_modules directory to ensure a fresh installation of dependencies
 RUN rm -rf node_modules
