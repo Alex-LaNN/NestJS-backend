@@ -37,6 +37,9 @@ async function bootstrap() {
   app.useGlobalInterceptors(new TransformInterceptor())
   app.useGlobalFilters(new CustomExceptionFilter())
 
+  // Set global prefix 'api' for all routes
+  app.setGlobalPrefix('api')
+
   // Enable CORS (Cross-Origin Resource Sharing)
   app.enableCors()
   // Start listening on the specified port
