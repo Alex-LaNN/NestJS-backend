@@ -11,6 +11,9 @@ ARG ENV_FILE
 # Копирование всех файлов проекта
 COPY . .
 
+RUN echo "Просмотр из Dockerfile.test после COPY . ."
+RUN ls -lart
+
 # Копирование нужного .env-файла, зависящего от ENV_FILE
 COPY ${ENV_FILE} ./.env
 
@@ -22,6 +25,9 @@ WORKDIR /usr/src
 
 # Копирование всех файлов проекта для тестирования
 COPY --from=builder /usr/src ./
+
+RUN echo "Просмотр из Dockerfile.test после COPY --from=builder /usr/src ./"
+RUN ls -lart
 
 # Копирование скрипта для тестов и делаем его исполняемым
 COPY run-tests.sh /usr/src/run-tests.sh

@@ -65,6 +65,7 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+    restart: always
 
 networks:
   swapi_network:
