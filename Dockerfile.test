@@ -11,15 +11,6 @@ ARG ENV_FILE
 # Copying the rest of the application code
 COPY . .
 
-# Второй этап: создание финального образа
-FROM node:20-alpine
-
-# Установка рабочей директории
-WORKDIR /usr/src
-
-# Копирование всех файлов проекта для тестирования
-COPY --from=builder /usr/src ./
-
 # Копирование скрипта для тестов и делаем его исполняемым
 COPY run-tests.sh /usr/src/run-tests.sh
 RUN chmod +x /usr/src/run-tests.sh
