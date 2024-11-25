@@ -240,3 +240,21 @@ export function getFileNameForDeleteFromAWS(fileName: string): string {
   }
   return parts[1]
 }
+
+/**
+ * Formats a given number of seconds into a human-readable string representing hours, minutes, and seconds.
+ *
+ * @param seconds The number of seconds to format.
+ * @returns A formatted string representing the time in hours, minutes, and seconds.
+ */
+export function formatUptime(seconds: number) {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secondsLeft = seconds % 60;
+
+  const formattedHours = hours ? `${hours}h` : '';
+  const formattedMinutes = minutes ? `${minutes}m` : '';
+  const formattedSeconds = secondsLeft ? `${secondsLeft}s` : '';
+
+  return [formattedHours, formattedMinutes, formattedSeconds].join('');
+}

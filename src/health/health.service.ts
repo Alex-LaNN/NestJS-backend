@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common"
 import { InjectDataSource } from "@nestjs/typeorm"
+import { formatUptime } from "src/shared/common.functions"
 import { DataSource } from "typeorm"
 
 
@@ -18,7 +19,7 @@ export class HealthService {
       timestamp: new Date().toISOString(),
       version: process.env.npm_package_version || 'unknown',
       database: dbConnection ? 'connected' : 'disconnected',
-      uptime: process.uptime(),
+      uptime: formatUptime(process.uptime()),
       memory: {
         heapUsed:
           Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + 'MB',
