@@ -11,9 +11,9 @@ ARG ENV_FILE
 # Copying the rest of the application code
 COPY . .
 
-# Копирование скрипта для тестов и делаем его исполняемым
+# Copying the script for tests and making it executable
 COPY run-tests.sh /usr/src/run-tests.sh
 RUN chmod +x /usr/src/run-tests.sh
 
-# Запуск скрипта тестирования
+# Running the testing script
 CMD ["/usr/src/run-tests.sh"]

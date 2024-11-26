@@ -248,13 +248,16 @@ export function getFileNameForDeleteFromAWS(fileName: string): string {
  * @returns A formatted string representing the time in hours, minutes, and seconds.
  */
 export function formatUptime(seconds: number) {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secondsLeft = seconds % 60;
+  // Rounding the input value to the nearest integer
+  const roundedSeconds = Math.round(seconds)
 
-  const formattedHours = hours ? `${hours}h` : '';
-  const formattedMinutes = minutes ? `${minutes}m` : '';
-  const formattedSeconds = secondsLeft ? `${secondsLeft}s` : '';
+  const hours = Math.floor(roundedSeconds / 3600)
+  const minutes = Math.floor((roundedSeconds % 3600) / 60)
+  const secondsLeft = roundedSeconds % 60
 
-  return [formattedHours, formattedMinutes, formattedSeconds].join('');
+  const formattedHours = hours ? `${hours}h` : ''
+  const formattedMinutes = minutes ? `${minutes}m` : ''
+  const formattedSeconds = secondsLeft ? `${secondsLeft}s` : ''
+
+  return [formattedHours, formattedMinutes, formattedSeconds].join('')
 }
