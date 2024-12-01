@@ -166,14 +166,14 @@ docker-compose down
 docker-compose -f docker-compose.yml up --build -d
 ```
 
-## Swagger API Documentation
+## Swagger API Documentation (home page)
 
 API documentation is available at `/api` after running the application.
 
 ## Access the Application
 
-- Local: http://localhost:<port>
-- Production: https://<your_domain_name>
+- Local: http://localhost:<your_application_port>/api
+- Production: https://<your_domain_name>/api
 
 ## Stay in Touch
 

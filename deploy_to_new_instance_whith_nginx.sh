@@ -55,13 +55,12 @@ fi
 
 log "Cloning repository from GitHub..."
 if [ ! -d "NestJS-backend" ]; then
+    sudo mkdir NestJS-backend && cd NestJS-backend
     git clone https://github.com/Alex-LaNN/NestJS-backend.git | tee -a "$LOGFILE" || error_exit "Failed to clone repository."
 else
     log "Repository 'NestJS-backend' already exists, skipping cloning."
+    cd NestJS-backend || error_exit "Failed to change to project directory."
 fi
-
-log "Changing to project directory..."
-cd NestJS-backend || error_exit "Failed to change to project directory."
 
 # Move and rename .env file to project directory
 log "Moving .env file to the project directory and renaming..."

@@ -40,7 +40,7 @@ services:
       dockerfile: Dockerfile
     working_dir: /usr/src
     ports:
-      - "${APP_PORT}:${APP_PORT}"
+      - "${APP_PORT}:3000"
     networks:
       - swapi_network
     depends_on:
