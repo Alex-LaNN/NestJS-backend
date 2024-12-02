@@ -1,11 +1,13 @@
 #!/usr/bin/bash
 
-# Before running the script, there are a number of conditions necessary for its operation: 1. This script and the .env file with the necessary variable values ​​for the correct launch and operation of the application must be in the root folder of the user with root rights. 2. Before running, make sure that the .env file is present. 3. If necessary, make changes to the configuration of the relevant Nginx files to ensure that the application works correctly in the browser.
+# Before running the script, some conditions must be met for it to work:
+# 1. This script and the .env file with the necessary variable values for the correct launch and operation of the application must be located in the root folder of the user with root rights.
+# 2. If necessary, make changes to the configuration of the corresponding Nginx files to ensure the correct operation of the application in the browser.
 
 # Get the absolute path to the current directory
-LOGDIR=$(pwd)
+CURRENTDIR=$(pwd)
 
-LOGFILE="$LOGDIR/start_deploy.log"
+LOGFILE="$CURRENTDIR/start_deploy.log"
 
 # Clear the log file at the start of the script
 > "$LOGFILE"
