@@ -4,10 +4,11 @@
 # 1. This script and the .env file with the necessary variable values for the correct launch and operation of the application must be located in the root folder of the user with root rights.
 # 2. If necessary, make changes to the configuration of the corresponding Nginx files to ensure the correct operation of the application in the browser.
 
+# Define the path to the log file
+LOGFILE="/var/log/start_deploy_with_nginx.log"
+
 # Get the absolute path to the current directory
 CURRENTDIR=$(pwd)
-
-LOGFILE="$CURRENTDIR/start_deploy.log"
 
 # Clear the log file at the start of the script
 > "$LOGFILE"
@@ -66,10 +67,10 @@ fi
 
 # Move and rename .env file to project directory
 log "Moving .env file to the project directory and renaming..."
-if [ -f "/home/ubuntu/.env" ]; then
-    sudo mv /home/ubuntu/.env .env.production | tee -a "$LOGFILE" || error_exit "Failed to move .env.production file to project directory."
+if [ -f "$CURRENTDIR/.env" ]; then
+    sudo mv "$CURRENTDIR"/.env .env.production | tee -a "$LOGFILE" || error_exit "Failed to move .env.production file to project directory."
 else
-    log "WARNING: .env not found in /home/ubuntu, skipping move. Check for .env.production file in project root."
+    log "WARNING: .env not found in "$CURRENTDIR", skipping move. Check for .env.production file in project root."
 fi
 
 # Set permissions for .env.production

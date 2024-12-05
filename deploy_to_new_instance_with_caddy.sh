@@ -1,8 +1,7 @@
 #!/usr/bin/bash
 
-# Before running the script, some conditions must be met for it to work:
-# 1. This script and the .env file with the necessary variable values for the correct launch and operation of the application must be located in the root folder of the user with root rights.
-# 2. 
+# Before running the script, the following condition must be met for its correct operation:
+# This script and the .env file with the necessary variable values ​​required for the correct launch and operation of the application must be located in the root folder of the user with root rights. 
 
 # Define the list of users
 users=("ubuntu" "alex")
@@ -13,8 +12,8 @@ packages=("curl" "git" "wget" "software-properties-common" "ufw")
 # Store the current working directory in the variable CURRENTDIR
 CURRENTDIR=$(pwd)
 
-# Define the path to the log file, located in the current working directory
-LOGFILE="$CURRENTDIR/start_deploy.log"
+# Define the path to the log file
+LOGFILE="/var/log/start_deploy_with_caddy.log"
 
 # Clear the log file at the start of the script
 > "$LOGFILE"
@@ -51,56 +50,13 @@ if [[ "$(echo "${packages[@]}")" != "$(dpkg -l | grep -oP '^\w+' | grep -Fxq -f 
   sudo apt install -y "${packages[@]}" | tee -a "$LOGFILE" || error_exit "Failed to install all required utilities."
 fi
 
-log "Checking Docker installation..."
-if ! dpkg -l | grep -qw docker.io; then
-    log "Installing Docker..."
-    # Removing old Docker versions (if any)
-    sudo apt-get remove docker docker-engine docker.io containerd runc
+# Создание нового пользователя, если нужно
+log "=== User Management ==="
+sudo ./create_new_user.sh
 
-    # Setting up a Docker repository 
-    sudo apt-get update sudo apt-get install ca-certificates curl gnupg lsb-release 
-
-    # Adding the Official Docker GPG Key 
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg 
-
-    # Configuring a stable repository 
-    echo \
-      "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \  
-      $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-    # Installing Docker Engine
-    sudo apt-get update
-    sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
-
-    # Adding the required users from the corresponding list to the 'docker' group
-    for user in "${users[@]}"; do
-      sudo usermod -aG docker $USER
-    done
-
-    sudo ufw default deny incoming 
-    sudo ufw default allow outgoing 
-    sudo ufw allow 22/tcp   # SSH 
-    sudo ufw allow 80/tcp   # HTTP 
-    sudo ufw allow 443/tcp  # HTTPS 
-    sudo ufw enable
-
-    # Docker Startup and Autostart
-    sudo systemctl daemon-reload
-    sudo systemctl restart docker
-    sudo systemctl enable docker
-
-    log "Docker installed and started successfully."
-else
-    log "Docker is already installed, skipping."
-fi
-
-log "Checking Docker Compose installation..."
-if ! dpkg -l | grep -qw docker-compose; then
-    log "Installing Docker Compose..."
-    sudo apt install -y docker-compose | tee -a "$LOGFILE" || error_exit "Failed to install Docker Compose."
-else
-    log "Docker Compose is already installed, skipping."
-fi
+# Проверка и установка Docker
+log "=== Docker Management ==="
+sudo .docker_instalation.sh
 
 log "Cloning repository from GitHub..."
 if [ ! -d "NestJS-backend" ]; then
@@ -113,8 +69,8 @@ fi
 
 # Move and rename .env file to project directory
 log "Moving .env file to the project directory and renaming..."
-if [ -f "/home/ubuntu/.env" ]; then
-    sudo mv /home/ubuntu/.env .env.production | tee -a "$LOGFILE" || error_exit "Failed to move .env.production file to project directory."
+if [ -f "$CURRENTDIR/.env" ]; then
+    sudo mv $CURRENTDIR/.env .env.production | tee -a "$LOGFILE" || error_exit "Failed to move .env.production file to project directory."
 else
     log "WARNING: .env not found in /home/ubuntu, skipping move. Check for .env.production file in project root."
 fi

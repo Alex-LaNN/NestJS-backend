@@ -1,4 +1,4 @@
-# NestJS Star Wars Backend
+  # *NestJS Star Wars Backend*
 
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
@@ -11,11 +11,11 @@
   <img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/>
 </p>
 
-## Description
+### *Description*
 
 This project is a NestJS-based backend application for managing Star Wars data, including entities like People, Films, Planets, Species, Starships, and Vehicles. The application provides a set of CRUD APIs for these entities, integrates with a database, supports image uploads, and implements authentication and authorization.
 
-## Features
+### *Features*
 
 - CRUD operations for Star Wars entities
 - Pagination support
@@ -27,14 +27,53 @@ This project is a NestJS-based backend application for managing Star Wars data, 
 - Global error handling
 - Swagger documentation
 
-## Prerequisites
+## *Automated Deployment with script*
+
+`deploy_to_new_instance_with_caddy.sh`
+
+### *Overview*
+
+*The deployment process is automated using a shell script from another repository. This script installs all necessary dependencies, sets up the environment, and configures the application to run with HTTPS using Caddy as a web server and reverse proxy.
+The following steps should be performed on an empty, newly created instance.*
+
+### *Steps to Deploy*
+
+1. *Clone the deployment script from the repository:*
+   ```bash
+   sudo wget https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/main/deploy_to_new_instance_with_caddy.sh
+   ```
+
+2. *Make the script executable:*
+
+   ```bash
+   sudo chmod +x deploy_to_new_instance_with_caddy.sh
+   ```
+3. *In the root folder, create a file `.env` and write into it all the values ​​for the variables used in the application, as shown in the examples below.*
+ 
+4. *Execute the script to deploy the application:*
+
+   ```bash
+   sudo ./deploy_to_new_instance_with_caddy.sh
+   ```
+
+### *What the Script Does*
+
+- Installs required system packages (Docker, Docker Compose, Caddy, etc.)
+- Configures Caddy for HTTPS with automatic certificate management
+- If necessary, adds new users to the server (with the ability to include them in the 'sudo' group)
+- Clones this repository and prepares environment variables
+- Builds and runs the application using Docker Compose
+- Configures the application to be accessible via HTTPS
+
+## *Installation and launch*
+
+### *Pre-conditions*
 
 - Node.js
 - npm
-- Docker (optional, for containerized deployment)
 - MySQL database
 
-## Installation
+### *Installation*
 
 ```bash
 # Clone the project from the repository
@@ -47,11 +86,11 @@ cd NestJS-backend
 npm install
 ```
 
-## Configuration
+### *Configuration*
 
 The application uses environment variables for configuration. Create `.env` files based on your environment.
 
-### Development Environment (`.env`)
+#### *Development Environment (`.env`)*
 
 ```bash
 # Server parameters
@@ -82,7 +121,7 @@ JWT_SECRET=your_jwt_secret
 SALT_ROUNDS=you_salt_rounds
 ```
 
-### Production Environment (`.env.production`)
+#### *Production Environment (`.env.production`)*
 
 ```bash
 # Server parameters
@@ -111,9 +150,12 @@ AWS_S3_REGION=your_aws_region
 BUCKET_NAME=your_s3_bucket_name
 ```
 
-## Local Development
+### *Local Development*
 
 ```bash
+# Building the application
+npm run build
+
 # Start the application in development mode
 npm run start:dev
 
@@ -121,66 +163,21 @@ npm run start:dev
 npm run test
 ```
 
-## Docker Deployment
-
-### Prerequisites
-- Docker
-- Docker Compose
-
-### Deployment Steps
-
-```bash
-# Clone the repository
-git clone https://github.com/Alex-LaNN/NestJS-backend.git
-cd NestJS-backend
-
-# Prepare environment files
-# Copy .env.production and configure variables
-
-# Build and run containers
-docker-compose -f docker-compose.yml up --build -d
-
-# Check running containers
-docker ps
-```
-
-### Docker Compose Services
-
-The `docker-compose.yml` includes:
-- **Application Container**: Runs the NestJS application
-- **MySQL Container**: Hosts the database
-- **Nginx Container**: Reverse proxy and HTTPS handling
-
-### Container Management
-
-```bash
-# Stop the application
-docker-compose down
-
-# View logs
-docker-compose logs -f
-
-# Update the application
-git pull
-docker-compose down
-docker-compose -f docker-compose.yml up --build -d
-```
-
-## Swagger API Documentation (home page)
+## *Swagger API Documentation (home page)*
 
 API documentation is available at `/api` after running the application.
 
-## Access the Application
+## *Access the Application*
 
 - Local: http://localhost:<your_application_port>/api
 - Production: https://<your_domain_name>/api
 
-## Stay in Touch
+## *Stay in Touch*
 
 - **Author**: [Alex-LaNN](https://alex-lann.github.io/)
 - **Telegram**: [@Alex_LaNN](https://t.me/Alex_LaNN)
 - **Email**: alex75klg@gmail.com
 
-## License
+## *License*
 
 [Insert License Information]

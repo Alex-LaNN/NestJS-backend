@@ -1,6 +1,7 @@
 import { HttpException, InternalServerErrorException } from '@nestjs/common'
 import {
   ExtendedBaseEntity,
+  TimeUnits,
   UserRoles,
   errorMap,
   localUrl,
@@ -242,22 +243,32 @@ export function getFileNameForDeleteFromAWS(fileName: string): string {
 }
 
 /**
- * Formats a given number of seconds into a human-readable string representing hours, minutes, and seconds.
+ * Formats a given number of seconds into a human-readable uptime string.
+ * The format includes years, days, hours, minutes, and seconds.
  *
- * @param seconds The number of seconds to format.
- * @returns A formatted string representing the time in hours, minutes, and seconds.
+ * @param seconds - The total number of seconds to format.
+ * @returns A formatted string representing the time in the format: "XyXdXhXmXs".
  */
-export function formatUptime(seconds: number) {
+export function formatUptime(seconds: number): string {
   // Rounding the input value to the nearest integer
-  const roundedSeconds = Math.round(seconds)
+  const roundedSeconds = Math.round(seconds);
 
-  const hours = Math.floor(roundedSeconds / 3600)
-  const minutes = Math.floor((roundedSeconds % 3600) / 60)
-  const secondsLeft = roundedSeconds % 60
+  // Calculate time units using constants from the TimeUnits enum
+  const years = Math.floor(roundedSeconds / TimeUnits.SECONDS_IN_A_YEAR);
+  const days = Math.floor((roundedSeconds % TimeUnits.SECONDS_IN_A_YEAR) / TimeUnits.SECONDS_IN_A_DAY);
+  const hours = Math.floor((roundedSeconds % TimeUnits.SECONDS_IN_A_DAY) / TimeUnits.SECONDS_IN_AN_HOUR);
+  const minutes = Math.floor((roundedSeconds % TimeUnits.SECONDS_IN_AN_HOUR) / TimeUnits.SECONDS_IN_A_MINUTE);
+  const secondsLeft = roundedSeconds % TimeUnits.SECONDS_IN_A_MINUTE;
 
-  const formattedHours = hours ? `${hours}h` : ''
-  const formattedMinutes = minutes ? `${minutes}m` : ''
-  const formattedSeconds = secondsLeft ? `${secondsLeft}s` : ''
+  // Format each time unit as a string, omitting units with a value of 0
+  const formattedYears = years ? `${years}y` : '';
+  const formattedDays = days ? `${days}d` : '';
+  const formattedHours = hours ? `${hours}h` : '';
+  const formattedMinutes = minutes ? `${minutes}m` : '';
+  const formattedSeconds = secondsLeft ? `${secondsLeft}s` : '';
 
-  return [formattedHours, formattedMinutes, formattedSeconds].join('')
+  // Combine all non-empty units into a single string
+  return [formattedYears, formattedDays, formattedHours, formattedMinutes, formattedSeconds]
+    .filter(Boolean) // Remove empty strings
+    .join('');       // Join units without separators
 }

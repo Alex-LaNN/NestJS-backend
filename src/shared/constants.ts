@@ -35,6 +35,17 @@ export const { host, port, limitCount, dbName } = config
 export const paginationOptions: IPaginationOptions = { page: 1, limit: 10 }
 
 /**
+ * Enum for time unit conversions in seconds.
+ * Provides constants for the number of seconds in common time units.
+ */
+export enum TimeUnits {
+  SECONDS_IN_A_MINUTE = 60,
+  SECONDS_IN_AN_HOUR = 3600,
+  SECONDS_IN_A_DAY = 86400,
+  SECONDS_IN_A_YEAR = 31536000,    // Number of seconds in a year (365 days)
+}
+
+/**
  * Enum for HTTP status codes
  *
  * This enum defines the common HTTP status codes that might be used in the application.
