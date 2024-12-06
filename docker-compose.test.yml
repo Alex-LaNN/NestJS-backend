@@ -23,7 +23,6 @@ services:
     
   app-test:
     container_name: swapi_app_test:${BUILD_NUMBER}
-    image: app:test
     build:
       context: .
       dockerfile: Dockerfile.test

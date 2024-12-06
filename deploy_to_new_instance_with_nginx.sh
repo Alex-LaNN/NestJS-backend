@@ -8,7 +8,7 @@
 LOGFILE="/var/log/start_deploy_with_nginx.log"
 
 # Get the absolute path to the current directory
-CURRENTDIR=$(pwd)
+HOMEDIR=$(pwd)
 
 # Clear the log file at the start of the script
 > "$LOGFILE"
@@ -67,10 +67,10 @@ fi
 
 # Move and rename .env file to project directory
 log "Moving .env file to the project directory and renaming..."
-if [ -f "$CURRENTDIR/.env" ]; then
-    sudo mv "$CURRENTDIR"/.env .env.production | tee -a "$LOGFILE" || error_exit "Failed to move .env.production file to project directory."
+if [ -f "$HOMEDIR/.env" ]; then
+    sudo mv "$HOMEDIR"/.env .env.production | tee -a "$LOGFILE" || error_exit "Failed to move .env.production file to project directory."
 else
-    log "WARNING: .env not found in "$CURRENTDIR", skipping move. Check for .env.production file in project root."
+    log "WARNING: .env not found in "$HOMEDIR", skipping move. Check for .env.production file in project root."
 fi
 
 # Set permissions for .env.production

@@ -1,5 +1,49 @@
 #!/usr/bin/bash
 
+# Script for Installing and Configuring Docker and Docker Compose
+#
+# This script performs the following actions:
+# 1. Checks if Docker is installed and installs it if missing, including:
+#    - Removing any older versions of Docker.
+#    - Adding the official Docker repository and GPG key.
+#    - Installing Docker Engine and Docker Compose Plugin.
+#    - Configuring Docker to start on system boot.
+#    - Adding specified users to the `docker` group for non-root access.
+# 2. Configures basic firewall rules (UFW) for SSH, HTTP, and HTTPS.
+# 3. Checks if Docker Compose is installed and installs it if missing.
+#
+# Requirements:
+# - Must be run with superuser privileges.
+# - Expects `deploy_to_new_instance_with_caddy.sh` to provide the `log` and `error_exit` functions.
+# - A valid log file must be passed as the first argument to the script.
+#
+# Usage:
+# ./<script_name> <LOGFILE>
+# Replace `<LOGFILE>` with the path to the log file where the output should be stored.
+#
+# Example:
+# ./install_docker.sh /var/log/docker_install.log
+#
+# Notes:
+# - Adds predefined users (default: "ubuntu") to the `docker` group.
+# - Configures UFW firewall rules for basic server security.
+# - Docker Compose installation is handled separately from Docker Engine.
+
+# Source the main script to access functions like log and error_exit
+source ./deploy_to_new_instance_with_caddy.sh
+
+# Checking the argument passing
+if [ -z "$1" ]; then
+    echo "Error: File 'LOGFILE' not provided."
+    exit 1
+fi
+
+# Getting LOGFILE value from argument
+LOGFILE=$1
+
+# Define the list of users
+users=("ubuntu")
+
 log "Checking Docker installation..."
 if ! dpkg -l | grep -qw docker.io; then
     log "Installing Docker..."

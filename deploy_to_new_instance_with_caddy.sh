@@ -1,19 +1,33 @@
 #!/usr/bin/bash
 
-# Before running the script, the following condition must be met for its correct operation:
-# This script and the .env file with the necessary variable values ​​required for the correct launch and operation of the application must be located in the root folder of the user with root rights. 
+ # Script for Automated Deployment with Caddy
+#
+# This script automates the deployment of a project, including package management,
+# repository cloning, user management, Docker installation, and environment setup.
+# It then starts the project using Docker Compose with Caddy integration.
+#
+# Requirements:
+# - Must be run with superuser privileges (`sudo`).
+# - Supporting scripts (`clone_repository.sh`, `create_new_user.sh`, `docker_instalation.sh`,
+#   and `environmental_preparation.sh`) should be present in the same directory.
+#
+# Logs:
+# - Outputs progress and errors to a log file named `start_deploy_with_caddy.log` in the current directory.
+#
+# Usage:
+# ./start_deploy_with_caddy.sh
+#
+# Notes:
+# - Automatically checks and installs required packages.
+# - Supports secure `.env` file handling and Docker management.
+#
+# Author: Alex-LaNN
 
-# Define the list of users
-users=("ubuntu" "alex")
-
-# List of packages to check
-packages=("curl" "git" "wget" "software-properties-common" "ufw")
-
-# Store the current working directory in the variable CURRENTDIR
-CURRENTDIR=$(pwd)
+# Store the home working directory in the variable HOMEDIR
+HOMEDIR=$(pwd)
 
 # Define the path to the log file
-LOGFILE="/var/log/start_deploy_with_caddy.log"
+LOGFILE="$HOMEDIR/start_deploy_with_caddy.log"
 
 # Clear the log file at the start of the script
 > "$LOGFILE"
@@ -31,57 +45,42 @@ exit 1
 
 log "=== Starting deployment process ==="
 
+# Step 1: Initial instance preparation
+log "=== Packages Management ==="
+# List of packages to check
+packages=("curl" "git" "wget" "software-properties-common" "ufw")
+
 log "Updating package list..."
 sudo apt update && sudo apt upgrade -y | tee -a "$LOGFILE" || error_exit "Unable to update system."
 
-log "Checking required utilities installation..."
-# Checking required utilities installation
 for pkg in "${packages[@]}"; do
   if ! dpkg -l | grep -qw "$pkg"; then
-    log "Package '$pkg' not found. Will be installed."
+    log "Package '$pkg' not found. Installing..."
+    sudo apt install -y "$pkg" | tee -a "$LOGFILE" || log "Error installing package '$pkg'. Continuing..."
+    log "Ok."
   else
     log "Package '$pkg' is already installed."
   fi
 done
 
-# Installing missing packages
-if [[ "$(echo "${packages[@]}")" != "$(dpkg -l | grep -oP '^\w+' | grep -Fxq -f <(printf '%s\n' "${packages[@]}"))" ]]; then
-  log "Installing the required utilities..."
-  sudo apt install -y "${packages[@]}" | tee -a "$LOGFILE" || error_exit "Failed to install all required utilities."
-fi
+# Cloning a repository
+log "=== Repository Management ==="
+sudo ./clone_repository.sh "$HOMEDIR" || error_exit "Failed to execute clone_repository.sh"
 
-# Создание нового пользователя, если нужно
+# Create another user if needed
 log "=== User Management ==="
-sudo ./create_new_user.sh
+sudo ./create_new_user.sh "$HOMEDIR" "$LOGFILE" || error_exit "Failed to execute create_new_user.sh"
 
-# Проверка и установка Docker
+# Installing Docker with a check for necessity
 log "=== Docker Management ==="
-sudo .docker_instalation.sh
-
-log "Cloning repository from GitHub..."
-if [ ! -d "NestJS-backend" ]; then
-    sudo mkdir NestJS-backend && cd NestJS-backend
-    git clone https://github.com/Alex-LaNN/NestJS-backend.git | tee -a "$LOGFILE" || error_exit "Failed to clone repository."
-else
-    log "Repository 'NestJS-backend' already exists, skipping cloning."
-    cd NestJS-backend || error_exit "Failed to change to project directory."
-fi
+sudo ./docker_instalation.sh "$LOGFILE" || error_exit "Failed to execute docker_instalation.sh"
 
 # Move and rename .env file to project directory
-log "Moving .env file to the project directory and renaming..."
-if [ -f "$CURRENTDIR/.env" ]; then
-    sudo mv $CURRENTDIR/.env .env.production | tee -a "$LOGFILE" || error_exit "Failed to move .env.production file to project directory."
-else
-    log "WARNING: .env not found in /home/ubuntu, skipping move. Check for .env.production file in project root."
-fi
-
-# Set permissions for .env.production
-log "Setting permissions for .env.production..."
-sudo chown ubuntu:ubuntu .env.production
-sudo chmod 600 .env.production | tee -a "$LOGFILE" || error_exit "Failed to set permissions for .env.production."
+log "=== Environment Management ==="
+sudo ./environmental_preparation.sh "$HOMEDIR" "$LOGFILE" || error_exit "Failed to execute environmental_preparation.sh"
 
 log "Starting Docker Compose..."
-sudo --preserve-env docker-compose --env-file .env.production -f docker-composeprod.caddy.yml up -d --build | tee -a "$LOGFILE" || error_exit "Failed to start Docker Compose."
+sudo --preserve-env docker-compose --env-file .env.production -f docker-compose.prod.caddy.yml up -d --build | tee -a "$LOGFILE" || error_exit "Failed to start Docker Compose."
 
 log "Checking running containers..."
 sudo docker ps | tee -a "$LOGFILE" || error_exit "Failed to check running containers."
