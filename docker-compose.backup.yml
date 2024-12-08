@@ -41,12 +41,6 @@ services:
   app:
     container_name: swapi_app_${BACKUP_ID}
     image: ${APP_IMAGE_ID}
-    build:
-      context: .
-      dockerfile: Dockerfile.prod
-      args:
-        - NODE_ENV=production
-        - ENV_FILE=.env.production
     environment:
       - NODE_ENV=production
       - DB_HOST=${DB_HOST}

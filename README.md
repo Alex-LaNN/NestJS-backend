@@ -40,7 +40,7 @@ The following steps should be performed on an empty, newly created instance.*
 
 1. *Clone the deployment script from the repository:*
    ```bash
-   sudo wget https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/main/deploy_to_new_instance_with_caddy.sh
+   sudo wget https://raw.githubusercontent.com/Alex-LaNN/sysadmin-devops-basics/master/deploy_to_new_instance_with_caddy.sh
    ```
 
 2. *Make the script executable:*
@@ -48,7 +48,11 @@ The following steps should be performed on an empty, newly created instance.*
    ```bash
    sudo chmod +x deploy_to_new_instance_with_caddy.sh
    ```
-3. *In the root folder, create a file `.env` and write into it all the values ​​for the variables used in the application, as shown in the examples below.*
+3. *In the root folder, create a file `.env`:*
+   ```bash
+   sudo nano .env
+   ```
+    *and write into it all the values ​​for the variables used in the application, as shown in the examples below.*
  
 4. *Execute the script to deploy the application:*
 
