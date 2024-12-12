@@ -1,15 +1,15 @@
 
  akolomiets.stud.shpp.me {
-    reverse_proxy localhost:3000
+    reverse_proxy app:3000
 
-    # Автоматическая SSL конфигурация
+    # Automatic SSL configuration
     tls {
         protocols tls1.2 tls1.3
         curves x25519
         alpn http/1.1 h2
     }
 
-    # Дополнительные заголовки безопасности
+    # Additional Security Headers
     header {
         Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
         X-Content-Type-Options "nosniff"
@@ -17,7 +17,7 @@
         Referrer-Policy "strict-origin-when-cross-origin"
     }
 
-    # Логирование
+    # Logging
     log {
         output file ./docker/caddy/access.log
         format json

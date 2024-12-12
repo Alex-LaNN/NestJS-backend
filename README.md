@@ -139,6 +139,7 @@ LIMIT_COUNT=your_limit_count
 DB_TYPE=mysql
 DB_HOST=mysql
 DB_PORT=3306
+MYSQL_ROOT_PASSWORD=your_database_root_password
 DB_USER=your_database_username
 DB_PASS=your_database_password
 DB_NAME=your_database_name
