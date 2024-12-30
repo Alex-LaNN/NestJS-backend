@@ -34,7 +34,8 @@ This project is a NestJS-based backend application for managing Star Wars data, 
 ### *Overview*
 
 *The deployment process is automated using a shell script from another repository. This script installs all necessary dependencies, sets up the environment, and configures the application to run with HTTPS using Caddy as a web server and reverse proxy.
-The following steps should be performed on an empty, newly created instance.*
+The following steps should be performed on an empty, newly created instance.
+The instance should have at least 2GB! of RAM and 8GB of total memory.*
 
 ### *Steps to Deploy*
 
