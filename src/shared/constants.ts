@@ -42,7 +42,7 @@ export enum TimeUnits {
   SECONDS_IN_A_MINUTE = 60,
   SECONDS_IN_AN_HOUR = 3600,
   SECONDS_IN_A_DAY = 86400,
-  SECONDS_IN_A_YEAR = 31536000,    // Number of seconds in a year (365 days)
+  SECONDS_IN_A_YEAR = 31536000, // Number of seconds in a year (365 days)
 }
 
 /**
@@ -102,7 +102,8 @@ export enum UserRoles {
  * These constants define the URLs for SWAPI (the Star Wars API) and the local server.
  * `swapiUrl` is used for fetching data from SWAPI, while `localUrl` is used for constructing local URLs.
  */
-export const swapiUrl: string = 'https://swapi.dev/api/'
+export const swapiUrl_1: string = 'https://swapi.dev/api/'
+export const swapiUrl_2: string = 'https://sw-api.starnavi.io/'
 export const localUrl: string = `http://${host}:${port}/`
 
 /**

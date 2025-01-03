@@ -5,7 +5,8 @@ import {
   entityClasses,
   entityClassesForFill,
   relatedEntitiesMap,
-  swapiUrl,
+  swapiUrl_1,
+  swapiUrl_2,
 } from 'src/shared/constants'
 import { DataSource, QueryRunner, Repository } from 'typeorm'
 import fetch from 'cross-fetch'
@@ -98,12 +99,82 @@ export class SeedDatabase {
     // Get the TypeORM repository for the given entity
     const entityRepository: Repository<T> =
       await this.getRepositoryForEntity<T>(entityName)
+    if (!entityRepository) {
+      throw new Error(`Repository for '${entityName}' not received!!!`)
+    }
+
+    try {
+      console.log(
+        `seed.dat:104 - Start filling DB with entity ${entityName}...`,
+      )
+
+      // Loop through potential servers until successful data retrieval
+      let servers = [swapiUrl_1, swapiUrl_2] // Array of server URLs in priority order
+      let successful = false
+      let next: string | null = null
+
+      for (const serverUrl of servers) {
+        next = `${serverUrl}${entityName}/` // Construct URL with current server
+
+        // Fetch data from SWAPI
+        const response: Response = await fetch(next)
+
+        if (response.ok) {
+          successful = true
+          const apiResponse: ApiResponse<T> = await response.json()
+
+          // Check the response type and handle data accordingly
+          if ('results' in apiResponse) {
+            // Multiple results found
+            const results = apiResponse.results
+            next = apiResponse.next
+            await this.saveDataToDB(results, entityName, entityRepository)
+            if (entityName === 'people' || entityName === 'films') {
+              await this.fillRelatedData(entityName, results)
+            }
+          } else {
+            // Single result found
+            const results = [apiResponse.data]
+            await this.saveDataToDB(results, entityName, entityRepository)
+            if (entityName === 'people' || entityName === 'films') {
+              await this.fillRelatedData(entityName, results)
+            }
+            break // Exit the loop if data is retrieved successfully
+          }
+        } else {
+          console.warn(
+            `Failed to fetch data for '${entityName}' from ${serverUrl}`,
+          )
+        }
+      }
+
+      if (!successful) {
+        throw new Error(
+          `Failed to retrieve data for '${entityName}' from any server`,
+        )
+      }
+
+      console.log(`seed.dat:138 - Entity '${entityName}' added ok...`)
+    } catch (error) {
+      console.error(
+        `seed.dat:141 - Error when filling database with entity '${entityName}': "${error.message}"!!!`,
+      )
+      throw getResponceOfException(error)
+    }
+  }
+  
+  private async addData_<T extends BaseEntity>(
+    entityName: string,
+  ): Promise<void> {
+    // Get the TypeORM repository for the given entity
+    const entityRepository: Repository<T> =
+      await this.getRepositoryForEntity<T>(entityName)
     if (!entityRepository)
       throw new Error(`Repository for '${entityName}' not received!!!`)
     try {
       console.log(`seed.dat:104 - Start fill DB an entity ${entityName}...`)
       // Construct the URL for fetching data from SWAPI
-      let next: string | null = `${swapiUrl}${entityName}/`
+      let next: string | null = `${swapiUrl_1}${entityName}/`
       //let next: string | null = `<span class="math-inline">\{swapiUrl\}</span>{entityName}/`
       // Variable to store results from each page
       let results: T[] = []

@@ -5,7 +5,7 @@ import {
   UserRoles,
   errorMap,
   localUrl,
-  swapiUrl,
+  swapiUrl_1,
 } from './constants'
 import * as bcrypt from 'bcrypt'
 import { User } from 'src/user/entities/user.entity'
@@ -148,7 +148,7 @@ export async function getBaseUrlOfEntityFromItsId(
  * @returns Promise<string> The modified string with local URLs.
  */
 export async function replaceUrlWithLocal(url: string): Promise<string> {
-  return url.replace(swapiUrl, localUrl)
+  return url.replace(swapiUrl_1, localUrl)
 }
 
 /**
@@ -251,24 +251,38 @@ export function getFileNameForDeleteFromAWS(fileName: string): string {
  */
 export function formatUptime(seconds: number): string {
   // Rounding the input value to the nearest integer
-  const roundedSeconds = Math.round(seconds);
+  const roundedSeconds = Math.round(seconds)
 
   // Calculate time units using constants from the TimeUnits enum
-  const years = Math.floor(roundedSeconds / TimeUnits.SECONDS_IN_A_YEAR);
-  const days = Math.floor((roundedSeconds % TimeUnits.SECONDS_IN_A_YEAR) / TimeUnits.SECONDS_IN_A_DAY);
-  const hours = Math.floor((roundedSeconds % TimeUnits.SECONDS_IN_A_DAY) / TimeUnits.SECONDS_IN_AN_HOUR);
-  const minutes = Math.floor((roundedSeconds % TimeUnits.SECONDS_IN_AN_HOUR) / TimeUnits.SECONDS_IN_A_MINUTE);
-  const secondsLeft = roundedSeconds % TimeUnits.SECONDS_IN_A_MINUTE;
+  const years = Math.floor(roundedSeconds / TimeUnits.SECONDS_IN_A_YEAR)
+  const days = Math.floor(
+    (roundedSeconds % TimeUnits.SECONDS_IN_A_YEAR) / TimeUnits.SECONDS_IN_A_DAY,
+  )
+  const hours = Math.floor(
+    (roundedSeconds % TimeUnits.SECONDS_IN_A_DAY) /
+      TimeUnits.SECONDS_IN_AN_HOUR,
+  )
+  const minutes = Math.floor(
+    (roundedSeconds % TimeUnits.SECONDS_IN_AN_HOUR) /
+      TimeUnits.SECONDS_IN_A_MINUTE,
+  )
+  const secondsLeft = roundedSeconds % TimeUnits.SECONDS_IN_A_MINUTE
 
   // Format each time unit as a string, omitting units with a value of 0
-  const formattedYears = years ? `${years}y` : '';
-  const formattedDays = days ? `${days}d` : '';
-  const formattedHours = hours ? `${hours}h` : '';
-  const formattedMinutes = minutes ? `${minutes}m` : '';
-  const formattedSeconds = secondsLeft ? `${secondsLeft}s` : '';
+  const formattedYears = years ? `${years}y` : ''
+  const formattedDays = days ? `${days}d` : ''
+  const formattedHours = hours ? `${hours}h` : ''
+  const formattedMinutes = minutes ? `${minutes}m` : ''
+  const formattedSeconds = secondsLeft ? `${secondsLeft}s` : ''
 
   // Combine all non-empty units into a single string
-  return [formattedYears, formattedDays, formattedHours, formattedMinutes, formattedSeconds]
+  return [
+    formattedYears,
+    formattedDays,
+    formattedHours,
+    formattedMinutes,
+    formattedSeconds,
+  ]
     .filter(Boolean) // Remove empty strings
-    .join('');       // Join units without separators
+    .join('') // Join units without separators
 }

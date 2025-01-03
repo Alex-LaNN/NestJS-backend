@@ -186,4 +186,4 @@ API documentation is available at `/api` after running the application.
 
 ## *License*
 
-[Insert License Information]
+[]
