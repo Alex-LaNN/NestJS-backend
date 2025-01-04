@@ -6,7 +6,6 @@ import {
   entityClassesForFill,
   relatedEntitiesMap,
   swapiUrl_1,
-  swapiUrl_2,
 } from 'src/shared/constants'
 import { DataSource, QueryRunner, Repository } from 'typeorm'
 import fetch from 'cross-fetch'
@@ -15,6 +14,7 @@ import {
   findNameAndDataOfRelationEntity,
   getObjectNameFromUrl,
   getResponceOfException,
+  getWorkingUrl,
   replaceUrlWithLocal,
   setObjectField,
 } from 'src/shared/common.functions'
@@ -96,76 +96,8 @@ export class SeedDatabase {
   private async addData<T extends BaseEntity>(
     entityName: string,
   ): Promise<void> {
-    // Get the TypeORM repository for the given entity
-    const entityRepository: Repository<T> =
-      await this.getRepositoryForEntity<T>(entityName)
-    if (!entityRepository) {
-      throw new Error(`Repository for '${entityName}' not received!!!`)
-    }
-
-    try {
-      console.log(
-        `seed.dat:104 - Start filling DB with entity ${entityName}...`,
-      )
-
-      // Loop through potential servers until successful data retrieval
-      let servers = [swapiUrl_1, swapiUrl_2] // Array of server URLs in priority order
-      let successful = false
-      let next: string | null = null
-
-      for (const serverUrl of servers) {
-        next = `${serverUrl}${entityName}/` // Construct URL with current server
-
-        // Fetch data from SWAPI
-        const response: Response = await fetch(next)
-
-        if (response.ok) {
-          successful = true
-          const apiResponse: ApiResponse<T> = await response.json()
-
-          // Check the response type and handle data accordingly
-          if ('results' in apiResponse) {
-            // Multiple results found
-            const results = apiResponse.results
-            next = apiResponse.next
-            await this.saveDataToDB(results, entityName, entityRepository)
-            if (entityName === 'people' || entityName === 'films') {
-              await this.fillRelatedData(entityName, results)
-            }
-          } else {
-            // Single result found
-            const results = [apiResponse.data]
-            await this.saveDataToDB(results, entityName, entityRepository)
-            if (entityName === 'people' || entityName === 'films') {
-              await this.fillRelatedData(entityName, results)
-            }
-            break // Exit the loop if data is retrieved successfully
-          }
-        } else {
-          console.warn(
-            `Failed to fetch data for '${entityName}' from ${serverUrl}`,
-          )
-        }
-      }
-
-      if (!successful) {
-        throw new Error(
-          `Failed to retrieve data for '${entityName}' from any server`,
-        )
-      }
-
-      console.log(`seed.dat:138 - Entity '${entityName}' added ok...`)
-    } catch (error) {
-      console.error(
-        `seed.dat:141 - Error when filling database with entity '${entityName}': "${error.message}"!!!`,
-      )
-      throw getResponceOfException(error)
-    }
-  }
-  
-  private async addData_<T extends BaseEntity>(
-    entityName: string,
-  ): Promise<void> {
+    const currentUrl: string = await getWorkingUrl()
+    const isFirstUrl: boolean = currentUrl === swapiUrl_1
     // Get the TypeORM repository for the given entity
     const entityRepository: Repository<T> =
       await this.getRepositoryForEntity<T>(entityName)
@@ -174,8 +106,7 @@ export class SeedDatabase {
     try {
       console.log(`seed.dat:104 - Start fill DB an entity ${entityName}...`)
       // Construct the URL for fetching data from SWAPI
-      let next: string | null = `${swapiUrl_1}${entityName}/`
-      //let next: string | null = `<span class="math-inline">\{swapiUrl\}</span>{entityName}/`
+      let next: string | null = `${currentUrl}${entityName}/`
       // Variable to store results from each page
       let results: T[] = []
       // Loop through paginated data from SWAPI
@@ -200,10 +131,16 @@ export class SeedDatabase {
           next = null
         }
         // Process and save the fetched data
-        await this.saveDataToDB<T>(results, entityName, entityRepository)
+        await this.saveDataToDB<T>(
+          results,
+          entityName,
+          entityRepository,
+          currentUrl,
+          isFirstUrl,
+        )
         // Fill related data for 'people' and 'films' entities
-        if (entityName === 'people' || entityName === 'films') {
-          await this.fillRelatedData(entityName, results)
+        if ((entityName === 'people' || entityName === 'films') && isFirstUrl) {
+          await this.fillRelatedData(entityName, results, currentUrl)
         }
       } while (next)
       console.log(`seed.dat:138 - Entity '${entityName}' added ok...`)
@@ -229,6 +166,8 @@ export class SeedDatabase {
     results: T[],
     entityName: string,
     entityRepository: Repository<T>,
+    currentUrl: string,
+    isFirstUrl: boolean,
   ): Promise<void> {
     // Check for invalid arguments
     if (!results || !entityRepository) {
@@ -244,17 +183,20 @@ export class SeedDatabase {
           throw new Error(`Object does not have a 'url' property`)
         }
         // Replace URLs with local URLs
-        object.url = await replaceUrlWithLocal(object.url)
+        object.url = await replaceUrlWithLocal(object.url, currentUrl)
         // Extract ID from URL and assign it to the object's ID property
         object.id = (await extractIdFromUrl(object.url)) as number
         // Handle specific fields for 'people' and 'species' entities
-        if (entityName === 'people' || entityName === 'species') {
+        if (
+          (entityName === 'people' || entityName === 'species') &&
+          isFirstUrl
+        ) {
           const url = object.homeworld
           const idFromUrl = (await extractIdFromUrl(url)) as number
           object.homeworld = object.homeworldId = idFromUrl
         }
         // Handle specific fields for 'planets' entities
-        if (entityName === 'planets') {
+        if (entityName === 'planets' && isFirstUrl) {
           const url = object.residents
           object.residents = object.residentsId = (await extractIdFromUrl(
             url,
@@ -279,6 +221,7 @@ export class SeedDatabase {
   private async fillRelatedData<T extends ExtendedBaseEntity>(
     entityName: string,
     objects: T[],
+    currentUrl: string,
   ): Promise<void> {
     // Get the related entities for the given entity
     const relatedNames: string[] =
@@ -293,6 +236,7 @@ export class SeedDatabase {
             object,
             object[relationName],
             relationName,
+            currentUrl,
           )
         // Convert the updated data to the correct type
         const typedUpdatedRelationData =
@@ -371,15 +315,16 @@ export class SeedDatabase {
     object: Record<string, any>,
     relationData: string | string[],
     relationName: string,
+    currentUrl: string,
   ): Promise<string | string[]> {
     try {
       // Replace the main URL of the object with a local URL
-      object.url = await replaceUrlWithLocal(object.url)
+      object.url = await replaceUrlWithLocal(object.url, currentUrl)
       if (Array.isArray(relationData)) {
         // Handle an array of URLs
         relationData = await Promise.all(
           relationData.map(
-            async (url: string) => await replaceUrlWithLocal(url),
+            async (url: string) => await replaceUrlWithLocal(url, currentUrl),
           ),
         )
       } else if (typeof relationData === 'string') {

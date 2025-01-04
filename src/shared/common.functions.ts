@@ -6,6 +6,7 @@ import {
   errorMap,
   localUrl,
   swapiUrl_1,
+  swapiUrl_2,
 } from './constants'
 import * as bcrypt from 'bcrypt'
 import { User } from 'src/user/entities/user.entity'
@@ -86,6 +87,52 @@ export async function isUserAdmin(user: User): Promise<boolean> {
 }
 
 /**
+ * Cached working URL for Star Wars API.
+ *
+ * This variable stores the URL of the currently working Star Wars API endpoint.
+ * It is used to cache the result of the URL check to avoid repeated network requests.
+ */
+let cachedWorkingUrl: string | null = null
+
+/**
+ * Gets the URL of the currently working Star Wars API endpoint.
+ *
+ * This function checks a list of predefined Star Wars API URLs to determine 
+ * which one is currently accessible. It caches the result of the check to 
+ * avoid repeated network requests.
+ *
+ * @returns The URL of the currently working Star Wars API endpoint, 
+ *          or null if none of the URLs are accessible.
+ */
+export async function getWorkingUrl(): Promise<string | null> {
+  // If the URL is already cached, return it directly
+  if (cachedWorkingUrl) {
+    return cachedWorkingUrl
+  }
+  const checkUrl = async (url: string): Promise<boolean> => {
+    try {
+      const response = await fetch(url)
+      return response.ok
+    } catch (error) {
+      console.error(`Error checking URL ${url}:`, error.message)
+      return false
+    }
+  }
+  if (await checkUrl(swapiUrl_1)) {
+    console.log(`URL ${swapiUrl_1} is working.`)
+    cachedWorkingUrl = swapiUrl_1
+    return swapiUrl_1
+  }
+  if (await checkUrl(swapiUrl_2)) {
+    console.log(`URL ${swapiUrl_2} is working.`)
+    cachedWorkingUrl = swapiUrl_2
+    return swapiUrl_2
+  }
+  console.error('All URLs are not working.')
+  return null
+}
+
+/**
  * Extracts an ID from a URL
  *
  * This function extracts an ID from a provided URL (`url`). It handles both single URLs and arrays of URLs. If the URL is an array, it extracts IDs from each element of the array.
@@ -139,16 +186,21 @@ export async function getBaseUrlOfEntityFromItsId(
 }
 
 /**
- * Replaces Star Wars API URLs with local URLs in a given string
- *
- * This function replaces all occurrences of the `swapiUrl` (Star Wars API URL) with the `localUrl` (local API URL) in the provided `url` string.
- * It utilizes the `replace()` method to perform the replacements.
- *
- * @param url (string) The string in which to replace URLs.
- * @returns Promise<string> The modified string with local URLs.
+ * Replaces the base URL in a given URL with the local URL.
+
+ * This function takes a URL and the current base URL as input. 
+ * It replaces the current base URL in the given URL with the local URL.
+
+ * @param url - The URL to be modified.
+ * @param currentUrl - The current base URL to be replaced.
+
+ * @returns The modified URL with the replaced base URL.
  */
-export async function replaceUrlWithLocal(url: string): Promise<string> {
-  return url.replace(swapiUrl_1, localUrl)
+export async function replaceUrlWithLocal(
+  url: string,
+  currentUrl: string,
+): Promise<string> {
+  return url.replace(currentUrl, localUrl)
 }
 
 /**
