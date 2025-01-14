@@ -1,6 +1,6 @@
 # For use in Teamcity Agent.
-
 version: '3.8'
+
 services:
   mysql-test:
     container_name: swapi_mysql_test:${BUILD_NUMBER}

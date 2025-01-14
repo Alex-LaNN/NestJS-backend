@@ -39,7 +39,6 @@ services:
     restart: on-failure
 
   app:
-    container_name: swapi_app_${BUILD_NUMBER}
     image: app:latest
     build:
       context: .
@@ -47,6 +46,7 @@ services:
       args:
         - NODE_ENV=production
         - ENV_FILE=.env.production
+    container_name: swapi_app_${BUILD_NUMBER}
     environment:
       - NODE_ENV=production
       - DB_HOST=${DB_HOST}
